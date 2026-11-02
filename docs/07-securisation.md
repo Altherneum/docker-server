@@ -115,7 +115,7 @@ reprend pas les clés de `root`.
   `admin`, puis on utilise `su -` (ou `sudo -i`) pour root.
 - Limite les tentatives (`MaxAuthTries 3`) et le délai de connexion.
 - Désactive X11, les tunnels et les transferts d'agent.
-- Vérifie avec `sshd -t` puis `sshd -T`, puis recharge SSH.
+- Vérifie avec `sshd -t` puis `sshd -T`, puis redémarre SSH.
 - Sauvegarde la configuration avant modification.
 
 ### Port SSH
@@ -247,7 +247,7 @@ Restauration manuelle de SSH :
 ```sh
 sudo cp -a /var/backups/harden/<horodatage>/etc__ssh__sshd_config /etc/ssh/sshd_config
 sudo rm -f /etc/ssh/sshd_config.d/00-docker-server-hardening.conf
-sudo systemctl reload ssh 2>/dev/null || sudo systemctl reload sshd
+sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd
 ```
 
 ## Options de `install.sh`
@@ -310,7 +310,7 @@ Utilisez la console de secours de votre hébergeur, puis :
 ```sh
 sudo rm -f /etc/ssh/sshd_config.d/00-docker-server-hardening.conf
 sudo cp -a /var/backups/harden/<horodatage>/etc__ssh__sshd_config /etc/ssh/sshd_config
-sudo systemctl reload ssh 2>/dev/null || sudo systemctl reload sshd
+sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd
 sudo ufw allow 22/tcp
 sudo ufw disable          # seulement en dernier recours
 ```

@@ -4,14 +4,10 @@
 # 21-sshd-service.sh - rechargement et restauration de SSH
 # =============================================================================
 
-# Recharge SSH via systemd.
+# Redémarre SSH via systemd.
+# Un simple reload ne recrée pas toujours le socket d'écoute : le nouveau port
+# n'est réellement pris en compte qu'après un redémarrage complet du service.
 reload_ssh_systemd() {
-    if systemctl reload ssh 2>/dev/null; then
-        return 0
-    fi
-    if systemctl reload sshd 2>/dev/null; then
-        return 0
-    fi
     if systemctl restart ssh 2>/dev/null; then
         return 0
     fi
