@@ -90,17 +90,42 @@ function encryptedRconPassword(): string
     return $encrypted;
 }
 
+function rconPort(): string
+{
+    $port = envValue('MINECRAFT_RCON_PORT');
+
+    if ($port === null || $port === '') {
+        $port = '25575';
+    }
+
+    if (! ctype_digit($port)) {
+        fail('MINECRAFT_RCON_PORT doit être un nombre entier.');
+    }
+
+    $number = (int) $port;
+
+    if ($number < 1 || $number > 65535) {
+        fail('MINECRAFT_RCON_PORT doit être compris entre 1 et 65535.');
+    }
+
+    return (string) $number;
+}
+
 function replaceSeedPlaceholders(string $sql, mysqli $db): string
 {
-    if (! str_contains($sql, '{{rcon-password}}')) {
+    if (! str_contains($sql, '{{rcon-')) {
         return $sql;
     }
 
-    return str_replace(
-        '{{rcon-password}}',
-        $db->real_escape_string(encryptedRconPassword()),
-        $sql
-    );
+    $replacements = [
+        '{{rcon-port}}' => rconPort(),
+    ];
+
+    if (str_contains($sql, '{{rcon-password}}')) {
+        $replacements['{{rcon-password}}'] = $db->real_escape_string(encryptedRconPassword());
+    }
+
+    return strtr($sql, $replacements);
 }
 
 /**

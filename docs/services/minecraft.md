@@ -65,6 +65,7 @@ les joueurs.
 | `VELOCITY_ONLINE_MODE` | `true` premium, `false` hors-ligne |
 | `VELOCITY_MOTD` | Message affiché dans la liste des serveurs (`\n` pour un saut de ligne) |
 | `MINECRAFT_RCON_PASSWORD` | Mot de passe RCON |
+| `MINECRAFT_RCON_PORT` | Port RCON utilisé par Paper et Azuriom (`25575`) |
 | `MINECRAFT_DISCORD_TOKEN_*` | Jeton du bot Discord de chaque serveur (un bot par serveur) |
 
 Les variables `MINECRAFT_DISCORD_TOKEN_HUB`, `MINECRAFT_DISCORD_TOKEN_SURVIE`,

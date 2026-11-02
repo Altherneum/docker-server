@@ -4,8 +4,8 @@
 # =============================================================================
 FROM alpine:3.24
 
-# Le paquet Alpine active une jail sshd qui échoue en conteneur (pas de
-# /var/log/auth.log). Seules les jails Traefik de ce dépôt sont utilisées.
+# Le paquet Alpine active une jail sshd avec un chemin qui n'existe pas dans
+# l'image. La jail SSH de l'hôte est générée au démarrage par entrypoint.sh.
 RUN apk add --no-cache fail2ban iptables ip6tables tzdata logrotate \
     && rm -f /etc/fail2ban/jail.d/alpine-ssh.conf
 

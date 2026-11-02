@@ -59,6 +59,7 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 | Azuriom / base | `AZURIOM_DB_ROOT_PASSWORD`, `AZURIOM_DB_USER`, `AZURIOM_DB_PASSWORD` | Base MariaDB |
 | Azuriom / mail | `AZURIOM_MAIL_PASSWORD` | Boîte `noreply@` |
 | Forgejo | `FORGEJO_ADMIN_NAME`, `FORGEJO_ADMIN_PASSWORD` | Compte admin Forgejo |
+| Forgejo | `FORGEJO_HTTP_USER`, `FORGEJO_HTTP_PASSWORD` | Protection HTTP Basic par Traefik |
 | Forgejo / base | `FORGEJO_DB_USER`, `FORGEJO_DB_PASSWORD` | Base PostgreSQL |
 | Forgejo / base | `FORGEJO_DB_ROOT_PASSWORD` | Généré mais non utilisé par la stack actuelle |
 | Forgejo / mail | `FORGEJO_MAIL_PASSWORD` | Boîte `git@` |
@@ -72,7 +73,7 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 
 ## Modifier un mot de passe
 
-### Tableau de bord Traefik, phpMyAdmin, KeeWeb, code-server (HTTP Basic)
+### Tableau de bord Traefik, phpMyAdmin, KeeWeb, code-server, Forgejo (HTTP Basic)
 
 1. Modifier la valeur dans `.env`.
 2. Lancer `sudo make init` pour régénérer les fichiers `.htpasswd`.
@@ -81,6 +82,17 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 ```sh
 sudo make restart-service SERVICE=traefik
 ```
+
+### Forgejo
+
+Forgejo a deux protections :
+
+- `FORGEJO_HTTP_USER` / `FORGEJO_HTTP_PASSWORD` : protection HTTP Basic
+  par Traefik, générée dans `stacks/proxy/auth/forgejo.htpasswd` ;
+- `FORGEJO_ADMIN_NAME` / `FORGEJO_ADMIN_PASSWORD` : compte admin Forgejo.
+
+Pour changer la protection HTTP : modifier `.env`, lancer `sudo make init`,
+puis redémarrer Forgejo.
 
 ### code-server
 
@@ -107,7 +119,8 @@ pour repartir de zéro (destructif).
 
 ### Compte admin Forgejo
 
-Il n'est pas créé automatiquement. Après `make up`, lancez :
+Le compte admin est créé **automatiquement** par `make up` et par
+`make up-service SERVICE=forgejo`. La commande reste disponible manuellement :
 
 ```sh
 sudo make forgejo-admin
@@ -131,6 +144,7 @@ dans `.env`.
 | `stacks/proxy/auth/dashboard.htpasswd` | Accès au dashboard Traefik |
 | `stacks/proxy/auth/phpmyadmin.htpasswd` | Accès HTTP à phpMyAdmin |
 | `stacks/proxy/auth/code-server.htpasswd` | Accès HTTP à code-server |
+| `stacks/proxy/auth/forgejo.htpasswd` | Accès HTTP à Forgejo |
 | `stacks/web/keeweb/auth/*.htpasswd` | Accès KeeWeb et WebDAV |
 | `stacks/web/php-site/src/.env` | Configuration du site PHP cloné |
 

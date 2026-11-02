@@ -61,7 +61,7 @@ services:
       traefik.http.routers.forgejo.rule: "Host(`git.${DOMAIN_NAME}${TLD}`) || Host(`repo.${DOMAIN_NAME}${TLD}`) || Host(`forgejo.${DOMAIN_NAME}${TLD}`)"
       traefik.http.routers.forgejo.entrypoints: "websecure"
       traefik.http.routers.forgejo.tls.certResolver: "letsencrypt"
-      traefik.http.routers.forgejo.middlewares: "secure-headers@file"
+      traefik.http.routers.forgejo.middlewares: "forgejo-auth@file,secure-headers@file"
       traefik.http.services.forgejo.loadbalancer.server.port: "3000"
 
   db-forgejo:

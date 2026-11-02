@@ -5,27 +5,41 @@ nettoyer les services de ce dépôt
 ## Démarrage rapide
 
 ```sh
-# 1. Se placer à la racine du dépôt
-cd /opt/docker-server        # ou le dossier où le dépôt a été cloné
+# 1. Cloner le dépôt
+git clone https://github.com/lx78WyY0J5/docker-server.git
+cd docker-server
 
-# 2. Créer .env, les mots de passe et les réseaux Docker
-sudo make init
+# 2. Créer et remplir .env
+cp .env.example .env
+chmod 600 .env
+nano .env
 
-# 3. Modifier .env (domaine, token Discord, etc.)
-sudo nano .env
+# 3. Sur votre poste : créer la clé SSH et copier la clé publique
+#    ssh-keygen -t ed25519
+#    scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
 
-# 4. Vérifier la configuration
+# 4. Installer Docker, générer les secrets et sécuriser l'hôte
+sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
+
+# 5. Tester la connexion SSH dans un autre terminal AVANT de fermer
+#    ssh -p <port> admin@<ip>
+#    su -
+
+# 6. Démarrer les services
 sudo make check-env
-
-# 5. Construire et démarrer tous les services
 sudo make up
-
-# 6. Vérifier que tout tourne
 sudo make ps
 ```
 
-> Si votre utilisateur est dans le groupe `docker`, vous pouvez retirer `sudo`.
-> Les commandes se lancent **toujours depuis la racine du dépôt**.
+> La clé SSH est obligatoire. Ne fermez pas la fenêtre d'installation avant
+> d'avoir testé la connexion par clé.
+> Si votre utilisateur est dans le groupe `docker`, vous pouvez retirer `sudo`
+> des commandes `make`. Les commandes se lancent **toujours depuis la racine du
+> dépôt**.
+
+Pour la méthode manuelle (paquets, hardening) et la liste des conteneurs, voir
+[Installation](01-installation.md). Pour arrêter, redémarrer, sauvegarder ou
+restaurer, voir [Commandes](03-commandes.md).
 
 ## Comprendre les adresses
 
@@ -74,13 +88,14 @@ secrets. Le fichier est déjà ignoré par Git.
 | [`images/`](../images/README.md) | Images Docker de base |
 | [`scripts/`](../scripts/README.md) | Scripts appelés par le `Makefile` |
 | [`backups/`](../backups/README.md) | Sauvegardes locales |
-| `install.sh` | Installation automatique de l'hôte |
+| `install.sh` + `install/` | Installation complète : Docker, dépôt, `.env`, sécurisation |
 
 ## Guides généraux
 
 | Guide | Contenu |
 |---|---|
-| [Installation](01-installation.md) | Prérequis, DNS, premier démarrage |
+| [Installation](01-installation.md) | Installation simple ou manuelle, conteneurs, commandes, DNS, ports |
+| [Sécurisation de l'hôte](07-securisation.md) | Compte admin, SSH, UFW, fail2ban, mises à jour |
 | [Configuration `.env`](02-configuration-env.md) | Variables, secrets, mots de passe |
 | [Commandes](03-commandes.md) | Démarrer, arrêter, redémarrer, nettoyer |
 | [Accès et URL](04-acces-et-urls.md) | Toutes les adresses et les ports |

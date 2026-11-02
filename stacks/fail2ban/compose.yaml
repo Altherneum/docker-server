@@ -13,7 +13,13 @@ services:
       - NET_RAW
     environment:
       TZ: ${TZ}
+      FAIL2BAN_SSH_PORT: ${HARDEN_SSH_PORT:-22}
+      FAIL2BAN_MAXRETRY: ${HARDEN_FAIL2BAN_MAXRETRY:-3}
+      FAIL2BAN_BANTIME: ${HARDEN_FAIL2BAN_BANTIME:-1h}
+      FAIL2BAN_FINDTIME: ${HARDEN_FAIL2BAN_FINDTIME:-10m}
+      FAIL2BAN_SSH_LOG: ${FAIL2BAN_SSH_LOG:-}
     volumes:
+      - /var/log:/host/var/log:ro
       - traefik-logs:/var/log/traefik
       - fail2ban-data:/var/lib/fail2ban
 

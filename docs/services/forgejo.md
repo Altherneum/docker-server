@@ -11,10 +11,20 @@
 
 | Variable `.env` | Utilisation |
 |---|---|
+| `FORGEJO_HTTP_USER` | Identifiant HTTP Basic (par défaut `forgejo`) |
+| `FORGEJO_HTTP_PASSWORD` | Mot de passe HTTP Basic, généré par `make init` |
 | `FORGEJO_ADMIN_NAME` | Identifiant admin |
 | `FORGEJO_ADMIN_EMAIL` | E-mail admin |
 | `FORGEJO_ADMIN_PASSWORD` | Mot de passe admin |
 | `FORGEJO_DB_USER` / `FORGEJO_DB_PASSWORD` | Compte PostgreSQL (superutilisateur de l'image) |
+
+Forgejo est protégé par **deux niveaux** :
+
+1. HTTP Basic par Traefik, via `stacks/proxy/auth/forgejo.htpasswd` ;
+2. compte admin Forgejo pour l'interface.
+
+Pour changer la protection HTTP : modifiez `FORGEJO_HTTP_PASSWORD` dans `.env`,
+lancez `sudo make init`, puis redémarrez Forgejo.
 
 > `FORGEJO_DB_ROOT_PASSWORD` existe dans `.env.example` mais n'est pas utilisé
 > par la configuration actuelle de `db-forgejo`. Vous pouvez l'ignorer.
@@ -48,6 +58,8 @@ utilisez un autre nom, par exemple `monprojet`.
 | `FORGEJO_ADMIN_NAME` | Identifiant admin |
 | `FORGEJO_ADMIN_EMAIL` | E-mail admin |
 | `FORGEJO_ADMIN_PASSWORD` | Mot de passe admin |
+| `FORGEJO_HTTP_USER` | Identifiant HTTP Basic |
+| `FORGEJO_HTTP_PASSWORD` | Mot de passe HTTP Basic |
 | `FORGEJO_MAIL_*` | Configuration e-mail (optionnelle) |
 
 `FORGEJO_VERSION` définie dans `.env` est la seule source de vérité : elle est

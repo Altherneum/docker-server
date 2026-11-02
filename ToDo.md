@@ -20,9 +20,9 @@
 | `phpmyadmin` | ------------ | ------------ | OK |
 | `meme` | ------------ | ------------ | à faire |
 | `meme` | Dynamic variable .env | Cacher les termes "Altherneum" dans le code source, utiliser une variable, et l'ajouter au .env, puis faire un script qui remplace la variable lors de l'installation de ce site | à faire |
-| `forgejo`, `db-forgejo` | ------------ | ------------ | OK |
-| `forgejo` #1 | Connexion test | Tester de se connecter avec le compte admin sur  [forgejo.localhost/user/login](https://forgejo.localhost/user/login) | OK (admin créé, auth API validée) |
-| `forgejo` #2 | Message d'erreur | Vérifier si le message `Cette instance Forgejo est configuré pour être servi sur "https://git.localhost/". Vous êtes actuellement en train de regarder Forgejo avec une URL différente, ce qui pourrait casser certaines parties de cette application. L'URL canonique est controllée par les administrateurs Forgejo grâce au paramètre ROOT_URL dans le app.ini.` est important et casse quelque chose ? message visible sur : [forgejo.localhost/user/login](https://forgejo.localhost/user/login) | à faire |
+| `forgejo`, `db-forgejo`, `admin account` | ------------ | ------------ | OK |
+| `forgejo` | Clone repo | Cloner les repo et faire une synchro mirroire | à faire |
+| `forgejo` | Basic auth | Ajouter une basic auth password avec Traefik | à faire |
 | `code-server` | ------------ | ------------ | OK |
 | `code-server` #1 | git clone | Cloner les repo par défaut pour aller plus vite | à faire |
 | `velocity`, `mc-*` | ------------ | ------------ | OK |

@@ -30,6 +30,10 @@ http:
       basicAuth:
         usersFile: "/etc/traefik/auth/code-server.htpasswd"
 
+    forgejo-auth:
+      basicAuth:
+        usersFile: "/etc/traefik/auth/forgejo.htpasswd"
+
     redirect-discord:
       redirectRegex:
         regex: "^https?://(www[.])?@@DOMAIN_REGEX@@(/.*)?$"

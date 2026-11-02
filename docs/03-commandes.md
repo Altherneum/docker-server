@@ -26,6 +26,21 @@ sudo make services      # liste les noms de services
 | `sudo make build` | Construit toutes les images |
 | `sudo make backup` | Sauvegarde les bases et les volumes |
 | `sudo make restore BACKUP=backups/AAAA-MM-JJ_HHMMSS` | Restaure une sauvegarde |
+| `sudo CONFIRM=yes make clean` | Supprime tous les conteneurs et volumes (destructif) |
+| `sudo CONFIRM=yes make down-clean` | Arrête puis supprime tout (destructif) |
+
+## Maintenance
+
+| Commande | Effet |
+|---|---|
+| `sudo make init` | Régénère `.env`, les secrets et les réseaux Docker |
+| `sudo make services` | Liste les noms de services |
+| `sudo make forgejo-admin` | Crée le compte admin Forgejo |
+| `sudo make php-site-src` | Met à jour le dépôt du site PHP |
+| `sudo make mail-up` | Démarre mailcow |
+| `sudo make mail-down` | Arrête mailcow |
+| `sudo make mail-logs` | Suit les logs de mailcow |
+| `sudo CONFIRM=yes make azuriom-seed` | Réapplique les données de démonstration Azuriom |
 
 ## Commandes pour un seul service
 
@@ -49,7 +64,7 @@ sudo make logs-service SERVICE=forgejo
 sudo make stop SERVICE=forgejo
 ```
 
-## Nettoyage : les trois niveaux
+## Nettoyage : les niveaux
 
 | Commande | Conteneurs | Volumes | Données |
 |---|---|---|---|
@@ -61,7 +76,7 @@ sudo make stop SERVICE=forgejo
 `make clean` et `make clean-service` demandent une confirmation :
 
 ```sh
-sudo make clean-service SERVICE=php-site CONFIRM=yes
+sudo CONFIRM=yes make clean-service SERVICE=php-site
 ```
 
 Un volume partagé avec un autre service est conservé automatiquement.
@@ -71,7 +86,7 @@ Un volume partagé avec un autre service est conservé automatiquement.
 | Modification | Commande conseillée |
 |---|---|
 | `.env` d'un service | `sudo make restart-service SERVICE=nom` |
-| `.htpasswd` (Traefik, phpMyAdmin, KeeWeb) | `sudo make init` puis redémarrer |
+| `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer |
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |
 | `Dockerfile` | `sudo make build` puis `sudo make up` |
 | Code du site PHP | `/api/deploy` ou `sudo make php-site-src` |

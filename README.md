@@ -9,7 +9,8 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 | Guide | Contenu |
 |---|---|
 | [Démarrage rapide](docs/README.md) | Installer, configurer et lancer |
-| [Installation](docs/01-installation.md) | Prérequis, DNS, ports |
+| [Installation](docs/01-installation.md) | Installation simple ou manuelle, conteneurs, commandes, DNS, ports |
+| [Sécurisation de l'hôte](docs/07-securisation.md) | Compte admin, SSH, UFW, fail2ban, mises à jour |
 | [Configuration `.env`](docs/02-configuration-env.md) | Variables et mots de passe |
 | [Commandes](docs/03-commandes.md) | Démarrer, arrêter, nettoyer |
 | [Accès et URL](docs/04-acces-et-urls.md) | Toutes les adresses |
@@ -20,9 +21,35 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 ## Démarrage rapide
 
 ```sh
-cd /opt/docker-server        # ou le dossier du dépôt
-sudo make init               # crée .env, les secrets et les réseaux
-sudo nano .env               # domaine, token Discord, UUID Azuriom…
+git clone https://github.com/lx78WyY0J5/docker-server.git
+cd docker-server
+
+cp .env.example .env
+chmod 600 .env
+nano .env                    # domaine, webhooks Discord, etc.
+
+# Sur votre poste :
+#   ssh-keygen -t ed25519
+#   scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
+
+sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
+```
+
+`install.sh` installe Docker, génère les secrets, crée les réseaux, puis
+sécurise l'hôte (compte admin, SSH, UFW, mises à jour). fail2ban est lancé
+avec les conteneurs.
+
+Testez la connexion dans un autre terminal avant de fermer celui de
+l'installation :
+
+```sh
+ssh -p <port> admin@<ip>
+su -
+```
+
+Ensuite seulement :
+
+```sh
 sudo make check-env
 sudo make up
 sudo make ps
@@ -95,7 +122,7 @@ toutes les adresses changeront en même temps.
 
 ### Services système
 - `traefik` : Proxy
-- `fail2ban` : Protection anti-brute force
+- `fail2ban` : Protection anti-brute force (Traefik + SSH)
 - `bot` : Bot Discord
 
 ### Messagerie

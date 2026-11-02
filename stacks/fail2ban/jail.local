@@ -19,8 +19,3 @@ maxretry = 5
 bantime.increment = true
 bantime.factor = 1
 bantime.maxtime = 90d
-
-# Le paquet Alpine active sshd par défaut ; cette jail n'a pas de sens dans
-# le conteneur (aucun /var/log/auth.log) et empêche fail2ban de démarrer.
-[sshd]
-enabled = false

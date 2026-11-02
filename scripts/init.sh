@@ -27,14 +27,28 @@ set_env() {
     key=$1
     value=$2
     current=$(get_env "$key")
-    if [ -z "$current" ] || [ "$current" = "CHANGE_ME" ]; then
-        escaped=$(printf '%s' "$value" | sed 's/[&|\\]/\\&/g')
-        if grep -q "^${key}=" "$ENV_FILE"; then
-            sed -i "s|^${key}=.*|${key}=${escaped}|" "$ENV_FILE"
-        else
-            printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
-        fi
+
+    if [ -z "$current" ]; then
+        write_env_value "$key" "$value"
+        return 0
     fi
+
+    if [ "$current" = "CHANGE_ME" ]; then
+        write_env_value "$key" "$value"
+    fi
+}
+
+write_env_value() {
+    key=$1
+    value=$2
+    escaped=$(printf '%s' "$value" | sed 's/[&|\\]/\\&/g')
+
+    if grep -q "^${key}=" "$ENV_FILE"; then
+        sed -i "s|^${key}=.*|${key}=${escaped}|" "$ENV_FILE"
+        return 0
+    fi
+
+    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
 }
 
 gen_hex() {
@@ -61,7 +75,9 @@ set_env FORGEJO_SECRET_KEY        "$(gen_hex 32)"
 set_env FORGEJO_INTERNAL_TOKEN    "$(gen_hex 48)"
 set_env FORGEJO_LFS_JWT_SECRET    "$(gen_hex 32)"
 set_env FORGEJO_OAUTH2_JWT_SECRET "$(gen_hex 32)"
+set_env FORGEJO_HTTP_USER         "forgejo"
 set_env FORGEJO_ADMIN_PASSWORD    "$(gen_hex 16)"
+set_env FORGEJO_HTTP_PASSWORD     "$(gen_hex 16)"
 set_env FORGEJO_MAIL_PASSWORD     "$(gen_hex 24)"
 
 set_env CODE_SERVER_PASSWORD      "$(gen_hex 16)"
@@ -72,6 +88,7 @@ set_env PMA_BLOWFISH_SECRET       "$(gen_hex 16)"
 
 set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"
+set_env HARDEN_ADMIN_PASSWORD     "$(gen_hex 24)"
 
 chmod 600 "$ENV_FILE"
 
@@ -92,6 +109,8 @@ write_htpasswd stacks/proxy/auth/phpmyadmin.htpasswd \
     "$(get_env PMA_ADMIN_USER)" "$(get_env PMA_ADMIN_PASSWORD)"
 write_htpasswd stacks/proxy/auth/code-server.htpasswd \
     "$(get_env CODE_SERVER_HTTP_USER)" "$(get_env CODE_SERVER_HTTP_PASSWORD)"
+write_htpasswd stacks/proxy/auth/forgejo.htpasswd \
+    "$(get_env FORGEJO_HTTP_USER)" "$(get_env FORGEJO_HTTP_PASSWORD)"
 write_htpasswd stacks/web/keeweb/auth/keeweb.htpasswd \
     "$(get_env KEEWEB_UI_USER)" "$(get_env KEEWEB_UI_PASSWORD)"
 write_htpasswd stacks/web/keeweb/auth/webdav.htpasswd \
