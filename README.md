@@ -21,18 +21,27 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 ## Démarrage rapide
 
 ```sh
-git clone https://github.com/lx78WyY0J5/docker-server.git
-cd docker-server
+ssh-keygen -t ed25519 -C "admin@mon-poste" # Crée votre clé SSH
+scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
+
+ssh root@<ip>
+
+sudo apt update && sudo apt install -y git   # Debian/Ubuntu, if git is missing
+
+sudo git clone https://github.com/lx78WyY0J5/docker-server.git /opt/docker-server
+
+cd /opt/docker-server
 
 cp .env.example .env
 chmod 600 .env
-nano .env                    # domaine, webhooks Discord, etc.
 
-# Sur votre poste :
-#   ssh-keygen -t ed25519
-#   scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
+nano .env
 
 sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
+
+# Si vous avez l'ajout de clé automatique
+ssh -p <port> admin@<ip-du-serveur>
+su - # Passer en root
 ```
 
 `install.sh` installe Docker, génère les secrets, crée les réseaux, puis

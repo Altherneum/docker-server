@@ -21,9 +21,13 @@ generate_password() {
 
 # Applique le mot de passe fourni ou en génère un.
 ensure_admin_password() {
-    if [ -n "$ADMIN_PASSWORD" ]; then
+    # CHANGE_ME est la valeur du modèle .env : la traiter comme « non fourni ».
+    if [ -n "$ADMIN_PASSWORD" ] && [ "$ADMIN_PASSWORD" != "CHANGE_ME" ]; then
         log "Application du mot de passe fourni pour $ADMIN_USER..."
-        printf '%s:%s\n' "$ADMIN_USER" "$ADMIN_PASSWORD" | chpasswd
+        if ! printf '%s:%s\n' "$ADMIN_USER" "$ADMIN_PASSWORD" | chpasswd; then
+            err "Impossible d'appliquer le mot de passe de $ADMIN_USER."
+            exit 1
+        fi
         return 0
     fi
 
@@ -34,5 +38,8 @@ ensure_admin_password() {
 
     ADMIN_INITIAL_PASSWORD=$(generate_password)
     log "Génération d'un mot de passe pour $ADMIN_USER (nécessaire pour sudo)."
-    printf '%s:%s\n' "$ADMIN_USER" "$ADMIN_INITIAL_PASSWORD" | chpasswd
+    if ! printf '%s:%s\n' "$ADMIN_USER" "$ADMIN_INITIAL_PASSWORD" | chpasswd; then
+        err "Impossible de définir le mot de passe de $ADMIN_USER."
+        exit 1
+    fi
 }

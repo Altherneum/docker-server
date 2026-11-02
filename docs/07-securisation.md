@@ -88,7 +88,8 @@ reprend pas les clés de `root`.
 ### Compte admin
 
 - Crée `admin` s'il n'existe pas (`HARDEN_ADMIN_USER` pour changer, mais `root`
-  est interdit).
+  est interdit). Si un groupe `admin` existe déjà, il est utilisé comme groupe
+  principal du compte.
 - L'ajoute au groupe `sudo` (Debian/Ubuntu) ou `wheel` (Alpine/Arch), et au
   groupe `docker` s'il existe (pour `docker ps` dans le MOTD).
 - Écrit une règle sudo dédiée dans

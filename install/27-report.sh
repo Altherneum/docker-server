@@ -19,6 +19,10 @@ show_report() {
         echo
         echo "  Mot de passe initial de $ADMIN_USER : $ADMIN_INITIAL_PASSWORD"
         echo "  Changez-le avec : sudo passwd $ADMIN_USER"
+    elif [ -n "$ADMIN_PASSWORD" ] && [ "$ADMIN_PASSWORD" != "CHANGE_ME" ]; then
+        echo
+        echo "  Mot de passe de $ADMIN_USER : défini dans .env"
+        echo "  Variable : HARDEN_ADMIN_PASSWORD"
     fi
 
     cat <<EOF
