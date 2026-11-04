@@ -97,9 +97,11 @@ configure_sshd() {
         fail_sshd "Le port SSH effectif ne correspond pas à $SSH_PORT."
     fi
 
+    log "Restart SSH ----------------------------------"
     if ! reload_ssh; then
         fail_sshd "Rechargement SSH impossible."
     fi
+    log "End restart SSH ----------------------------------"
 
     log "Configuration SSH validée (port $SSH_PORT, mot de passe désactivé, root bloqué)."
 }
