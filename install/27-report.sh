@@ -34,6 +34,8 @@ show_report() {
   Vérifications utiles :
     sudo ufw status verbose
     sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|port'
+    sudo ss -lntp | grep ":$SSH_PORT"
+    sudo systemctl status ssh
     docker exec fail2ban fail2ban-client status sshd   # après make up
 
   Les services ne sont PAS encore démarrés.

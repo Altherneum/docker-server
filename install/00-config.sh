@@ -18,6 +18,9 @@ HARDEN_PUBKEY_FILE=""
 # Chemins système.
 SSHD_CONFIG=/etc/ssh/sshd_config
 SSHD_DROPIN=/etc/ssh/sshd_config.d/00-docker-server-hardening.conf
+# Drop-in de port écrit par une ancienne version du script. Il est supprimé
+# pour revenir au mode classique où ssh.service applique sshd_config.
+SSH_SOCKET_DROPIN=/etc/systemd/system/ssh.socket.d/00-docker-server-port.conf
 
 # Valeurs de sécurité, remplies par load_security_config().
 ADMIN_USER=""

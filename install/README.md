@@ -57,7 +57,7 @@ tout seul.**
 | `18-sshd-config.sh` | Configuration SSH et orchestration |
 | `19-sshd-port.sh` | Port SSH et directives `Port` |
 | `20-sshd-validate.sh` | Validation de `sshd -t` |
-| `21-sshd-service.sh` | Rechargement et restauration de SSH |
+| `21-sshd-service.sh` | Redémarrage de `ssh.service` et restauration |
 | `22-ufw.sh` | Pare-feu UFW |
 | `23-auto-updates.sh` | Mises à jour automatiques Linux |
 | `24-webhooks.sh` | Notifications Discord des connexions SSH |

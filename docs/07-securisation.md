@@ -116,6 +116,9 @@ reprend pas les clés de `root`.
 - Limite les tentatives (`MaxAuthTries 3`) et le délai de connexion.
 - Désactive X11, les tunnels et les transferts d'agent.
 - Vérifie avec `sshd -t` puis `sshd -T`, puis redémarre SSH.
+- Sur Debian 13 et Ubuntu récents, désactive l'activation par socket
+  (`ssh.socket`) : c'est `ssh.service` qui lit `sshd_config` et applique le
+  port.
 - Sauvegarde la configuration avant modification.
 
 ### Port SSH
@@ -132,9 +135,11 @@ de lancer l'installation. Le script :
 
 1. écrit `Port <port>` dans le fichier inclus en premier ;
 2. commente les anciennes directives `Port` du `sshd_config` principal ;
-3. ouvre ce port dans UFW avec `ufw limit` ;
-4. prépare ce port pour la jail SSH du conteneur fail2ban ;
-5. vérifie que `sshd -T` ne renvoie que ce port.
+3. désactive `ssh.socket` puis active `ssh.service` (sinon le socket garde
+   l'ancien port `22` et la directive `Port` est ignorée) ;
+4. ouvre ce port dans UFW avec `ufw limit` ;
+5. prépare ce port pour la jail SSH du conteneur fail2ban ;
+6. vérifie que `sshd -T` ne renvoie que ce port.
 
 ### Pare-feu UFW
 
@@ -251,6 +256,8 @@ Restauration manuelle de SSH :
 ```sh
 sudo cp -a /var/backups/harden/<horodatage>/etc__ssh__sshd_config /etc/ssh/sshd_config
 sudo rm -f /etc/ssh/sshd_config.d/00-docker-server-hardening.conf
+sudo rm -f /etc/systemd/system/ssh.socket.d/00-docker-server-port.conf
+sudo systemctl daemon-reload
 sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd
 ```
 
@@ -315,14 +322,20 @@ Utilisez la console de secours de votre hébergeur, puis :
 
 ```sh
 sudo rm -f /etc/ssh/sshd_config.d/00-docker-server-hardening.conf
+sudo rm -f /etc/systemd/system/ssh.socket.d/00-docker-server-port.conf
 sudo cp -a /var/backups/harden/<horodatage>/etc__ssh__sshd_config /etc/ssh/sshd_config
+sudo systemctl daemon-reload
+sudo systemctl disable --now ssh.socket 2>/dev/null || true
+sudo systemctl enable ssh.service 2>/dev/null || true
 sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd
 sudo ufw allow 22/tcp
 sudo ufw disable          # seulement en dernier recours
 ```
 
 Si vous avez changé de port, pensez à autoriser ce port dans UFW avant de
-relancer SSH.
+relancer SSH. Sur Debian 13 et Ubuntu récents, le script désactive
+`ssh.socket` : si vous le réactivez, c'est lui qui possède le port et la
+directive `Port` de sshd est ignorée.
 
 ### `sshd -t` signale une erreur
 

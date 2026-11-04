@@ -263,7 +263,8 @@ Voici ce que `install.sh` fait automatiquement :
 - écrit une configuration sshd qui bloque le mot de passe et root :
   `PasswordAuthentication no`, `PermitRootLogin no`,
   `PubkeyAuthentication yes` ;
-- applique le port `HARDEN_SSH_PORT` dans sshd et UFW, et le transmet à fail2ban ;
+- applique le port `HARDEN_SSH_PORT` dans sshd et UFW, désactive
+  `ssh.socket` sur Debian 13 / Ubuntu récents, et transmet le port à fail2ban ;
 - configure UFW : refus des connexions entrantes, SSH limité, ports
   `80`, `443` et Minecraft ;
 - le conteneur fail2ban lit les logs SSH de l'hôte et bannit les tentatives ;

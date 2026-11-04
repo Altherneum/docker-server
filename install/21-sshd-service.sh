@@ -1,22 +1,50 @@
 # shellcheck shell=sh
 # shellcheck disable=SC2034  # variables partagées entre modules
 # =============================================================================
-# 21-sshd-service.sh - rechargement et restauration de SSH
+# 21-sshd-service.sh - redémarrage et restauration de SSH
 # =============================================================================
 
+# Repasse SSH en mode service classique.
+# Sur Debian 13 et Ubuntu récents, ssh.socket possède le port d'écoute et la
+# directive Port de sshd_config est ignorée. On désactive donc le socket une
+# bonne fois pour toutes : ssh.service lit sshd_config et applique le port.
+use_ssh_service() {
+    if ! have_systemd; then
+        return 0
+    fi
+
+    # Supprime le drop-in de port d'une ancienne version du script.
+    if [ -e "$SSH_SOCKET_DROPIN" ]; then
+        rm -f "$SSH_SOCKET_DROPIN"
+        systemctl daemon-reload
+    fi
+
+    if systemctl cat ssh.socket >/dev/null 2>&1; then
+        if systemctl disable --now ssh.socket 2>/dev/null; then
+            log "Activation SSH par socket désactivée."
+        else
+            warn "Impossible de désactiver ssh.socket."
+        fi
+    fi
+}
+
 # Redémarre SSH via systemd.
-# Un simple reload ne recrée pas toujours le socket d'écoute : le nouveau port
-# n'est réellement pris en compte qu'après un redémarrage complet du service.
 reload_ssh_systemd() {
-    if systemctl restart ssh 2>/dev/null; then
+    use_ssh_service
+
+    if systemctl enable ssh.service >/dev/null 2>&1 \
+        && systemctl restart ssh.service 2>/dev/null; then
         log "Reload SSH OK"
         return 0
     fi
-    
-    if systemctl systemctl restart sshd 2>/dev/null; then
+
+    if systemctl enable sshd.service >/dev/null 2>&1 \
+        && systemctl restart sshd.service 2>/dev/null; then
         log "Reload SSHD OK"
         return 0
     fi
+
+    return 1
 }
 
 # Recharge SSH via OpenRC.
@@ -26,27 +54,33 @@ reload_ssh_openrc() {
         return 0
     fi
 
-    if rc-service sshd reload 2>/dev/null; then
+    if rc-service sshd restart 2>/dev/null; then
         log "Reload SSHD OK"
         return 0
     fi
+
+    return 1
 }
 
 # Recharge SSH avec le gestionnaire disponible.
 reload_ssh() {
     if have_systemd; then
-        reload_ssh_systemd
-        log "Reload SSH OK SystemD"
-        return $?
+        if reload_ssh_systemd; then
+            log "Reload SSH OK SystemD"
+            return 0
+        fi
+        return 1
     fi
 
     if have_openrc; then
-        reload_ssh_openrc
-        log "Reload SSH OK OpenRC"
-        return $?
+        if reload_ssh_openrc; then
+            log "Reload SSH OK OpenRC"
+            return 0
+        fi
+        return 1
     fi
 
-    warn "Rechargez SSH manuellement : systemctl reload ssh (ou sshd)."
+    warn "Rechargez SSH manuellement : systemctl restart ssh (ou sshd)."
     return 0
 }
 
