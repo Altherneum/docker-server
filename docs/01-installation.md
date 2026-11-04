@@ -307,8 +307,12 @@ Créez ensuite les enregistrements DNS :
 | `A` (ou `AAAA`) | `*.monprojet.com` | IP publique du serveur |
 
 Le wildcard `*.monprojet.com` couvre tous les sous-domaines (`git`, `php`,
-`minecraft`, `code`, etc.). Si vous ne pouvez pas utiliser de wildcard, créez
-un enregistrement pour chaque sous-domaine utilisé.
+`minecraft`, `code`, etc.). Il ne couvre pas le domaine nu : gardez
+l'enregistrement `A`/`AAAA` sur l'apex. Si vous ne pouvez pas utiliser de
+wildcard, créez un enregistrement pour chaque sous-domaine utilisé.
+
+> Le tableau minimal, les exceptions à deux niveaux comme `git.arch` et les
+> enregistrements mail sont détaillés dans [DNS](08-dns.md).
 
 ## Ports à ouvrir
 

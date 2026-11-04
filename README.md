@@ -14,6 +14,7 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 | [Configuration `.env`](docs/02-configuration-env.md) | Variables et mots de passe |
 | [Commandes](docs/03-commandes.md) | Démarrer, arrêter, nettoyer |
 | [Accès et URL](docs/04-acces-et-urls.md) | Toutes les adresses |
+| [DNS](docs/08-dns.md) | Domaine, sous-domaines et certificats HTTPS |
 | [Sauvegarde](docs/05-backup-restore.md) | `make backup` / `make restore` |
 | [Dépannage](docs/06-depannage.md) | Erreurs fréquentes |
 | [Fiches services](docs/services/README.md) | Une fiche par service |

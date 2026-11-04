@@ -87,7 +87,14 @@ Le plus simple est de créer un wildcard DNS :
 *.monprojet.com  ->  IP du serveur
 ```
 
-Sinon, créez un enregistrement pour chaque sous-domaine utilisé.
+Le wildcard ne couvre pas le domaine nu (`monprojet.com`) : gardez un
+enregistrement `A`/`AAAA` sur l'apex. Ajoutez aussi un enregistrement explicite
+pour les noms à deux niveaux comme `git.arch.monprojet.com` si vous voulez
+éviter de dépendre du comportement du fournisseur.
+
+Sinon, créez un enregistrement pour chaque sous-domaine utilisé. Le tableau
+minimal complet (apex, wildcard, exceptions, mail) est dans
+[DNS](08-dns.md).
 
 Les certificats sont demandés **automatiquement** par Traefik lors du premier
 accès. Ils peuvent prendre quelques secondes. Si vous utilisez Cloudflare,

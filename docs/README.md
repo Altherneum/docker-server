@@ -99,6 +99,7 @@ secrets. Le fichier est déjà ignoré par Git.
 | [Configuration `.env`](02-configuration-env.md) | Variables, secrets, mots de passe |
 | [Commandes](03-commandes.md) | Démarrer, arrêter, redémarrer, nettoyer |
 | [Accès et URL](04-acces-et-urls.md) | Toutes les adresses et les ports |
+| [DNS](08-dns.md) | Domaine, sous-domaines et certificats HTTPS |
 | [Sauvegarde et restauration](05-backup-restore.md) | `make backup`, `make restore` |
 | [Dépannage](06-depannage.md) | Erreurs fréquentes et solutions |
 
