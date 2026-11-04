@@ -64,7 +64,10 @@ La clé publique est **obligatoire**. `install.sh` :
 - génère `.env`, les secrets et les réseaux Docker ;
 - crée le compte admin ;
 - configure SSH, UFW et les mises à jour automatiques ; fail2ban est lancé
-  avec les conteneurs.
+  avec les conteneurs ;
+- définit le nom d'hôte de la machine avec `DOMAIN` (`DOMAIN_NAME` + `TLD`)
+  et installe un prompt `utilisateur@DOMAIN`, par exemple `admin@localhost`
+  ou `root@altherneum.fr`.
 
 ### 5. Tester la connexion SSH
 
@@ -265,6 +268,8 @@ Voici ce que `install.sh` fait automatiquement :
   `80`, `443` et Minecraft ;
 - le conteneur fail2ban lit les logs SSH de l'hôte et bannit les tentatives ;
 - active les mises à jour automatiques Linux ;
+- définit le nom d'hôte avec `DOMAIN` et installe le prompt
+  `utilisateur@DOMAIN` ;
 - installe le MOTD et les webhooks Discord si configurés ;
 - passe `.env` en `600` ;
 - sauvegarde les fichiers modifiés dans `/var/backups/harden/`.

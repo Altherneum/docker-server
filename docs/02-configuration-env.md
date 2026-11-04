@@ -17,7 +17,7 @@ partir de `.env.example` par `sudo make init`.
 |---|---|---|
 | `DOMAIN_NAME` | Nom sans extension | `monprojet` |
 | `TLD` | Extension avec le point | `.com` |
-| `DOMAIN` | Calculé automatiquement | `monprojet.com` |
+| `DOMAIN` | Calculé automatiquement ; nom d'hôte et prompt | `monprojet.com` |
 | `TZ` | Fuseau horaire | `Europe/Paris` |
 | `ACME_EMAIL` | E-mail Let's Encrypt | `admin@monprojet.com` |
 | `MAILCOW_DIR` | Dossier de mailcow | `/opt/mailcow-dockerized` |

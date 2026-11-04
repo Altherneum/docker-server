@@ -8,7 +8,7 @@ Il installe un VPS vierge de bout en bout :
 2. installe Docker et les outils ;
 3. clone le dépôt et génère `.env` ;
 4. crée le compte admin ;
-5. configure SSH, UFW et les mises à jour.
+5. configure SSH, UFW, les mises à jour, le nom d'hôte et le prompt.
 
 Le code est découpé en petits modules numérotés. `install.sh` les charge dans
 l'ordre, puis appelle `main()` dans `28-main.sh`. **Aucun module ne s'exécute
@@ -21,6 +21,7 @@ tout seul.**
 | `00` à `10` | Préparer la machine : configuration, Docker, dépôt, `.env` |
 | `11` à `27` | Sécuriser l'hôte : compte admin, SSH, pare-feu, mises à jour |
 | `28` | Ordre d'exécution de l'installation |
+| `29` | Nom d'hôte et prompt du shell |
 
 - Les réglages et les fonctions communes sont dans `00-config.sh`.
 - Les valeurs de `.env` sont lues après `make init`, par
@@ -64,6 +65,7 @@ tout seul.**
 | `26-env-permissions.sh` | Permissions de `.env` |
 | `27-report.sh` | Rapport final et prochaines étapes |
 | `28-main.sh` | Ordre d'exécution |
+| `29-hostname.sh` | Nom d'hôte et prompt `utilisateur@DOMAIN` |
 
 ## Ajouter un module
 

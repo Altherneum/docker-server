@@ -175,8 +175,12 @@ Le conteneur démarre avec `sudo make up` ou
 UFW et les mises à jour automatiques sont **toujours configurés**. fail2ban
 est fourni par le conteneur `stacks/fail2ban/`, lancé avec les autres services.
 
-### MOTD et notifications Discord
+### Nom d'hôte, prompt, MOTD et notifications Discord
 
+- Définit le nom d'hôte de la machine avec `DOMAIN` (`DOMAIN_NAME` + `TLD`)
+  et l'associe à `127.0.1.1` dans `/etc/hosts`.
+- Installe un prompt `utilisateur@DOMAIN`, par exemple `admin@localhost` ou
+  `root@altherneum.fr`.
 - Installe un MOTD simple à l'ouverture d'une session interactive :
   OS, noyau, uptime, charge, RAM, disque, IP, `docker ps`,
   `docker stats --no-stream` et `who`.
@@ -288,6 +292,7 @@ utilisent les valeurs par défaut du tableau.
 |---|---|
 | `/etc/sudoers.d/90-docker-server-admin` | Règle sudo |
 | `/home/admin/.ssh/authorized_keys` | Clés autorisées |
+| `/etc/hostname` et `/etc/hosts` | Nom d'hôte (`DOMAIN`) |
 | `/etc/ssh/sshd_config.d/00-docker-server-hardening.conf` | Réglages SSH |
 | `stacks/fail2ban/jail.d/` | Jails Traefik |
 | `stacks/fail2ban/entrypoint.sh` | Génère la jail SSH de l'hôte |
@@ -297,6 +302,7 @@ utilisent les valeurs par défaut du tableau.
 | `/etc/systemd/system/docker-server-upgrade.*` | Mises à jour Arch |
 | `/etc/ssh/sshrc` | Webhook des connexions SSH non interactives |
 | `/etc/profile.d/00-docker-server-session.sh` | Webhook des sessions interactives |
+| `/etc/profile.d/00-docker-server-prompt.sh` | Prompt `utilisateur@DOMAIN` |
 | `/etc/profile.d/00-docker-server-motd.sh` | MOTD SSH |
 | `/etc/docker-server/ssh-webhooks.conf` | URL des webhooks |
 | `/var/backups/harden/<horodatage>/` | Sauvegardes des fichiers modifiés |

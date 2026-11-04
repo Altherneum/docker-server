@@ -6,7 +6,7 @@
 #   sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
 #
 # Le script installe Docker et le dépôt, génère .env, puis sécurise l'hôte :
-# compte admin, SSH par clé, UFW et mises à jour automatiques.
+# compte admin, nom d'hôte, prompt, SSH par clé, UFW et mises à jour automatiques.
 # fail2ban est fourni par le conteneur stacks/fail2ban/.
 #
 # Le code est découpé dans install/. Les modules sont chargés dans l'ordre

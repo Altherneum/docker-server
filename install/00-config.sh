@@ -28,6 +28,9 @@ EXTRA_TCP=""
 EXTRA_UDP=""
 DISCORD_WEBHOOK_SSH=""
 DISCORD_WEBHOOK_SESSION=""
+DOMAIN_NAME=""
+TLD=""
+DOMAIN=""
 BACKUP_DIR=""
 
 # Variables remplies pendant l'exécution.
@@ -66,6 +69,13 @@ load_security_config() {
     # Notifications Discord.
     DISCORD_WEBHOOK_SSH=$(read_env DISCORD_WEBHOOK_SSH)
     DISCORD_WEBHOOK_SESSION=$(read_env DISCORD_WEBHOOK_SESSION)
+
+    # Nom d'hôte de la machine et prompt du shell.
+    # DOMAIN n'est pas lu directement : .env contient ${DOMAIN_NAME}${TLD}.
+    DOMAIN_NAME=$(read_env DOMAIN_NAME)
+    TLD=$(read_env TLD)
+    DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+    DOMAIN="${DOMAIN_NAME}${TLD}"
 
     # Valeurs par défaut si .env est incomplet.
     ADMIN_USER=${ADMIN_USER:-admin}

@@ -28,6 +28,7 @@ main() {
     # 3. Charger les réglages générés dans .env.
     load_security_config
     validate_username
+    validate_domain
     validate_ports
     build_ports
 
@@ -41,6 +42,8 @@ main() {
     configure_ufw
     configure_auto_updates
     configure_webhooks
+    configure_hostname
+    configure_prompt
     configure_motd
     secure_env
 
