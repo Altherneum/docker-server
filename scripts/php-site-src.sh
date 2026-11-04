@@ -108,6 +108,8 @@ REDIRECT_URI=${REDIRECT_URI:-https://php.${DOMAIN}/discord/callback}
 
 # Le site (dépôt website) lit des noms sans préfixe WEBSITE_ : on traduit ici.
 {
+    printf 'FORCE_DB_INIT=true'
+    printf '\n'
     printf 'DB_IP="db-php"\n'
     printf 'DB_USER="%s"\n' "$PHP_DB_USER"
     printf 'DB_PASS="%s"\n' "$PHP_DB_PASSWORD"
