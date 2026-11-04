@@ -63,18 +63,34 @@ DOMAIN_NAME=$(get_env DOMAIN_NAME) || DOMAIN_NAME="localhost"
 TLD=$(get_env TLD) || TLD=""
 DOMAIN="${DOMAIN_NAME}${TLD}"
 
+# `docker compose` développe les références ${DOMAIN_NAME} / ${DOMAIN} du .env,
+# mais `get_env` les lit littéralement. On les développe ici aussi.
+expand_env_value() {
+    value=$1
+    value=$(printf '%s' "$value" | sed \
+        -e "s|\${DOMAIN_NAME}|${DOMAIN_NAME}|g" \
+        -e "s|\${TLD}|${TLD}|g" \
+        -e "s|\${DOMAIN}|${DOMAIN}|g")
+    printf '%s' "$value"
+}
+
 PHP_DB_NAME=$(get_env PHP_DB_NAME)
 PHP_DB_USER=$(get_env PHP_DB_USER)
 PHP_DB_PASSWORD=$(get_env PHP_DB_PASSWORD)
 WEBSITE_ADMIN_USERNAME=$(get_env WEBSITE_ADMIN_USERNAME)
-WEBSITE_ADMIN_USERNAME=${WEBSITE_ADMIN_USERNAME:-CHANGE_ME}
+WEBSITE_ADMIN_USERNAME=$(expand_env_value "$WEBSITE_ADMIN_USERNAME")
+WEBSITE_ADMIN_USERNAME=${WEBSITE_ADMIN_USERNAME:-$DOMAIN_NAME}
 WEBSITE_ADMIN_PASSWORD=$(get_env WEBSITE_ADMIN_PASSWORD)
+WEBSITE_ADMIN_DISCORD_USER_ID=$(get_env WEBSITE_ADMIN_DISCORD_USER_ID)
+WEBSITE_DISCORD_CLIENT_ID=$(get_env WEBSITE_DISCORD_CLIENT_ID)
+WEBSITE_DISCORD_CLIENT_SECRET=$(get_env WEBSITE_DISCORD_CLIENT_SECRET)
 
 for pair in \
     "DOMAIN=$DOMAIN" \
     "PHP_DB_NAME=$PHP_DB_NAME" \
     "PHP_DB_USER=$PHP_DB_USER" \
     "PHP_DB_PASSWORD=$PHP_DB_PASSWORD" \
+    "WEBSITE_ADMIN_USERNAME=$WEBSITE_ADMIN_USERNAME" \
     "WEBSITE_ADMIN_PASSWORD=$WEBSITE_ADMIN_PASSWORD"
 do
     key=${pair%%=*}
@@ -87,16 +103,25 @@ do
 done
 
 REDIRECT_URI=$(get_env WEBSITE_DISCORD_REDIRECT_URI)
+REDIRECT_URI=$(expand_env_value "$REDIRECT_URI")
 REDIRECT_URI=${REDIRECT_URI:-https://php.${DOMAIN}/discord/callback}
 
+# Le site (dépôt website) lit des noms sans préfixe WEBSITE_ : on traduit ici.
 {
     printf 'DB_IP="db-php"\n'
     printf 'DB_USER="%s"\n' "$PHP_DB_USER"
     printf 'DB_PASS="%s"\n' "$PHP_DB_PASSWORD"
     printf 'DB_NAME="%s"\n' "$PHP_DB_NAME"
     printf 'ADMIN_USERNAME="%s"\n' "$WEBSITE_ADMIN_USERNAME"
-    printf 'ADMIN_EMAIL="%s"@${DOMAIN}\n' "$WEBSITE_ADMIN_USERNAME"
-    printf 'WEB_DOMAIN="${DOMAIN}"\n'
+    printf 'ADMIN_PASSWORD="%s"\n' "$WEBSITE_ADMIN_PASSWORD"
+    printf 'ADMIN_EMAIL="%s@%s"\n' "$WEBSITE_ADMIN_USERNAME" "$DOMAIN"
+    printf 'ADMIN_DISCORD_USER_ID="%s"\n' "$WEBSITE_ADMIN_DISCORD_USER_ID"
+    printf 'WEB_DOMAIN="%s"\n' "$DOMAIN"
+    printf '\n'
+    printf '# OAuth Discord\n'
+    printf 'DISCORD_CLIENT_ID="%s"\n' "$WEBSITE_DISCORD_CLIENT_ID"
+    printf 'DISCORD_CLIENT_SECRET="%s"\n' "$WEBSITE_DISCORD_CLIENT_SECRET"
+    printf 'DISCORD_REDIRECT_URI="%s"\n' "$REDIRECT_URI"
 } > "$SRC/.env"
 
-echo "→ .env généré pour php-site src/$SRC"
+echo "→ .env généré pour php-site : $SRC/.env"

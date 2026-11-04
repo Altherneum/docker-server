@@ -31,11 +31,19 @@ connexion. Le compte admin est créé au premier démarrage.
 | `PHP_SITE_REPO_REF` | Branche ou tag à cloner |
 | `WEBSITE_ADMIN_USERNAME` | Identifiant admin |
 | `WEBSITE_ADMIN_PASSWORD` | Mot de passe admin |
+| `WEBSITE_ADMIN_DISCORD_USER_ID` | Identifiant Discord du compte admin (optionnel) |
 | `WEBSITE_DISCORD_CLIENT_ID` | OAuth Discord (optionnel) |
 | `WEBSITE_DISCORD_CLIENT_SECRET` | OAuth Discord (optionnel) |
-| `WEBSITE_DISCORD_REDIRECT_URI` | URL de retour OAuth (optionnel) |
+| `WEBSITE_DISCORD_REDIRECT_URI` | URL de retour OAuth (optionnel, vide = `https://php.<DOMAIN>/discord/callback`) |
 | `WEBSITE_AUTO_INIT` | Initialise la base au premier démarrage |
 | `WEBSITE_GIT_DEPLOY` | Autorise `/api/deploy` à faire `git pull` |
+
+`make php-site-env` traduit ces variables vers les noms lus par le site dans
+`src/.env` : `WEBSITE_DISCORD_CLIENT_ID` → `DISCORD_CLIENT_ID`,
+`WEBSITE_DISCORD_CLIENT_SECRET` → `DISCORD_CLIENT_SECRET`,
+`WEBSITE_DISCORD_REDIRECT_URI` → `DISCORD_REDIRECT_URI`,
+`WEBSITE_ADMIN_DISCORD_USER_ID` → `ADMIN_DISCORD_USER_ID`.
+Le site ne lit pas les variables préfixées `WEBSITE_`.
 
 ## Démarrer / arrêter
 
