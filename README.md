@@ -43,25 +43,25 @@ nano .env
 sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
 ```
 
+- Dans un nouveau terminal :
+  - Testez directement la connexion (nouveau port SSH, clé SSH, etc)
+  - Avant de fermer le terminal actuel
 ```sh
-# Si vous avez l'ajout de clé automatique
+# Si vous avez l'ajout de clé automatique via Keepass ou un agent SSH
 ssh -p <port> admin@<ip-du-serveur>
-su - # Passer en root
+# Sinon, ajoutez le fichier de clé SSH privé
+ssh -p <port> -i ~/.ssh/<id_rsa|ed25519> admin@<ip-du-serveur>
 ```
-
-`install.sh` installe Docker, génère les secrets, crée les réseaux, puis
-sécurise l'hôte (compte admin, SSH, UFW, mises à jour). fail2ban est lancé
-avec les conteneurs.
-
-Testez la connexion dans un autre terminal avant de fermer celui de
-l'installation :
 
 ```sh
-ssh -p <port> admin@<ip>
-su -
+su - # Passer en root
+sudo su - # Alternative
 ```
 
-Ensuite seulement :
+- `install.sh` installe Docker, génère les secrets, crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour)
+- fail2ban est lancé avec les conteneurs
+
+Ensuite :
 
 ```sh
 sudo make check-env
