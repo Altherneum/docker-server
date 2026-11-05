@@ -38,6 +38,8 @@ sudo make services      # liste les noms de services
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
 | `sudo make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run` | Simule l'import GitHub sans modifier Forgejo |
+| `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck` | Supprime les dépôts bloqués en migration |
+| `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=depot` | Réimporte un dépôt après suppression (destructif) |
 | `sudo make php-site-src` | Met à jour le dépôt du site PHP |
 | `sudo make mail-up` | Démarre mailcow |
 | `sudo make mail-down` | Arrête mailcow |

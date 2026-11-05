@@ -114,10 +114,12 @@ Renseignez ces variables dans `.env` (section Forgejo) :
 | Variable | Rôle |
 |---|---|
 | `FORGEJO_GITHUB_ORG_URL` | URL de l'organisation, ex. `https://github.com/altherneum`. Vide = import désactivé. |
-| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Nécessaire pour les dépôts privés et le miroir push. |
+| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Nécessaire pour les dépôts privés, les métadonnées et le miroir push. |
 | `GITHUB_USER` | Identifiant associé au jeton (`x-access-token` convient pour un PAT). |
 | `FORGEJO_OWNER` | Propriétaire Forgejo des dépôts importés (défaut : `FORGEJO_ADMIN_NAME`). |
 | `FORGEJO_API_TOKEN` | Jeton API optionnel pour les scripts (sinon `FORGEJO_ADMIN_*`). |
+| `FORGEJO_GITHUB_MIGRATE_METADATA` | `auto` (défaut : complet si jeton, Git seul sinon), `true` ou `false`. |
+| `FORGEJO_GITHUB_MIGRATE_TIMEOUT` | Attente max de l'appel de migration en secondes (`1800`, `0` = illimité). |
 | `FORGEJO_GITHUB_PUSH_MIRROR` | `true` pour créer le miroir push Forgejo → GitHub. |
 | `FORGEJO_GITHUB_MIRROR_INTERVAL` | Fréquence de synchronisation (`8h`, `24h`, `0` pour manuel). |
 | `FORGEJO_GITHUB_MIRROR_SYNC_ON_COMMIT` | `true` pour synchroniser à chaque push reçu. |
@@ -130,25 +132,56 @@ déjà configurés ne sont pas dupliqués.
 ```sh
 sudo make forgejo-mirror
 sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=nom-du-depot
 ```
 
-Le mode `--dry-run` liste uniquement les dépôts et les actions prévues, sans
-modifier Forgejo.
+- `--dry-run` liste uniquement les dépôts et les actions prévues, sans modifier
+  Forgejo.
+- `--reset-stuck` supprime les dépôts restés bloqués en migration.
+- `--force` réimporte tous les dépôts après suppression ; `--force=nom` cible un
+  ou plusieurs dépôts (séparés par des virgules). **Destructif** : les commits
+  poussés uniquement sur Forgejo sont perdus.
+
+### Quota de l'API GitHub
+
+Sans `GITHUB_TOKEN`, GitHub limite les appels à **60 requêtes par heure**. Or
+l'import des issues, commentaires et réactions en consomme beaucoup : Forgejo
+attend alors la remise à zéro du quota, ce qui donne l'impression d'une
+migration bloquée. Un dépôt comme `.github` peut à lui seul dépasser le quota.
+
+Pour éviter ce blocage, `FORGEJO_GITHUB_MIGRATE_METADATA=auto` (défaut) importe
+**uniquement le code Git** lorsque `GITHUB_TOKEN` est vide. Les issues, PR,
+releases, labels et le wiki ne sont alors pas importés, et aucun miroir push
+n'est créé.
+
+Avec `GITHUB_TOKEN`, l'import complet utilise le quota de 5 000 requêtes/heure
+et se termine normalement en quelques minutes.
+
+`FORGEJO_GITHUB_MIGRATE_TIMEOUT` (1 800 s par défaut) limite l'attente du
+script. Si la migration dépasse ce délai, le script continue : Forgejo poursuit
+l'import en arrière-plan, et le miroir push pourra être configuré lors d'une
+prochaine exécution.
 
 ### Jeton GitHub
 
 Créez un **personal access token** (classic) avec le scope `repo`, ou un
 fine-grained token avec les droits `Contents: Read and write` sur les dépôts de
-l'organisation. Sans jeton :
+l'organisation (et `Issues: Read` pour importer les issues). Sans jeton :
 
 - seuls les dépôts publics sont importés ;
+- les métadonnées (issues, PR, releases) ne sont pas importées ;
 - aucun miroir push n'est créé (Forgejo ne peut pas s'authentifier sur GitHub).
 
 Le miroir push ne fonctionne que dans le sens **Forgejo → GitHub**. Un commit
 poussé directement sur GitHub n'est pas récupéré automatiquement par Forgejo :
 poussez sur Forgejo pour que les deux côtés restent alignés, ou synchronisez le
 dépôt manuellement dans Forgejo. `make forgejo-mirror` importe uniquement les
-dépôts encore absents ; il ne réimporte pas un dépôt déjà présent.
+dépôts encore absents ; il ne réimporte pas un dépôt déjà présent. Pour
+réimporter un dépôt (par exemple après avoir ajouté `GITHUB_TOKEN`), utilisez
+`--force=nom-du-depot`. Pour ajouter le miroir push à un dépôt déjà importé,
+relancez simplement `make forgejo-mirror` : le miroir est créé même si le dépôt
+existe déjà.
 
 ## Travailler depuis code-server
 
@@ -198,6 +231,15 @@ boîte `git@` dans mailcow avec le même mot de passe.
 - **Impossible de se connecter** : lancez `sudo make forgejo-admin` et vérifiez
   `FORGEJO_ADMIN_*`.
 - **Nom admin refusé** : `admin` est réservé, choisissez un autre nom.
+- **Un dépôt reste affiché « migration en cours »** : c'est souvent le quota de
+  l'API GitHub (60 req/h sans `GITHUB_TOKEN`). Définissez `GITHUB_TOKEN`, puis
+  redémarrez Forgejo et supprimez le dépôt bloqué :
+  ```sh
+  sudo make restart-service SERVICE=forgejo
+  sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck
+  ```
+  Le script réimporte ensuite les dépôts absents. Pour un dépôt déjà présent
+  mais incomplet, utilisez `--force=nom-du-depot`.
 - **Erreur de base** : vérifiez `FORGEJO_DB_*` et que `db-forgejo` est
   `healthy`.
 - **Clone SSH impossible** : SSH est désactivé, utilisez l'URL HTTPS.

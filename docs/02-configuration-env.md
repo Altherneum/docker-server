@@ -44,10 +44,12 @@ Ces valeurs ne peuvent pas être générées automatiquement :
 | Variable | Rôle | Exemple |
 |---|---|---|
 | `CODE_SERVER_GITHUB_ORG_URL`/`FORGEJO_GITHUB_ORG_URL` | Organisation GitHub à importer/cloner. Vide = désactivé. | `https://github.com/altherneum` |
-| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Requis pour les dépôts privés et le miroir push. | `ghp_...` |
+| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Requis pour les dépôts privés, les métadonnées et le miroir push. | `ghp_...` |
 | `GITHUB_USER` | Identifiant associé au jeton. | `x-access-token` |
 | `FORGEJO_OWNER` | Propriétaire Forgejo des dépôts importés. | `${FORGEJO_ADMIN_NAME}` |
 | `FORGEJO_API_TOKEN` | Jeton API Forgejo optionnel pour les scripts. | vide |
+| `FORGEJO_GITHUB_MIGRATE_METADATA` | Import complet (`auto`, `true`) ou code Git seul (`false`). | `auto` |
+| `FORGEJO_GITHUB_MIGRATE_TIMEOUT` | Attente max de la migration en secondes (`0` = illimité). | `1800` |
 | `FORGEJO_GITHUB_PUSH_MIRROR` | Crée un miroir push Forgejo → GitHub. | `true` |
 | `FORGEJO_GITHUB_MIRROR_INTERVAL` | Fréquence de synchronisation du miroir. | `8h` |
 | `FORGEJO_GITHUB_MIRROR_SYNC_ON_COMMIT` | Synchronise à chaque push reçu. | `true` |
@@ -56,7 +58,9 @@ Ces valeurs ne peuvent pas être générées automatiquement :
 
 Forgejo importe les dépôts, code-server les
 clone dans son workspace. Sans `GITHUB_TOKEN`, seuls les dépôts publics sont
-traités et le miroir push vers GitHub est désactivé.
+traités, l'import se limite au code Git (pas d'issues/PR/releases) et le miroir
+push vers GitHub est désactivé. Avec `auto`, ajouter un jeton suffit à activer
+l'import complet lors de la prochaine exécution.
 
 Pour obtenir l'UUID Minecraft d'un joueur :
 
