@@ -78,6 +78,13 @@ else
     echo "→ Profil Git non configuré : renseignez GIT_USER_NAME et GIT_USER_EMAIL dans .env."
 fi
 
+# Clone initial des dépôts GitHub de l'organisation. Le script est idempotent
+# et ajoute aussi un remote « forgejo » à chaque dépôt.
+if [ "${CODE_SERVER_CLONE_GITHUB_ORG:-true}" = "true" ]; then
+    /usr/local/bin/clone-github-org \
+        || echo "Attention : clonage GitHub incomplet (voir les messages ci-dessus)." >&2
+fi
+
 # L'ENTRYPOINT de l'image officielle contient « --bind-addr 0.0.0.0:8080 ».
 # En le remplaçant, on doit réinjecter cette adresse, sinon code-server
 # n'écoute que sur 127.0.0.1 et Traefik renvoie 502.

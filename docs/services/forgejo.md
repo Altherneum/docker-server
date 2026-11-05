@@ -100,6 +100,75 @@ Cela supprime les dépôts, les comptes et la base. **Sauvegardez avant.**
 - LFS est activé.
 - Le compte admin est créé automatiquement par `make up` /
   `make up-service SERVICE=forgejo` ; `make forgejo-admin` reste disponible.
+- Les dépôts d'une organisation GitHub peuvent être importés automatiquement
+  (voir la section suivante).
+
+## Import et miroir GitHub
+
+Au démarrage, Forgejo peut importer tous les dépôts d'une organisation GitHub,
+puis configurer un **miroir push** vers GitHub : un `git push` reçu par Forgejo
+est renvoyé vers le dépôt GitHub correspondant.
+
+Renseignez ces variables dans `.env` (section Forgejo) :
+
+| Variable | Rôle |
+|---|---|
+| `FORGEJO_GITHUB_ORG_URL` | URL de l'organisation, ex. `https://github.com/altherneum`. Vide = import désactivé. |
+| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Nécessaire pour les dépôts privés et le miroir push. |
+| `GITHUB_USER` | Identifiant associé au jeton (`x-access-token` convient pour un PAT). |
+| `FORGEJO_OWNER` | Propriétaire Forgejo des dépôts importés (défaut : `FORGEJO_ADMIN_NAME`). |
+| `FORGEJO_API_TOKEN` | Jeton API optionnel pour les scripts (sinon `FORGEJO_ADMIN_*`). |
+| `FORGEJO_GITHUB_PUSH_MIRROR` | `true` pour créer le miroir push Forgejo → GitHub. |
+| `FORGEJO_GITHUB_MIRROR_INTERVAL` | Fréquence de synchronisation (`8h`, `24h`, `0` pour manuel). |
+| `FORGEJO_GITHUB_MIRROR_SYNC_ON_COMMIT` | `true` pour synchroniser à chaque push reçu. |
+
+Le script est lancé automatiquement après `make up` et
+`make up-service SERVICE=forgejo`, une fois Forgejo et sa base prêts. Il est
+idempotent : les dépôts déjà présents ne sont pas réimportés et les miroirs
+déjà configurés ne sont pas dupliqués.
+
+```sh
+sudo make forgejo-mirror
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run
+```
+
+Le mode `--dry-run` liste uniquement les dépôts et les actions prévues, sans
+modifier Forgejo.
+
+### Jeton GitHub
+
+Créez un **personal access token** (classic) avec le scope `repo`, ou un
+fine-grained token avec les droits `Contents: Read and write` sur les dépôts de
+l'organisation. Sans jeton :
+
+- seuls les dépôts publics sont importés ;
+- aucun miroir push n'est créé (Forgejo ne peut pas s'authentifier sur GitHub).
+
+Le miroir push ne fonctionne que dans le sens **Forgejo → GitHub**. Un commit
+poussé directement sur GitHub n'est pas récupéré automatiquement par Forgejo :
+poussez sur Forgejo pour que les deux côtés restent alignés, ou synchronisez le
+dépôt manuellement dans Forgejo. `make forgejo-mirror` importe uniquement les
+dépôts encore absents ; il ne réimporte pas un dépôt déjà présent.
+
+## Travailler depuis code-server
+
+code-server est sur le même réseau Docker que Forgejo. Utilisez l'URL interne
+`http://forgejo:3000` : elle contourne Traefik et sa protection HTTP Basic, ce
+qui évite de cumuler deux authentifications sur les commandes Git.
+
+```sh
+# Cloner un dépôt Forgejo depuis le terminal de code-server
+git clone http://forgejo:3000/<propriétaire>/<dépôt>.git
+
+# Pousser un dépôt déjà cloné
+cd ~/workspace/<dépôt>
+git remote add forgejo http://forgejo:3000/<propriétaire>/<dépôt>.git
+git push -u forgejo main
+```
+
+Git demande alors l'identifiant et le mot de passe de votre compte Forgejo
+(ou un jeton d'accès créé dans *Settings → Applications*). Voir aussi la fiche
+[code-server](code-server.md).
 
 ## E-mail
 

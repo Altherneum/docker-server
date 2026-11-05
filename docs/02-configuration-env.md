@@ -39,6 +39,25 @@ Ces valeurs ne peuvent pas être générées automatiquement :
 | `MICROSOFT_CLIENT_ID` | Non | Microsoft Entra ID |
 | `MICROSOFT_CLIENT_SECRET` | Non | Microsoft Entra ID |
 
+## Import GitHub (Forgejo et code-server)
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `CODE_SERVER_GITHUB_ORG_URL`/`FORGEJO_GITHUB_ORG_URL` | Organisation GitHub à importer/cloner. Vide = désactivé. | `https://github.com/altherneum` |
+| `GITHUB_TOKEN` | Jeton GitHub (scope `repo`). Requis pour les dépôts privés et le miroir push. | `ghp_...` |
+| `GITHUB_USER` | Identifiant associé au jeton. | `x-access-token` |
+| `FORGEJO_OWNER` | Propriétaire Forgejo des dépôts importés. | `${FORGEJO_ADMIN_NAME}` |
+| `FORGEJO_API_TOKEN` | Jeton API Forgejo optionnel pour les scripts. | vide |
+| `FORGEJO_GITHUB_PUSH_MIRROR` | Crée un miroir push Forgejo → GitHub. | `true` |
+| `FORGEJO_GITHUB_MIRROR_INTERVAL` | Fréquence de synchronisation du miroir. | `8h` |
+| `FORGEJO_GITHUB_MIRROR_SYNC_ON_COMMIT` | Synchronise à chaque push reçu. | `true` |
+| `CODE_SERVER_CLONE_GITHUB_ORG` | Clone les dépôts GitHub dans code-server. | `true` |
+| `FORGEJO_INTERNAL_URL` | URL interne de Forgejo pour Git depuis code-server. | `http://forgejo:3000` |
+
+Forgejo importe les dépôts, code-server les
+clone dans son workspace. Sans `GITHUB_TOKEN`, seuls les dépôts publics sont
+traités et le miroir push vers GitHub est désactivé.
+
 Pour obtenir l'UUID Minecraft d'un joueur :
 
 ```sh

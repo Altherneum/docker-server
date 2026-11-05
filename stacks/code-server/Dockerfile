@@ -27,7 +27,8 @@ RUN while read -r extension; do \
 
 USER root
 COPY entrypoint.sh /usr/local/bin/code-server-entrypoint
-RUN chmod +x /usr/local/bin/code-server-entrypoint
+COPY clone-github-org.sh /usr/local/bin/clone-github-org
+RUN chmod +x /usr/local/bin/code-server-entrypoint /usr/local/bin/clone-github-org
 
 USER coder
 

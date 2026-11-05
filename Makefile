@@ -2,10 +2,11 @@ SHELL := /bin/sh
 COMPOSE := docker compose
 MAILCOW_DIR := $(or $(shell sed -n 's/^MAILCOW_DIR=//p' .env 2>/dev/null | tail -n1),/opt/mailcow-dockerized)
 SERVICE ?=
+FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
+        forgejo-admin forgejo-mirror mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service down-service \
         ps-service services azuriom-seed
 
@@ -54,6 +55,8 @@ ensure-base: ## Construit les images de base manquantes
 up: check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infrastructure
 	$(COMPOSE) up -d --remove-orphans
 	@./scripts/forgejo-admin.sh
+	@./scripts/forgejo-github-mirror.sh \
+		|| echo "Attention : import GitHub dans Forgejo incomplet (voir les messages ci-dessus)."
 
 down: ## Arrête toute l'infrastructure sans supprimer les conteneurs (volumes conservés)
 	$(COMPOSE) stop
@@ -79,6 +82,9 @@ restore: ## Restaure une sauvegarde : make restore BACKUP=backups/AAAA...
 
 forgejo-admin: ## Crée le compte admin Forgejo depuis .env (idempotent)
 	./scripts/forgejo-admin.sh
+
+forgejo-mirror: ## Importe les dépôts GitHub dans Forgejo et configure le miroir push
+	./scripts/forgejo-github-mirror.sh $(FORGEJO_MIRROR_ARGS)
 
 azuriom-seed: ## Réapplique les données de démonstration Azuriom (paramètres, rôles, boutique)
 	@printf "Cette commande réapplique les données de démonstration Azuriom. Confirmer avec CONFIRM=yes\n"
@@ -163,6 +169,8 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 	$(COMPOSE) --env-file .env up -d --build $(SERVICE)
 	@if [ "$(SERVICE)" = "forgejo" ]; then \
 		./scripts/forgejo-admin.sh ; \
+		./scripts/forgejo-github-mirror.sh \
+			|| echo "Attention : import GitHub dans Forgejo incomplet (voir les messages ci-dessus)." ; \
 	fi
 
 down-service: ## Arrête un service sans supprimer son conteneur (ex: make down-service SERVICE=azuriom)

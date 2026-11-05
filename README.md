@@ -98,6 +98,7 @@ toutes les adresses changeront en même temps.
 - **__restore__** : Restaure une sauvegarde : make restore BACKUP=backups/AAAA...
 - **__azuriom-seed__** : Réapplique les données de démonstration Azuriom (paramètres, rôles, boutique)
 - **__forgejo-admin__** : Crée le compte admin Forgejo depuis .env (automatique avec `up` / `up-service`)
+- **__forgejo-mirror__** : Importe les dépôts GitHub dans Forgejo et configure le miroir push (automatique avec `up` / `up-service`)
 - **__mail-integrate__** : Installe l'override Traefik dans MAILCOW_DIR
 - **__mail-up__** : Démarre mailcow avec l'intégration Traefik
 - **__mail-down__** : Arrête mailcow

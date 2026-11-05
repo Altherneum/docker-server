@@ -37,6 +37,12 @@ service pour le changer.
 | `CODE_SERVER_HTTP_PASSWORD` | Mot de passe de la protection HTTP Basic |
 | `CODE_SERVER_PASSWORD` | Mot de passe de l'éditeur |
 | `CODE_SERVER_THEME` | Thème appliqué par défaut (défaut : `Default High Contrast`) |
+| `CODE_SERVER_CLONE_GITHUB_ORG` | `true` pour cloner les dépôts GitHub au démarrage |
+| `CODE_SERVER_GITHUB_ORG_URL` | Organisation GitHub à cloner (partagée avec Forgejo) |
+| `GITHUB_TOKEN` | Jeton GitHub pour les dépôts privés (facultatif) |
+| `GITHUB_USER` | Identifiant associé au jeton (`x-access-token`) |
+| `FORGEJO_INTERNAL_URL` | URL interne de Forgejo (`http://forgejo:3000`) |
+| `FORGEJO_OWNER` | Propriétaire Forgejo des dépôts importés |
 | `GIT_USER_NAME` | Nom du profil Git global (commits) |
 | `GIT_USER_EMAIL` | Adresse e-mail du profil Git global |
 | `TZ` | Fuseau horaire |
@@ -88,6 +94,59 @@ Modifiez `.env` puis redémarrez le service :
 
 ```sh
 sudo make restart-service SERVICE=code-server
+```
+
+## Dépôts GitHub au démarrage
+
+Si `CODE_SERVER_CLONE_GITHUB_ORG=true` et `CODE_SERVER_GITHUB_ORG_URL` est renseigné,
+`entrypoint.sh` clone au démarrage tous les dépôts de l'organisation GitHub
+dans `/home/coder/workspace`. Le script est idempotent :
+
+- un dépôt déjà présent (`<workspace>/<dépôt>/.git`) n'est jamais écrasé ;
+- un dossier existant qui n'est pas un dépôt Git est laissé intact ;
+- les dépôts désactivés sur GitHub sont ignorés.
+
+Avec `GITHUB_TOKEN`, les dépôts privés sont aussi clonés. Le jeton sert
+uniquement au clone : il n'est pas conservé dans l'URL du remote `origin`.
+
+Le clonage s'exécute à chaque démarrage, mais les dépôts déjà présents ne sont
+pas modifiés. Pour le désactiver, mettez `CODE_SERVER_CLONE_GITHUB_ORG=false`.
+
+Chaque dépôt reçoit en plus un remote `forgejo` vers l'URL interne
+`http://forgejo:3000/<FORGEJO_OWNER>/<dépôt>.git`. Vous pouvez donc travailler
+et pousser vers GitHub ou vers Forgejo :
+
+```sh
+cd ~/workspace/mon-depot
+
+# Voir les remotes
+git remote -v
+
+# Pousser vers GitHub (origin)
+git push origin main
+
+# Pousser vers Forgejo
+git push forgejo main
+```
+
+Pour cloner un dépôt Forgejo qui n'est pas dans l'organisation GitHub :
+
+```sh
+git clone http://forgejo:3000/<propriétaire>/<dépôt>.git
+```
+
+L'URL interne `http://forgejo:3000` est accessible uniquement depuis les
+conteneurs du réseau Docker. Elle contourne Traefik et sa protection HTTP
+Basic : Git ne demande que les identifiants Forgejo (mot de passe ou jeton
+d'accès personnel). Depuis votre ordinateur, utilisez plutôt
+`https://git.<domaine>`.
+
+Pour modifier l'organisation ou ajouter un jeton, changez `.env` puis
+reconstruisez l'image et redémarrez :
+
+```sh
+sudo docker compose build code-server
+sudo make up-service SERVICE=code-server
 ```
 
 ## Démarrer / arrêter
