@@ -90,6 +90,17 @@ set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"
 set_env HARDEN_ADMIN_PASSWORD     "$(gen_hex 24)"
 
+# --- GID du socket Docker (runner Forgejo Actions) --------------------------
+# Le runner tourne avec l'UID 1000 et doit pouvoir accéder au socket Docker.
+if [ -S /var/run/docker.sock ]; then
+    DOCKER_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null \
+        || stat -f '%g' /var/run/docker.sock 2>/dev/null \
+        || true)
+    if [ -n "$DOCKER_GID" ]; then
+        write_env_value DOCKER_GID "$DOCKER_GID"
+    fi
+fi
+
 chmod 600 "$ENV_FILE"
 
 # --- Fichiers htpasswd ------------------------------------------------------

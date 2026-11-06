@@ -183,6 +183,88 @@ réimporter un dépôt (par exemple après avoir ajouté `GITHUB_TOKEN`), utilis
 relancez simplement `make forgejo-mirror` : le miroir est créé même si le dépôt
 existe déjà.
 
+## Forgejo Actions (CI/CD)
+
+Le service `forgejo-runner` fournit un runner Docker pour Forgejo Actions. Il
+est démarré avec la stack, s'enregistre automatiquement auprès de Forgejo puis
+reste en ligne. `make up` et `make up-service SERVICE=forgejo` vérifient qu'il
+est prêt **avant** l'import des dépôts GitHub.
+
+Labels exposés par défaut (voir `FORGEJO_RUNNER_LABELS`) :
+
+| `runs-on` | Image du conteneur de job |
+|---|---|
+| `ubuntu-latest` | `ghcr.io/catthehacker/ubuntu:act-latest` |
+| `ubuntu-24.04` | `ghcr.io/catthehacker/ubuntu:act-24.04` |
+| `ubuntu-22.04` | `ghcr.io/catthehacker/ubuntu:act-22.04` |
+| `ubuntu-20.04` | `ghcr.io/catthehacker/ubuntu:act-20.04` |
+| `docker` | `ghcr.io/catthehacker/ubuntu:act-latest` |
+| `self-hosted` | `ghcr.io/catthehacker/ubuntu:act-latest` |
+
+Variables du runner :
+
+| Variable | Rôle |
+|---|---|
+| `FORGEJO_RUNNER_VERSION` | Version de l'image du runner (`13.2.1`). |
+| `FORGEJO_RUNNER_NAME` | Nom du runner affiché dans Forgejo. |
+| `FORGEJO_RUNNER_LABELS` | Labels `runs-on` séparés par des virgules. |
+| `FORGEJO_RUNNER_CAPACITY` | Nombre de jobs simultanés. |
+| `FORGEJO_RUNNER_TIMEOUT` | Durée maximale d'un job (`3h`). |
+| `FORGEJO_RUNNER_DOCKER_HOST` | `automount` (Docker dans les jobs) ou `-`. |
+| `FORGEJO_ACTIONS_DEFAULT_URL` | Source des actions `uses:` (`https://data.forgejo.org` ou `https://github.com`). |
+| `DOCKER_GID` | GID du socket Docker, rempli par `make init`. |
+
+Les workflows sont lus dans `.forgejo/workflows/`. En l'absence de ce dossier,
+Forgejo utilise `.github/workflows/` : les workflows GitHub déjà présents dans
+les dépôts importés sont donc détectés. Forgejo Actions n'étant pas totalement
+compatible avec GitHub Actions, certains workflows devront être adaptés.
+
+Exemple minimal :
+
+```yaml
+name: CI
+on: [push, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello from Forgejo Actions"
+      - run: uname -a
+```
+
+Vérifier le runner :
+
+```sh
+sudo make forgejo-runner
+sudo make logs-service SERVICE=forgejo-runner
+```
+
+Le runner utilise le socket Docker de l'hôte pour lancer les conteneurs de
+jobs. Avec `FORGEJO_RUNNER_DOCKER_HOST=automount`, le socket est aussi monté
+dans les jobs : `docker build` fonctionne, mais un workflow obtient alors un
+accès équivalent à root sur Docker. Ne l'activez que pour des utilisateurs de
+confiance (l'inscription publique est déjà désactivée avec
+`FORGEJO__service__DISABLE_REGISTRATION=true`). Pour couper cet accès, mettre
+`FORGEJO_RUNNER_DOCKER_HOST=-` puis redémarrer le runner.
+
+Le premier job télécharge l'image `act-latest` (plusieurs Go). Pour un petit
+job, on peut imposer une image légère dans le workflow :
+
+```yaml
+jobs:
+  test:
+    runs-on: docker
+    container:
+      image: alpine:3.20
+    steps:
+      - run: echo ok
+```
+
+Les actions utilisées par `uses:` sont résolues via
+`FORGEJO_ACTIONS_DEFAULT_URL` (`https://data.forgejo.org` par défaut). Pour
+utiliser directement les actions GitHub, mettre `https://github.com` dans
+`.env`, puis recréer Forgejo avec `make up-service SERVICE=forgejo`.
+
 ## Travailler depuis code-server
 
 code-server est sur le même réseau Docker que Forgejo. Utilisez l'URL interne
@@ -226,6 +308,9 @@ boîte `git@` dans mailcow avec le même mot de passe.
 - la base via un dump PostgreSQL `db-forgejo` ;
 - le volume `forgejo-data` (dépôts, comptes, configuration).
 
+Le volume `forgejo-runner-data` (enregistrement du runner et cache) n'est pas
+sauvegardé : il est recréé automatiquement au démarrage du runner.
+
 ## Dépannage
 
 - **Impossible de se connecter** : lancez `sudo make forgejo-admin` et vérifiez
@@ -240,6 +325,15 @@ boîte `git@` dans mailcow avec le même mot de passe.
   ```
   Le script réimporte ensuite les dépôts absents. Pour un dépôt déjà présent
   mais incomplet, utilisez `--force=nom-du-depot`.
+- **Runner Actions hors ligne** : `sudo make forgejo-runner` puis
+  `sudo make logs-service SERVICE=forgejo-runner`. Vérifier `DOCKER_GID`
+  (`make init`) et que le socket Docker est accessible.
+- **Job en attente indéfiniment** : le `runs-on` du workflow ne correspond à
+  aucun label du runner. Vérifier `FORGEJO_RUNNER_LABELS` et la page
+  *Settings → Actions → Runners* du dépôt.
+- **Premier job très long** : téléchargement de l'image
+  `ghcr.io/catthehacker/ubuntu:act-latest`. Utiliser `container.image` dans le
+  workflow pour une image plus légère.
 - **Erreur de base** : vérifiez `FORGEJO_DB_*` et que `db-forgejo` est
   `healthy`.
 - **Clone SSH impossible** : SSH est désactivé, utilisez l'URL HTTPS.

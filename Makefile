@@ -6,7 +6,7 @@ FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin forgejo-mirror mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
+        forgejo-admin forgejo-runner forgejo-mirror mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service down-service \
         ps-service services azuriom-seed
 
@@ -55,6 +55,8 @@ ensure-base: ## Construit les images de base manquantes
 up: check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infrastructure
 	$(COMPOSE) up -d --remove-orphans
 	@./scripts/forgejo-admin.sh
+	@./scripts/forgejo-runner.sh \
+		|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)."
 	@./scripts/forgejo-github-mirror.sh \
 		|| echo "Attention : import GitHub dans Forgejo incomplet (voir les messages ci-dessus)."
 
@@ -82,6 +84,9 @@ restore: ## Restaure une sauvegarde : make restore BACKUP=backups/AAAA...
 
 forgejo-admin: ## Crée le compte admin Forgejo depuis .env (idempotent)
 	./scripts/forgejo-admin.sh
+
+forgejo-runner: ## Vérifie que le runner Forgejo Actions est enregistré et en ligne
+	./scripts/forgejo-runner.sh
 
 forgejo-mirror: ## Importe les dépôts GitHub dans Forgejo et configure le miroir push
 	./scripts/forgejo-github-mirror.sh $(FORGEJO_MIRROR_ARGS)
@@ -158,7 +163,7 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 		docker image inspect mariadb:11.8 >/dev/null 2>&1 \
 			|| $(MAKE) mariadb-base ; \
 	fi
-	@if [ -n "$(filter $(SERVICE),forgejo db-forgejo)" ]; then \
+	@if [ -n "$(filter $(SERVICE),forgejo forgejo-runner db-forgejo)" ]; then \
 		docker image inspect postgres:18 >/dev/null 2>&1 \
 			|| $(MAKE) postgres-base ; \
 	fi
@@ -166,11 +171,23 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 		docker image inspect paper:1.21.11 >/dev/null 2>&1 \
 			|| $(MAKE) paper-base ; \
 	fi
-	$(COMPOSE) --env-file .env up -d --build $(SERVICE)
+	@if [ "$(SERVICE)" = "forgejo" ]; then \
+		$(COMPOSE) --env-file .env up -d --build forgejo forgejo-runner ; \
+	elif [ "$(SERVICE)" = "forgejo-runner" ]; then \
+		$(COMPOSE) --env-file .env up -d --build forgejo-runner ; \
+	else \
+		$(COMPOSE) --env-file .env up -d --build $(SERVICE) ; \
+	fi
 	@if [ "$(SERVICE)" = "forgejo" ]; then \
 		./scripts/forgejo-admin.sh ; \
+		./scripts/forgejo-runner.sh \
+			|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)." ; \
 		./scripts/forgejo-github-mirror.sh \
 			|| echo "Attention : import GitHub dans Forgejo incomplet (voir les messages ci-dessus)." ; \
+	elif [ "$(SERVICE)" = "forgejo-runner" ]; then \
+		./scripts/forgejo-admin.sh ; \
+		./scripts/forgejo-runner.sh \
+			|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)." ; \
 	fi
 
 down-service: ## Arrête un service sans supprimer son conteneur (ex: make down-service SERVICE=azuriom)

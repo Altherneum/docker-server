@@ -47,11 +47,15 @@ services:
       FORGEJO__mailer__USER: ${FORGEJO_MAIL_USER}
       FORGEJO__mailer__PASSWD: ${FORGEJO_MAIL_PASSWORD}
       FORGEJO__mailer__FROM: ${FORGEJO_MAIL_FROM}
+
+      FORGEJO__actions__ENABLED: "true"
+      FORGEJO__actions__DEFAULT_ACTIONS_URL: ${FORGEJO_ACTIONS_DEFAULT_URL:-https://data.forgejo.org}
     volumes:
       - forgejo-data:/data
     networks:
       - proxy
       - forgejo_internal
+      - forgejo_runner
     depends_on:
       db-forgejo:
         condition: service_healthy
@@ -63,6 +67,38 @@ services:
       traefik.http.routers.forgejo.tls.certResolver: "letsencrypt"
       traefik.http.routers.forgejo.middlewares: "forgejo-auth@file,secure-headers@file"
       traefik.http.services.forgejo.loadbalancer.server.port: "3000"
+
+  forgejo-runner:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+      args:
+        FORGEJO_RUNNER_VERSION: ${FORGEJO_RUNNER_VERSION}
+    image: forgejo-runner:${FORGEJO_RUNNER_VERSION}
+    container_name: forgejo-runner
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      FORGEJO_INSTANCE_URL: "http://forgejo:3000"
+      FORGEJO_ADMIN_NAME: ${FORGEJO_ADMIN_NAME}
+      FORGEJO_ADMIN_PASSWORD: ${FORGEJO_ADMIN_PASSWORD}
+      FORGEJO_RUNNER_NAME: ${FORGEJO_RUNNER_NAME:-forgejo-runner}
+      FORGEJO_RUNNER_LABELS: ${FORGEJO_RUNNER_LABELS:-ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest}
+      FORGEJO_RUNNER_CAPACITY: ${FORGEJO_RUNNER_CAPACITY:-2}
+      FORGEJO_RUNNER_TIMEOUT: ${FORGEJO_RUNNER_TIMEOUT:-3h}
+      FORGEJO_RUNNER_NETWORK: "forgejo_runner"
+      FORGEJO_RUNNER_DOCKER_HOST: ${FORGEJO_RUNNER_DOCKER_HOST:-automount}
+      FORGEJO_RUNNER_LOG_LEVEL: ${FORGEJO_RUNNER_LOG_LEVEL:-info}
+    volumes:
+      - forgejo-runner-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - "${DOCKER_GID:-0}"
+    depends_on:
+      forgejo:
+        condition: service_started
+    networks:
+      - forgejo_runner
 
   db-forgejo:
     image: postgres:18
@@ -91,12 +127,18 @@ networks:
   forgejo_internal:
     name: forgejo_internal
     internal: true
+  # Réseau dédié aux conteneurs de jobs Actions : accès Internet et à Forgejo,
+  # mais pas aux autres services du réseau proxy.
+  forgejo_runner:
+    name: forgejo_runner
 
 volumes:
   forgejo-data:
     name: forgejo-data
     labels:
       should.backup: "true"
+  forgejo-runner-data:
+    name: forgejo-runner-data
   db-forgejo:
     name: db-forgejo
     labels:

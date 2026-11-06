@@ -36,6 +36,7 @@ sudo make services      # liste les noms de services
 | `sudo make init` | Régénère `.env`, les secrets et les réseaux Docker |
 | `sudo make services` | Liste les noms de services |
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
+| `sudo make forgejo-runner` | Vérifie que le runner Forgejo Actions est en ligne |
 | `sudo make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run` | Simule l'import GitHub sans modifier Forgejo |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck` | Supprime les dépôts bloqués en migration |

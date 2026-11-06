@@ -39,6 +39,13 @@ if [ -n "$TLD" ] && [ "$TLD" = "${TLD#.}" ]; then
     exit 1
 fi
 
+# GID du socket Docker requis par le runner Forgejo Actions.
+if [ -z "$(get_env DOCKER_GID)" ]; then
+    echo "ERROR : DOCKER_GID manquant dans $ENV_FILE." >&2
+    echo "        Lancer make init pour détecter le GID du socket Docker." >&2
+    exit 1
+fi
+
 DOMAIN="${DOMAIN_NAME}${TLD}"
 
 echo ""

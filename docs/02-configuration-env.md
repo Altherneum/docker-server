@@ -62,6 +62,23 @@ traités, l'import se limite au code Git (pas d'issues/PR/releases) et le miroir
 push vers GitHub est désactivé. Avec `auto`, ajouter un jeton suffit à activer
 l'import complet lors de la prochaine exécution.
 
+## Forgejo Actions (CI/CD)
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `FORGEJO_RUNNER_VERSION` | Version de l'image du runner. | `13.2.1` |
+| `FORGEJO_RUNNER_NAME` | Nom du runner dans Forgejo. | `forgejo-runner` |
+| `FORGEJO_RUNNER_LABELS` | Labels `runs-on` (séparés par des virgules). | `ubuntu-latest:docker://...` |
+| `FORGEJO_RUNNER_CAPACITY` | Jobs simultanés. | `2` |
+| `FORGEJO_RUNNER_TIMEOUT` | Durée max d'un job. | `3h` |
+| `FORGEJO_RUNNER_DOCKER_HOST` | `automount` pour Docker dans les jobs, `-` pour désactiver. | `automount` |
+| `FORGEJO_ACTIONS_DEFAULT_URL` | Source des actions `uses:`. | `https://data.forgejo.org` |
+| `DOCKER_GID` | GID du socket Docker, rempli par `make init`. | `960` |
+
+Le runner est créé automatiquement au démarrage. Voir la fiche
+[Forgejo](services/forgejo.md#forgejo-actions-cicd) pour les labels et les
+workflows.
+
 Pour obtenir l'UUID Minecraft d'un joueur :
 
 ```sh
