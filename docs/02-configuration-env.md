@@ -19,7 +19,7 @@ partir de `.env.example` par `sudo make init`.
 | `TLD` | Extension avec le point | `.com` |
 | `DOMAIN` | Calculé automatiquement ; nom d'hôte et prompt | `monprojet.com` |
 | `TZ` | Fuseau horaire | `Europe/Paris` |
-| `BOT_URL` | URL du jar du bot Discord (optionnel) | `https://github.com/.../bot-rewrite-1.0-fat.jar` |
+| `BOT_URL` | URL du jar du bot Discord (obligatoire) | `<URL_DU_JAR>` |
 | `ACME_EMAIL` | E-mail Let's Encrypt | `admin@monprojet.com` |
 | `MAILCOW_DIR` | Dossier de mailcow | `/opt/mailcow-dockerized` |
 | `PROXY_NETWORK` | Réseau Docker de Traefik | `monprojet_proxy` |
