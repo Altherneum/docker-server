@@ -15,4 +15,6 @@ Bot: ${DISCORD_BOT_TOKEN}
 EOF
 chmod 600 /DiscordBot/data/tokens.yml
 
-exec java -Xms16M -Xmx32M -jar /DiscordBot/bot.jar
+# JDA + cache des membres + cache des 10 000 derniers messages : 32 M de heap
+# est trop juste. 256 M laisse de la marge sans réserver inutilement la RAM.
+exec java -Xms64M -Xmx256M -jar /DiscordBot/bot.jar

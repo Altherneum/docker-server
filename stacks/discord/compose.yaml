@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        BOT_URL: "${BOT_URL:-}"
     image: discord-bot:1.0
     container_name: discord-bot
     restart: unless-stopped

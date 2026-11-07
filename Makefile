@@ -7,7 +7,7 @@ FORGEJO_MIRROR_ARGS ?=
 .PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
         forgejo-admin forgejo-runner forgejo-mirror mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
-        stop restart-service logs-service up-service down-service \
+        stop restart-service logs-service up-service rebuild-service down-service \
         ps-service services azuriom-seed
 
 help: ## Affiche cette aide
@@ -189,6 +189,12 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 		./scripts/forgejo-runner.sh \
 			|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)." ; \
 	fi
+
+rebuild-service: ## Reconstruit sans cache puis recrée un service (ex: make rebuild-service SERVICE=bot)
+	@test -n "$(SERVICE)" || (echo "Usage: make rebuild-service SERVICE=nom"; exit 1)
+	@./scripts/ensure-networks.sh
+	$(COMPOSE) --env-file .env build --no-cache --pull $(SERVICE)
+	$(COMPOSE) --env-file .env up -d --force-recreate --no-deps $(SERVICE)
 
 down-service: ## Arrête un service sans supprimer son conteneur (ex: make down-service SERVICE=azuriom)
 	@test -n "$(SERVICE)" || (echo "Usage: make down-service SERVICE=nom"; exit 1)

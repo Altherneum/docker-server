@@ -11,11 +11,30 @@
 |---|---|---|
 | `DISCORD_BOT_TOKEN` | Oui | Token du bot, à récupérer sur le portail Discord |
 | `DISCORD_BOT_NAME` | Non | Nom affiché par le bot |
+| `BOT_URL` | Non | URL du jar téléchargé au build (release GitHub, miroir, URL HTTP accessible au build) |
 
 Le token n'est **pas** généré par `make init` : il faut le créer à la main sur
 <https://discord.com/developers/applications>.
 
 Si le token est vide ou vaut `CHANGE_ME`, le conteneur s'arrête avec une erreur.
+
+## Source du bot
+
+`BOT_URL` est transmis au `Dockerfile` comme argument de build. Valeur par
+défaut :
+
+```text
+https://github.com/lx78WyY0J5/bot-rewrite/releases/latest/download/bot-rewrite-1.0-fat.jar
+```
+
+Pour changer de source, modifiez `BOT_URL` dans `.env`, puis reconstruisez :
+
+```sh
+sudo make rebuild-service SERVICE=bot
+```
+
+Le build sans cache est nécessaire car Docker ne détecte pas les changements de
+contenu derrière une URL inchangée.
 
 ## Démarrer / arrêter
 
@@ -25,6 +44,12 @@ sudo make ps-service SERVICE=bot
 sudo make logs-service SERVICE=bot
 sudo make stop SERVICE=bot
 ```
+
+## Ressources
+
+Le conteneur démarre avec un heap Java de `64M` à `256M`
+(`-Xms64M -Xmx256M`). C'est suffisant pour JDA, le cache des membres et le cache
+des 10 000 derniers messages. Le pic observé reste autour de 150 Mio de RSS.
 
 ## Nettoyer
 
