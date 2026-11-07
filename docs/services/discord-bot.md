@@ -11,7 +11,7 @@
 |---|---|---|
 | `DISCORD_BOT_TOKEN` | Oui | Token du bot, à récupérer sur le portail Discord |
 | `DISCORD_BOT_NAME` | Non | Nom affiché par le bot |
-| `BOT_URL` | Non | URL du jar téléchargé au build (release GitHub, miroir, URL HTTP accessible au build) |
+| `BOT_URL` | Oui | URL du jar téléchargé au build (release GitHub, miroir, URL HTTP accessible au build) |
 
 Le token n'est **pas** généré par `make init` : il faut le créer à la main sur
 <https://discord.com/developers/applications>.
@@ -20,12 +20,9 @@ Si le token est vide ou vaut `CHANGE_ME`, le conteneur s'arrête avec une erreur
 
 ## Source du bot
 
-`BOT_URL` est transmis au `Dockerfile` comme argument de build. Valeur par
-défaut :
-
-```text
-https://github.com/lx78WyY0J5/bot-rewrite/releases/latest/download/bot-rewrite-1.0-fat.jar
-```
+`BOT_URL` est transmis au `Dockerfile` comme argument de build et doit être
+défini dans `.env`. Aucune URL n'est codée en dur dans le `Dockerfile` ni dans
+le compose.
 
 Pour changer de source, modifiez `BOT_URL` dans `.env`, puis reconstruisez :
 
