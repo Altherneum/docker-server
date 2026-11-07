@@ -16,7 +16,7 @@ jour automatiques. fail2ban est fourni par le conteneur `stacks/fail2ban/`.
 ### 1. Cloner le dépôt
 
 ```sh
-git clone https://github.com/lx78WyY0J5/docker-server.git
+git clone https://github.com/Altherneum/docker-server.git
 cd docker-server
 ```
 
@@ -243,7 +243,7 @@ docker compose version
 ### 3. Récupérer le dépôt et générer `.env`
 
 ```sh
-git clone https://github.com/lx78WyY0J5/docker-server.git
+git clone https://github.com/Altherneum/docker-server.git
 cd docker-server
 cp .env.example .env
 chmod 600 .env

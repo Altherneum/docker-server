@@ -9,7 +9,7 @@
 # =============================================================================
 
 # Dépôt cloné quand install.sh n'est pas lancé depuis un clone existant.
-REPO_URL="https://github.com/lx78WyY0J5/docker-server.git"
+REPO_URL="https://github.com/Altherneum/docker-server.git"
 REPO_DIR="/opt/docker-server"
 SERVER_DIR="${REPO_DIR}"
 USE_SCRIPT_DIR=0

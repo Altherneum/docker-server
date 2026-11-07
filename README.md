@@ -31,7 +31,7 @@ ssh root@<ip>
 
 sudo apt update && sudo apt install -y git   # Debian/Ubuntu, if git is missing
 
-sudo git clone https://github.com/lx78WyY0J5/docker-server.git /opt/docker-server
+sudo git clone https://github.com/Altherneum/docker-server.git /opt/docker-server
 
 cd /opt/docker-server
 

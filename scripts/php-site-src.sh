@@ -17,7 +17,7 @@ get_env() {
 }
 
 REPO_URL=$(get_env PHP_SITE_REPO_URL)
-REPO_URL=${REPO_URL:-https://github.com/lx78WyY0J5/website.git}
+REPO_URL=${REPO_URL:-https://github.com/Altherneum/website.git}
 REPO_REF=$(get_env PHP_SITE_REPO_REF)
 REPO_REF=${REPO_REF:-main}
 

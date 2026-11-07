@@ -6,7 +6,7 @@ nettoyer les services de ce dépôt
 
 ```sh
 # 1. Cloner le dépôt
-git clone https://github.com/lx78WyY0J5/docker-server.git
+git clone https://github.com/Altherneum/docker-server.git
 cd docker-server
 
 # 2. Créer et remplir .env
