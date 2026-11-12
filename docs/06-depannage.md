@@ -150,6 +150,21 @@ sudo make up-service SERVICE=dockhand
 
 La valeur affichée doit correspondre à `DOCKER_GID` dans `.env`.
 
+## Dockhand : environnement local absent
+
+Sur une installation neuve, l'environnement `local` est créé automatiquement
+lorsque `DOCKHAND_AUTO_LOCAL_ENV=true` dans `.env` :
+
+```sh
+grep '^DOCKHAND_AUTO_LOCAL_ENV=' .env
+sudo make dockhand-local-env
+```
+
+Le script ne peut créer l'environnement que si l'authentification Dockhand est
+encore désactivée. Si un compte a déjà été créé, ajoutez l'environnement
+manuellement dans `Settings` > `Environments` (type `Unix Socket`, chemin
+`/var/run/docker.sock`).
+
 ## Dockhand : identifiants ou environnements illisibles
 
 La clé `DOCKHAND_ENCRYPTION_KEY` a changé. Dockhand ne peut plus déchiffrer les

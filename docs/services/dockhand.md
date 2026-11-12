@@ -37,10 +37,11 @@ puis activez la protection.
 | `DOCKHAND_ENCRYPTION_KEY` | Clé de chiffrement des identifiants Dockhand | générée par `make init` |
 | `DOCKHAND_HTTP_USER` | Compte de la protection Traefik | `dockhand` |
 | `DOCKHAND_HTTP_PASSWORD` | Mot de passe de la protection Traefik | généré par `make init` |
+| `DOCKHAND_AUTO_LOCAL_ENV` | Enregistre automatiquement l'environnement Docker local | `true` |
 | `DOCKER_GID` | GID du socket Docker de l'hôte | `960` |
 
 `DOCKHAND_ENCRYPTION_KEY` et `DOCKER_GID` sont générés ou détectés par
-`sudo make init`.
+`sudo make init`. `DOCKHAND_AUTO_LOCAL_ENV` vaut `true` par défaut.
 
 ## Démarrer / arrêter
 
@@ -61,8 +62,18 @@ n'est nécessaire.
    `DOCKHAND_HTTP_PASSWORD`.
 3. Dans Dockhand, aller dans `Settings` > `Authentication`, créer le compte
    administrateur et activer l'authentification.
-4. Vérifier que l'environnement local (`/var/run/docker.sock`) est bien détecté
-   dans `Settings` > `Environments`.
+4. Vérifier que l'environnement `local` (`/var/run/docker.sock`) est présent
+   dans `Settings` > `Environments`. Il est créé automatiquement au démarrage
+   lorsque `DOCKHAND_AUTO_LOCAL_ENV=true` ; sinon, l'ajouter manuellement.
+
+La configuration automatique n'a lieu qu'au premier démarrage, tant que
+l'authentification Dockhand est désactivée. Elle est idempotente : un
+environnement socket déjà existant n'est pas modifié. Pour la relancer
+manuellement :
+
+```sh
+sudo make dockhand-local-env
+```
 
 ## Socket Docker
 
@@ -72,8 +83,10 @@ Le socket de l'hôte est monté directement :
 - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-Le conteneur ajoute automatiquement le groupe du socket au démarrage. Si
-Dockhand affiche `permission denied` :
+Le conteneur ajoute automatiquement le groupe du socket au démarrage.
+Avec `DOCKHAND_AUTO_LOCAL_ENV=true`, `make up` et
+`make up-service SERVICE=dockhand` déclarent aussi l'environnement `local`
+dans Dockhand. Si Dockhand affiche `permission denied` :
 
 ```sh
 stat -c '%g' /var/run/docker.sock

@@ -68,10 +68,14 @@ Voir la [fiche Nextcloud](services/nextcloud.md#mettre-à-jour-nextcloud).
 | `DOCKHAND_ENCRYPTION_KEY` | Clé de chiffrement des identifiants Dockhand | générée par `make init` |
 | `DOCKHAND_HTTP_USER` | Compte de la protection Traefik | `dockhand` |
 | `DOCKHAND_HTTP_PASSWORD` | Mot de passe de la protection Traefik | généré par `make init` |
+| `DOCKHAND_AUTO_LOCAL_ENV` | Enregistre automatiquement l'environnement Docker local | `true` |
 
 La clé `DOCKHAND_ENCRYPTION_KEY` ne doit pas être modifiée après le premier
 démarrage : elle déchiffre les identifiants et secrets stockés par Dockhand.
-Voir la [fiche Dockhand](services/dockhand.md).
+Avec `DOCKHAND_AUTO_LOCAL_ENV=true`, `make up` et
+`make up-service SERVICE=dockhand` créent l'environnement `local` sur
+`/var/run/docker.sock` s'il n'existe pas encore. Voir la
+[fiche Dockhand](services/dockhand.md).
 
 ## Uptime Kuma
 
