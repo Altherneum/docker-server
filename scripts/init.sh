@@ -95,6 +95,8 @@ set_env NEXTCLOUD_MAIL_PASSWORD    "$(gen_hex 24)"
 set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
 set_env DOCKHAND_HTTP_PASSWORD  "$(gen_hex 16)"
 
+set_env UPTIME_KUMA_ADMIN_PASSWORD "$(gen_hex 24)"
+
 set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"
 set_env HARDEN_ADMIN_PASSWORD     "$(gen_hex 24)"

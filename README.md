@@ -101,6 +101,7 @@ sudo make ps
 - **__forgejo-admin__** : Crée le compte admin Forgejo depuis .env (automatique avec `up` / `up-service`)
 - **__forgejo-runner__** : Vérifie que le runner Forgejo Actions est en ligne (automatique avec `up` / `up-service`)
 - **__forgejo-mirror__** : Importe les dépôts GitHub dans Forgejo et configure le miroir push (automatique avec `up` / `up-service`) ; options `--dry-run`, `--reset-stuck`, `--force`
+- **__uptime-kuma-admin__** : Crée le compte admin Uptime Kuma depuis .env (automatique avec `up` / `up-service`)
 - **__mail-integrate__** : Installe l'override Traefik dans MAILCOW_DIR
 - **__mail-up__** : Démarre mailcow avec l'intégration Traefik
 - **__mail-down__** : Arrête mailcow
@@ -144,6 +145,8 @@ sudo make ps
 ### Services système
 - `traefik` : Proxy
 - `dockhand` : Interface d'administration Docker
+- `uptime-kuma` : Supervision des services et des conteneurs
+- `uptime-kuma-docker-proxy` : Proxy Docker en lecture seule pour Uptime Kuma
 - `fail2ban` : Protection anti-brute force (Traefik + SSH)
 - `bot` : Bot Discord
 
@@ -164,6 +167,7 @@ Les services communiquent via :
   - `minecraft`
   - `azuriom_internal`
   - `nextcloud_internal`
+  - `uptime_kuma_internal`
   - `db_admin`
   - `php_internal`
 

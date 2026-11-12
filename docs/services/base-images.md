@@ -62,5 +62,6 @@ sudo make up
 - Une mise à jour de l'image de base ne met pas à jour les conteneurs déjà
   créés : il faut reconstruire et recréer les services.
 - Les autres stacks sont construites à partir d'images officielles (Traefik,
-  Forgejo, code-server, Dockhand, phpMyAdmin, KeeWeb, Nextcloud, Redis,
-  fail2ban) téléchargées depuis leurs registres respectifs.
+  Forgejo, code-server, Dockhand, Uptime Kuma, docker-socket-proxy,
+  phpMyAdmin, KeeWeb, Nextcloud, Redis, fail2ban) téléchargées depuis leurs
+  registres respectifs.

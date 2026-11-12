@@ -10,8 +10,8 @@ docker inspect nom-du-conteneur
 ```
 
 Remplacez `nom` par le service voulu : `traefik`, `php-site`, `azuriom`,
-`forgejo`, `code-server`, `keeweb`, `nextcloud`, `dockhand`, `phpmyadmin`,
-`velocity`, `bot`, etc.
+`forgejo`, `code-server`, `keeweb`, `nextcloud`, `dockhand`, `uptime-kuma`,
+`uptime-kuma-docker-proxy`, `phpmyadmin`, `velocity`, `bot`, etc.
 
 ## Le site affiche une erreur 404
 
@@ -155,6 +155,54 @@ La valeur affichée doit correspondre à `DOCKER_GID` dans `.env`.
 La clé `DOCKHAND_ENCRYPTION_KEY` a changé. Dockhand ne peut plus déchiffrer les
 identifiants enregistrés. Restaurez l'ancienne clé depuis la sauvegarde de
 `.env` ou restaurez le volume `dockhand-data`.
+
+## Uptime Kuma : compte admin non créé
+
+Le script d'initialisation n'a pas pu joindre l'application. Vérifiez que le
+conteneur est démarré et relancez la création :
+
+```sh
+sudo make ps-service SERVICE=uptime-kuma
+sudo make logs-service SERVICE=uptime-kuma
+sudo make uptime-kuma-admin
+```
+
+Si un compte existe déjà avec un autre mot de passe, utilisez l'outil intégré :
+
+```sh
+docker exec -it uptime-kuma node extra/reset-password.js
+```
+
+## Uptime Kuma : erreur 502 ou 503
+
+Le conteneur Uptime Kuma ne répond pas. Vérifiez son état et ses logs :
+
+```sh
+sudo make ps-service SERVICE=uptime-kuma
+sudo make logs-service SERVICE=uptime-kuma
+```
+
+Le premier démarrage peut être long après le téléchargement de l'image.
+
+## Uptime Kuma : moniteur Docker en erreur 403
+
+Le proxy de socket refuse la requête. Vérifiez qu'il tourne et que seules les
+lectures nécessaires sont autorisées (`CONTAINERS=1`, `INFO=1`, `POST=0`) :
+
+```sh
+sudo make ps-service SERVICE=uptime-kuma-docker-proxy
+sudo make logs-service SERVICE=uptime-kuma-docker-proxy
+```
+
+Dans Uptime Kuma, l'hôte Docker doit pointer vers
+`http://uptime-kuma-docker-proxy:2375`, pas vers `localhost`.
+
+## Uptime Kuma : login ou WebSocket bloqué
+
+Traefik conserve le `Host`, donc le contrôle d'origine par défaut fonctionne.
+Vérifiez la console du navigateur et les logs Traefik. Ne passez à
+`UPTIME_KUMA_WS_ORIGIN_CHECK=bypass` qu'en dernier recours, si un autre reverse
+proxy réécrit le `Host`.
 
 ## Erreur d'authentification sur une base de données
 

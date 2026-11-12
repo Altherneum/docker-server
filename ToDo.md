@@ -33,4 +33,5 @@
 | `fail2ban` | ------------ | ------------ | à faire |
 | `nextcloud`, `db-nextcloud`, `nextcloud-redis`, `nextcloud-cron` | ------------ | Installer la stack et vérifier la connexion, les synchronisations et les tâches cron | à tester |
 | `dockhand` | ------------ | Tester l'accès, la protection Basic Auth et la gestion des conteneurs | à tester |
+| `uptime-kuma` | ------------ | Tester l'accès, le compte admin automatique et les moniteurs Docker | à tester |
 | `mailcow` | ------------ | ------------ | à faire |

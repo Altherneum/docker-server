@@ -18,6 +18,7 @@ La sauvegarde est créée dans `backups/AAAA-MM-JJ_HHMMSS/`. Elle contient :
   - KeeWeb : fichiers WebDAV ;
   - Nextcloud : fichiers, configuration et applications (`nextcloud-html`) ;
   - Dockhand : base SQLite, stacks et dépôts Git (`dockhand-data`) ;
+  - Uptime Kuma : base SQLite, moniteurs et status pages (`uptime-kuma-data`) ;
   - code-server : réglages et espace de travail ;
   - Minecraft : mondes des serveurs Paper, données partagées du plugin
     (`mc-plugin-data`) et configuration de Velocity ;
@@ -78,6 +79,7 @@ sudo make stop SERVICE=keeweb
 sudo make stop SERVICE=nextcloud
 sudo make stop SERVICE=nextcloud-cron
 sudo make stop SERVICE=code-server
+sudo make stop SERVICE=uptime-kuma
 sudo make backup
 sudo make up
 ```

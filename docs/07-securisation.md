@@ -244,7 +244,13 @@ depuis Internet, même s'il n'est pas dans la liste UFW. Vérifiez donc vos
 fichiers `compose.yaml` avant de publier un port.
 
 HTTP passe par `80` et `443` via Traefik. RCON et les services internes
-(MariaDB, phpMyAdmin, code-server, Dockhand) n'ont pas besoin d'être publiés.
+(MariaDB, phpMyAdmin, code-server, Dockhand, Uptime Kuma et son proxy Docker)
+n'ont pas besoin d'être publiés.
+
+Uptime Kuma n'a pas de HTTP Basic : son dashboard est protégé par son compte
+admin, créé automatiquement depuis `.env`. Son proxy Docker
+(`uptime-kuma-docker-proxy`) est limité aux lectures et n'est joignable que sur
+le réseau interne `uptime_kuma_internal`.
 
 ## Sauvegardes et restauration manuelle
 

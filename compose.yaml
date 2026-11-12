@@ -9,6 +9,7 @@ include:
   - path: stacks/forgejo/compose.yaml
   - path: stacks/code-server/compose.yaml
   - path: stacks/dockhand/compose.yaml
+  - path: stacks/uptime-kuma/compose.yaml
   - path: stacks/minecraft/compose.yaml
   - path: stacks/discord/compose.yaml
   - path: stacks/fail2ban/compose.yaml

@@ -72,6 +72,22 @@ La clé `DOCKHAND_ENCRYPTION_KEY` ne doit pas être modifiée après le premier
 démarrage : elle déchiffre les identifiants et secrets stockés par Dockhand.
 Voir la [fiche Dockhand](services/dockhand.md).
 
+## Uptime Kuma
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `UPTIME_KUMA_VERSION` | Version exacte de l'image Uptime Kuma | `2.5.10` |
+| `UPTIME_KUMA_DOCKER_PROXY_VERSION` | Version du proxy Docker en lecture seule | `v0.5.0` |
+| `UPTIME_KUMA_DB_TYPE` | Type de base ; SQLite incluse dans le volume | `sqlite` |
+| `UPTIME_KUMA_ADMIN_USER` | Compte administrateur créé au premier démarrage | `admin` |
+| `UPTIME_KUMA_ADMIN_PASSWORD` | Mot de passe du compte administrateur | généré par `make init` |
+
+Le compte admin est créé automatiquement par
+`scripts/uptime-kuma-admin.sh`, appelé par `make up` et
+`make up-service SERVICE=uptime-kuma`. Il n'y a pas de HTTP Basic Auth
+Traefik : seul le login Uptime Kuma protège le dashboard. Voir la
+[fiche Uptime Kuma](services/uptime-kuma.md).
+
 ## Import GitHub (Forgejo et code-server)
 
 | Variable | Rôle | Exemple |
@@ -149,6 +165,7 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 | Nextcloud / mail | `NEXTCLOUD_MAIL_PASSWORD` | Boîte `cloud@` (optionnel) |
 | Dockhand | `DOCKHAND_HTTP_USER`, `DOCKHAND_HTTP_PASSWORD` | Protection HTTP Basic par Traefik, puis compte Dockhand |
 | Dockhand | `DOCKHAND_ENCRYPTION_KEY` | Chiffrement des identifiants Dockhand |
+| Uptime Kuma | `UPTIME_KUMA_ADMIN_USER`, `UPTIME_KUMA_ADMIN_PASSWORD` | Compte admin Uptime Kuma (pas de Basic Auth) |
 | Minecraft | `MINECRAFT_RCON_PASSWORD` | Administration RCON interne |
 | Minecraft | `VELOCITY_SECRET` | Liaison Velocity / serveurs Paper |
 
@@ -217,6 +234,24 @@ dans `Settings` > `Authentication`, puis activez la protection.
 `DOCKHAND_HTTP_USER` / `DOCKHAND_HTTP_PASSWORD` protègent uniquement l'accès
 Traefik. Modifier ces valeurs puis lancer `sudo make init` et redémarrer
 Dockhand ne change pas le compte créé dans l'interface.
+
+### Compte admin Uptime Kuma
+
+Le compte est créé **automatiquement** au premier démarrage par
+`make up` ou `make up-service SERVICE=uptime-kuma`. La commande reste
+disponible manuellement :
+
+```sh
+sudo make uptime-kuma-admin
+```
+
+Modifier `UPTIME_KUMA_ADMIN_USER` ou `UPTIME_KUMA_ADMIN_PASSWORD` dans `.env`
+ne change pas un compte existant. Utilisez l'interface Uptime Kuma, ou l'outil
+intégré :
+
+```sh
+docker exec -it uptime-kuma node extra/reset-password.js
+```
 
 ### Compte admin Forgejo
 

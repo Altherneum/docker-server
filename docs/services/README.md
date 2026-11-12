@@ -20,6 +20,7 @@ Les adresses utilisent `supername.fr` comme exemple. Remplacez-le par
 | [KeeWeb](keeweb.md) | `keeweb` | `https://keeweb.<domaine>` | `KEEWEB_UI_PASSWORD` |
 | [Nextcloud](nextcloud.md) | `nextcloud`, `nextcloud-cron`, `nextcloud-redis`, `db-nextcloud` | `https://cloud.<domaine>` | `NEXTCLOUD_ADMIN_PASSWORD` |
 | [Dockhand](dockhand.md) | `dockhand` | `https://dockhand.<domaine>` | `DOCKHAND_HTTP_PASSWORD` puis compte Dockhand |
+| [Uptime Kuma](uptime-kuma.md) | `uptime-kuma`, `uptime-kuma-docker-proxy` | `https://status.<domaine>` | `UPTIME_KUMA_ADMIN_PASSWORD` |
 | [phpMyAdmin](phpmyadmin.md) | `phpmyadmin` | `https://phpmyadmin.<domaine>` | `PMA_ADMIN_PASSWORD` puis compte MariaDB |
 | [Meme](meme.md) | `meme` | `https://meme.<domaine>` | *(aucun)* |
 | [Minecraft](minecraft.md) | `velocity`, `mc-*` | `mc.<domaine>:25565` | *(aucun pour jouer)* |

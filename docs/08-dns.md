@@ -74,6 +74,7 @@ nécessaire d'en créer un par service.
 | KeeWeb | `keeweb`, `keepass`, `keys`, `key` |
 | Nextcloud | `cloud`, `nextcloud`, `drive`, `files` |
 | Dockhand | `dockhand`, `docker` |
+| Uptime Kuma | `status`, `uptime`, `monitor`, `kuma` |
 | phpMyAdmin | `phpmyadmin` |
 | Site de memes | `meme`, `windows`, `microsoft`, `arch`, `linux` |
 | Mailcow | `mail`, `webmail`, `mails` |

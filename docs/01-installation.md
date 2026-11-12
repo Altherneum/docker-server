@@ -97,7 +97,7 @@ sudo make ps
 ```
 
 `make up` construit les images manquantes, démarre tous les services et crée
-le compte admin Forgejo.
+les comptes admin Forgejo et Uptime Kuma.
 
 Le conteneur `fail2ban` lit les logs SSH de l'hôte. Sur Debian/Ubuntu, vérifiez
 que `/var/log/auth.log` existe ; sinon, consultez la
@@ -127,6 +127,8 @@ sudo make up-service SERVICE=<nom>
 | `db-forgejo` | Base PostgreSQL de Forgejo | `sudo make up-service SERVICE=db-forgejo` |
 | `code-server` | VS Code dans le navigateur | `sudo make up-service SERVICE=code-server` |
 | `dockhand` | Administration Docker | `sudo make up-service SERVICE=dockhand` |
+| `uptime-kuma` | Supervision des services et conteneurs | `sudo make up-service SERVICE=uptime-kuma` |
+| `uptime-kuma-docker-proxy` | Proxy Docker en lecture seule | `sudo make up-service SERVICE=uptime-kuma-docker-proxy` |
 | `azuriom` | Site et boutique Minecraft | `sudo make up-service SERVICE=azuriom` |
 | `db-azuriom` | Base MariaDB d'Azuriom | `sudo make up-service SERVICE=db-azuriom` |
 | `velocity` | Proxy des joueurs Minecraft | `sudo make up-service SERVICE=velocity` |

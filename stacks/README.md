@@ -16,6 +16,7 @@ seulement le modèle d'intégration de Mailcow, qui est une stack externe.
 | `forgejo` | `forgejo`, `db-forgejo` | [Forgejo](../docs/services/forgejo.md) |
 | `code-server` | `code-server` | [code-server](../docs/services/code-server.md) |
 | `dockhand` | `dockhand` | [Dockhand](../docs/services/dockhand.md) |
+| `uptime-kuma` | `uptime-kuma`, `uptime-kuma-docker-proxy` | [Uptime Kuma](../docs/services/uptime-kuma.md) |
 | `minecraft` | `velocity`, `mc-*` | [Minecraft](../docs/services/minecraft.md) |
 | `discord` | `bot` | [Bot Discord](../docs/services/discord-bot.md) |
 | `fail2ban` | `fail2ban` | [fail2ban](../docs/services/fail2ban.md) |

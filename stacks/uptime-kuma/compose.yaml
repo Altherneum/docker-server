@@ -1,0 +1,66 @@
+# =============================================================================
+# Uptime Kuma : supervision des services HTTP, TCP, ping, DNS et conteneurs.
+# Image officielle : https://github.com/louislam/uptime-kuma (licence MIT).
+# Proxy Docker : https://github.com/Tecnativa/docker-socket-proxy (Apache 2.0).
+# =============================================================================
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:${UPTIME_KUMA_VERSION}
+    container_name: uptime-kuma
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      TZ: ${TZ}
+      # SQLite est incluse dans le volume uptime-kuma-data.
+      UPTIME_KUMA_DB_TYPE: ${UPTIME_KUMA_DB_TYPE:-sqlite}
+    volumes:
+      - uptime-kuma-data:/app/data
+    depends_on:
+      - uptime-kuma-docker-proxy
+    networks:
+      - proxy
+      - uptime_kuma_internal
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${PROXY_NETWORK}
+      traefik.http.routers.uptime-kuma.rule: "Host(`status.${DOMAIN_NAME}${TLD}`) || Host(`uptime.${DOMAIN_NAME}${TLD}`) || Host(`monitor.${DOMAIN_NAME}${TLD}`) || Host(`kuma.${DOMAIN_NAME}${TLD}`)"
+      traefik.http.routers.uptime-kuma.entrypoints: "websecure"
+      traefik.http.routers.uptime-kuma.tls.certResolver: "letsencrypt"
+      # Pas de Basic Auth Traefik : Uptime Kuma possède son propre compte admin,
+      # créé automatiquement depuis .env par scripts/uptime-kuma-admin.sh.
+      traefik.http.routers.uptime-kuma.middlewares: "secure-headers@file"
+      traefik.http.services.uptime-kuma.loadbalancer.server.port: "3001"
+
+  # Proxy Docker en lecture seule, limité à la liste et à l'état des conteneurs.
+  # Uptime Kuma s'y connecte via http://uptime-kuma-docker-proxy:2375.
+  uptime-kuma-docker-proxy:
+    image: tecnativa/docker-socket-proxy:${UPTIME_KUMA_DOCKER_PROXY_VERSION}
+    container_name: uptime-kuma-docker-proxy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      # Seules les lectures nécessaires aux moniteurs Docker sont autorisées.
+      CONTAINERS: "1"
+      INFO: "1"
+      POST: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - uptime_kuma_internal
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK}
+    external: true
+  uptime_kuma_internal:
+    name: uptime_kuma_internal
+    internal: true
+
+volumes:
+  uptime-kuma-data:
+    name: uptime-kuma-data
+    labels:
+      should.backup: "true"
