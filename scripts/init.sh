@@ -95,6 +95,8 @@ set_env NEXTCLOUD_MAIL_PASSWORD    "$(gen_hex 24)"
 set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
 set_env DOCKHAND_HTTP_PASSWORD  "$(gen_hex 16)"
 set_env DOCKHAND_AUTO_LOCAL_ENV true
+set_env DOCKHAND_AUTO_NOTIFICATIONS true
+set_env DOCKHAND_NOTIFICATION_NAME "Dockhand"
 
 set_env UPTIME_KUMA_ADMIN_PASSWORD "$(gen_hex 24)"
 set_env UPTIME_KUMA_DOCKER_SYNC true

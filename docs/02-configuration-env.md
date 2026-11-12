@@ -69,13 +69,18 @@ Voir la [fiche Nextcloud](services/nextcloud.md#mettre-à-jour-nextcloud).
 | `DOCKHAND_HTTP_USER` | Compte de la protection Traefik | `dockhand` |
 | `DOCKHAND_HTTP_PASSWORD` | Mot de passe de la protection Traefik | généré par `make init` |
 | `DOCKHAND_AUTO_LOCAL_ENV` | Enregistre automatiquement l'environnement Docker local | `true` |
+| `DOCKHAND_AUTO_NOTIFICATIONS` | Configure automatiquement le canal de notifications | `true` |
+| `DOCKHAND_NOTIFICATION_WEBHOOK_URL` | URL du webhook de notifications (Apprise) | `discord://ID/TOKEN` |
+| `DOCKHAND_NOTIFICATION_NAME` | Nom affiché du canal de notifications | `Dockhand` |
 
 La clé `DOCKHAND_ENCRYPTION_KEY` ne doit pas être modifiée après le premier
 démarrage : elle déchiffre les identifiants et secrets stockés par Dockhand.
 Avec `DOCKHAND_AUTO_LOCAL_ENV=true`, `make up` et
 `make up-service SERVICE=dockhand` créent l'environnement `local` sur
-`/var/run/docker.sock` s'il n'existe pas encore. Voir la
-[fiche Dockhand](services/dockhand.md).
+`/var/run/docker.sock` s'il n'existe pas encore. Avec
+`DOCKHAND_AUTO_NOTIFICATIONS=true`, ils créent ou mettent à jour le canal
+`DOCKHAND_NOTIFICATION_NAME`, activent tous les événements et l'attachent à
+cet environnement. Voir la [fiche Dockhand](services/dockhand.md).
 
 ## Uptime Kuma
 

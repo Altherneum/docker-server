@@ -38,10 +38,14 @@ puis activez la protection.
 | `DOCKHAND_HTTP_USER` | Compte de la protection Traefik | `dockhand` |
 | `DOCKHAND_HTTP_PASSWORD` | Mot de passe de la protection Traefik | généré par `make init` |
 | `DOCKHAND_AUTO_LOCAL_ENV` | Enregistre automatiquement l'environnement Docker local | `true` |
+| `DOCKHAND_AUTO_NOTIFICATIONS` | Configure automatiquement le canal de notifications | `true` |
+| `DOCKHAND_NOTIFICATION_WEBHOOK_URL` | URL du webhook de notifications (Apprise) | `discord://ID/TOKEN` |
+| `DOCKHAND_NOTIFICATION_NAME` | Nom affiché du canal de notifications | `Dockhand` |
 | `DOCKER_GID` | GID du socket Docker de l'hôte | `960` |
 
 `DOCKHAND_ENCRYPTION_KEY` et `DOCKER_GID` sont générés ou détectés par
-`sudo make init`. `DOCKHAND_AUTO_LOCAL_ENV` vaut `true` par défaut.
+`sudo make init`. `DOCKHAND_AUTO_LOCAL_ENV` et
+`DOCKHAND_AUTO_NOTIFICATIONS` valent `true` par défaut.
 
 ## Démarrer / arrêter
 
@@ -74,6 +78,43 @@ manuellement :
 ```sh
 sudo make dockhand-local-env
 ```
+
+## Notifications
+
+Dockhand peut envoyer ses événements vers un webhook compatible Apprise
+(Discord, Slack, Telegram, ntfy, Gotify, JSON générique, etc.). Avec
+`DOCKHAND_AUTO_NOTIFICATIONS=true`, `make up` et
+`make up-service SERVICE=dockhand` :
+
+1. créent le canal `DOCKHAND_NOTIFICATION_NAME` s'il n'existe pas ;
+2. le mettent à jour s'il existe déjà (recherche par URL, puis par nom) ;
+3. activent le canal et tous les types d'événements ;
+4. l'attachent à l'environnement Docker local avec tous les événements
+   d'environnement actifs.
+
+La commande suivante relance la configuration manuellement :
+
+```sh
+sudo make dockhand-notifications
+```
+
+Le webhook se configure dans `.env` :
+
+```env
+DOCKHAND_AUTO_NOTIFICATIONS=true
+DOCKHAND_NOTIFICATION_WEBHOOK_URL=discord://ID/TOKEN
+DOCKHAND_NOTIFICATION_NAME=Dockhand
+```
+
+L'URL doit utiliser le format du fournisseur visé. Pour Discord :
+`discord://<webhook_id>/<webhook_token>`. Laisser
+`DOCKHAND_NOTIFICATION_WEBHOOK_URL` vide ou à `CHANGE_ME` désactive simplement
+la configuration automatique.
+
+La configuration automatique utilise l'API locale de Dockhand. Elle ne peut
+pas modifier les notifications si l'authentification Dockhand est déjà
+activée : dans ce cas, configurez le canal manuellement dans
+`Settings` > `Notifications`.
 
 ## Socket Docker
 

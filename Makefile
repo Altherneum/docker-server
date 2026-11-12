@@ -6,7 +6,7 @@ FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
+        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service rebuild-service down-service \
         ps-service services azuriom-seed
 
@@ -62,6 +62,8 @@ up: check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infra
 	fi
 	@./scripts/dockhand-local-env.sh \
 		|| echo "Attention : environnement Docker local Dockhand non configuré (voir les messages ci-dessus)."
+	@./scripts/dockhand-notifications.sh \
+		|| echo "Attention : notifications Dockhand non configurées (voir les messages ci-dessus)."
 	@./scripts/forgejo-admin.sh
 	@./scripts/forgejo-runner.sh \
 		|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)."
@@ -107,6 +109,9 @@ uptime-kuma-docker-sync: ## Synchronise les moniteurs Docker et la notification 
 
 dockhand-local-env: ## Configure l'environnement Docker local de Dockhand (idempotent)
 	./scripts/dockhand-local-env.sh
+
+dockhand-notifications: ## Configure les notifications Dockhand depuis .env (idempotent)
+	./scripts/dockhand-notifications.sh
 
 azuriom-seed: ## Réapplique les données de démonstration Azuriom (paramètres, rôles, boutique)
 	@printf "Cette commande réapplique les données de démonstration Azuriom. Confirmer avec CONFIRM=yes\n"
@@ -200,6 +205,8 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 	@if [ "$(SERVICE)" = "dockhand" ]; then \
 		./scripts/dockhand-local-env.sh \
 			|| echo "Attention : environnement Docker local Dockhand non configuré (voir les messages ci-dessus)." ; \
+		./scripts/dockhand-notifications.sh \
+			|| echo "Attention : notifications Dockhand non configurées (voir les messages ci-dessus)." ; \
 	fi
 	@if [ "$(SERVICE)" = "forgejo" ]; then \
 		./scripts/forgejo-admin.sh ; \

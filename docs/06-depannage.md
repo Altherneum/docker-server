@@ -165,6 +165,21 @@ encore désactivée. Si un compte a déjà été créé, ajoutez l'environnement
 manuellement dans `Settings` > `Environments` (type `Unix Socket`, chemin
 `/var/run/docker.sock`).
 
+## Dockhand : notifications non configurées
+
+Vérifiez que l'URL du webhook est renseignée et relancez la configuration :
+
+```sh
+grep '^DOCKHAND_NOTIFICATION_WEBHOOK_URL=' .env
+sudo make dockhand-notifications
+```
+
+La valeur `CHANGE_ME` ou une valeur vide désactive la configuration
+automatique. Le script ne peut pas modifier les notifications si
+l'authentification Dockhand est déjà activée : configurez alors le canal dans
+`Settings` > `Notifications`, puis attachez-le à l'environnement dans
+`Settings` > `Environments`.
+
 ## Dockhand : identifiants ou environnements illisibles
 
 La clé `DOCKHAND_ENCRYPTION_KEY` a changé. Dockhand ne peut plus déchiffrer les
