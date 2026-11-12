@@ -15,6 +15,7 @@ seulement le modèle d'intégration de Mailcow, qui est une stack externe.
 | `web/meme` | `meme` | [Meme](../docs/services/meme.md) |
 | `forgejo` | `forgejo`, `db-forgejo` | [Forgejo](../docs/services/forgejo.md) |
 | `code-server` | `code-server` | [code-server](../docs/services/code-server.md) |
+| `dockhand` | `dockhand` | [Dockhand](../docs/services/dockhand.md) |
 | `minecraft` | `velocity`, `mc-*` | [Minecraft](../docs/services/minecraft.md) |
 | `discord` | `bot` | [Bot Discord](../docs/services/discord-bot.md) |
 | `fail2ban` | `fail2ban` | [fail2ban](../docs/services/fail2ban.md) |

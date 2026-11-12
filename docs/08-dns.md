@@ -73,6 +73,7 @@ nécessaire d'en créer un par service.
 | code-server | `code`, `vscode` |
 | KeeWeb | `keeweb`, `keepass`, `keys`, `key` |
 | Nextcloud | `cloud`, `nextcloud`, `drive`, `files` |
+| Dockhand | `dockhand`, `docker` |
 | phpMyAdmin | `phpmyadmin` |
 | Site de memes | `meme`, `windows`, `microsoft`, `arch`, `linux` |
 | Mailcow | `mail`, `webmail`, `mails` |

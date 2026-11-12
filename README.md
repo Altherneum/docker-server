@@ -1,6 +1,6 @@
 # Docker Server
 
-Infrastructure Docker : proxy HTTPS, sites web, cloud Nextcloud, forge Git, éditeur de code, gestionnaire de mots de passe, serveurs Minecraft, bot Discord, messagerie et sauvegardes.
+Infrastructure Docker : proxy HTTPS, administration Docker, sites web, cloud Nextcloud, forge Git, éditeur de code, gestionnaire de mots de passe, serveurs Minecraft, bot Discord, messagerie et sauvegardes.
 
 ## Documentation
 
@@ -142,6 +142,7 @@ toutes les adresses changeront en même temps.
 
 ### Services système
 - `traefik` : Proxy
+- `dockhand` : Interface d'administration Docker
 - `fail2ban` : Protection anti-brute force (Traefik + SSH)
 - `bot` : Bot Discord
 

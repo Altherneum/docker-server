@@ -10,8 +10,8 @@ docker inspect nom-du-conteneur
 ```
 
 Remplacez `nom` par le service voulu : `traefik`, `php-site`, `azuriom`,
-`forgejo`, `code-server`, `keeweb`, `nextcloud`, `phpmyadmin`, `velocity`,
-`bot`, etc.
+`forgejo`, `code-server`, `keeweb`, `nextcloud`, `dockhand`, `phpmyadmin`,
+`velocity`, `bot`, etc.
 
 ## Le site affiche une erreur 404
 
@@ -136,6 +136,25 @@ recréez le conteneur :
 ```sh
 sudo make up-service SERVICE=nextcloud
 ```
+
+## Dockhand : permission refusée sur le socket Docker
+
+Le conteneur n'a pas accès à `/var/run/docker.sock`. Vérifiez le GID du socket
+et relancez l'initialisation :
+
+```sh
+stat -c '%g' /var/run/docker.sock
+sudo make init
+sudo make up-service SERVICE=dockhand
+```
+
+La valeur affichée doit correspondre à `DOCKER_GID` dans `.env`.
+
+## Dockhand : identifiants ou environnements illisibles
+
+La clé `DOCKHAND_ENCRYPTION_KEY` a changé. Dockhand ne peut plus déchiffrer les
+identifiants enregistrés. Restaurez l'ancienne clé depuis la sauvegarde de
+`.env` ou restaurez le volume `dockhand-data`.
 
 ## Erreur d'authentification sur une base de données
 

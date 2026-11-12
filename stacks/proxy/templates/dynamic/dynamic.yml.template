@@ -34,6 +34,10 @@ http:
       basicAuth:
         usersFile: "/etc/traefik/auth/forgejo.htpasswd"
 
+    dockhand-auth:
+      basicAuth:
+        usersFile: "/etc/traefik/auth/dockhand.htpasswd"
+
     redirect-discord:
       redirectRegex:
         regex: "^https?://(www[.])?@@DOMAIN_REGEX@@(/.*)?$"

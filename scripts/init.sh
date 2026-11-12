@@ -92,6 +92,9 @@ set_env NEXTCLOUD_ADMIN_PASSWORD   "$(gen_hex 16)"
 set_env NEXTCLOUD_REDIS_PASSWORD   "$(gen_hex 24)"
 set_env NEXTCLOUD_MAIL_PASSWORD    "$(gen_hex 24)"
 
+set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
+set_env DOCKHAND_HTTP_PASSWORD  "$(gen_hex 16)"
+
 set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"
 set_env HARDEN_ADMIN_PASSWORD     "$(gen_hex 24)"
@@ -128,6 +131,8 @@ write_htpasswd stacks/proxy/auth/code-server.htpasswd \
     "$(get_env CODE_SERVER_HTTP_USER)" "$(get_env CODE_SERVER_HTTP_PASSWORD)"
 write_htpasswd stacks/proxy/auth/forgejo.htpasswd \
     "$(get_env FORGEJO_HTTP_USER)" "$(get_env FORGEJO_HTTP_PASSWORD)"
+write_htpasswd stacks/proxy/auth/dockhand.htpasswd \
+    "$(get_env DOCKHAND_HTTP_USER)" "$(get_env DOCKHAND_HTTP_PASSWORD)"
 write_htpasswd stacks/web/keeweb/auth/keeweb.htpasswd \
     "$(get_env KEEWEB_UI_USER)" "$(get_env KEEWEB_UI_PASSWORD)"
 write_htpasswd stacks/web/keeweb/auth/webdav.htpasswd \

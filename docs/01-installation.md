@@ -126,6 +126,7 @@ sudo make up-service SERVICE=<nom>
 | `forgejo` | Serveur Git Forgejo | `sudo make up-service SERVICE=forgejo` |
 | `db-forgejo` | Base PostgreSQL de Forgejo | `sudo make up-service SERVICE=db-forgejo` |
 | `code-server` | VS Code dans le navigateur | `sudo make up-service SERVICE=code-server` |
+| `dockhand` | Administration Docker | `sudo make up-service SERVICE=dockhand` |
 | `azuriom` | Site et boutique Minecraft | `sudo make up-service SERVICE=azuriom` |
 | `db-azuriom` | Base MariaDB d'Azuriom | `sudo make up-service SERVICE=db-azuriom` |
 | `velocity` | Proxy des joueurs Minecraft | `sudo make up-service SERVICE=velocity` |

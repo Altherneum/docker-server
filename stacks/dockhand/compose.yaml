@@ -1,0 +1,47 @@
+# =============================================================================
+# Dockhand : interface moderne d'administration Docker.
+# Image officielle : https://github.com/Finsys/dockhand
+# Licence BSL 1.1 : usage personnel et homelab gratuit, licence commerciale
+# requise pour les systèmes de production d'une organisation.
+# =============================================================================
+
+services:
+  dockhand:
+    image: fnsys/dockhand:${DOCKHAND_VERSION}
+    container_name: dockhand
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      DATA_DIR: /app/data
+      PUID: ${DOCKHAND_PUID:-1001}
+      PGID: ${DOCKHAND_PGID:-1001}
+      ENCRYPTION_KEY: ${DOCKHAND_ENCRYPTION_KEY}
+    volumes:
+      # Accès direct au Docker de l'hôte : Dockhand peut tout administrer.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Base SQLite, clé de chiffrement, stacks et dépôts Git.
+      - dockhand-data:/app/data
+    group_add:
+      - "${DOCKER_GID:-0}"
+    networks:
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${PROXY_NETWORK}
+      traefik.http.routers.dockhand.rule: "Host(`dockhand.${DOMAIN_NAME}${TLD}`) || Host(`docker.${DOMAIN_NAME}${TLD}`) || Host(`dockerhand.${DOMAIN_NAME}${TLD}`)"
+      traefik.http.routers.dockhand.entrypoints: "websecure"
+      traefik.http.routers.dockhand.tls.certResolver: "letsencrypt"
+      # Interface d'administration : protection HTTP Basic obligatoire.
+      traefik.http.routers.dockhand.middlewares: "dockhand-auth@file,secure-headers@file"
+      traefik.http.services.dockhand.loadbalancer.server.port: "3000"
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK}
+    external: true
+
+volumes:
+  dockhand-data:
+    name: dockhand-data
+    labels:
+      should.backup: "true"

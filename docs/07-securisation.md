@@ -244,7 +244,7 @@ depuis Internet, même s'il n'est pas dans la liste UFW. Vérifiez donc vos
 fichiers `compose.yaml` avant de publier un port.
 
 HTTP passe par `80` et `443` via Traefik. RCON et les services internes
-(MariaDB, phpMyAdmin, code-server) n'ont pas besoin d'être publiés.
+(MariaDB, phpMyAdmin, code-server, Dockhand) n'ont pas besoin d'être publiés.
 
 ## Sauvegardes et restauration manuelle
 

@@ -58,6 +58,20 @@ Nextcloud ne peut être mis à jour que d'**une version majeure à la fois**.
 Changez `NEXTCLOUD_VERSION`, puis `sudo make up-service SERVICE=nextcloud`.
 Voir la [fiche Nextcloud](services/nextcloud.md#mettre-à-jour-nextcloud).
 
+## Dockhand
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `DOCKHAND_VERSION` | Version de l'image, avec le préfixe `v` | `v1.0.57` |
+| `DOCKHAND_PUID` / `DOCKHAND_PGID` | UID/GID internes du conteneur | `1001` |
+| `DOCKHAND_ENCRYPTION_KEY` | Clé de chiffrement des identifiants Dockhand | générée par `make init` |
+| `DOCKHAND_HTTP_USER` | Compte de la protection Traefik | `dockhand` |
+| `DOCKHAND_HTTP_PASSWORD` | Mot de passe de la protection Traefik | généré par `make init` |
+
+La clé `DOCKHAND_ENCRYPTION_KEY` ne doit pas être modifiée après le premier
+démarrage : elle déchiffre les identifiants et secrets stockés par Dockhand.
+Voir la [fiche Dockhand](services/dockhand.md).
+
 ## Import GitHub (Forgejo et code-server)
 
 | Variable | Rôle | Exemple |
@@ -133,12 +147,14 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 | Nextcloud / base | `NEXTCLOUD_DB_ROOT_PASSWORD` | Compte root MariaDB (dump de sauvegarde) |
 | Nextcloud / Redis | `NEXTCLOUD_REDIS_PASSWORD` | Cache, verrous et sessions Redis |
 | Nextcloud / mail | `NEXTCLOUD_MAIL_PASSWORD` | Boîte `cloud@` (optionnel) |
+| Dockhand | `DOCKHAND_HTTP_USER`, `DOCKHAND_HTTP_PASSWORD` | Protection HTTP Basic par Traefik, puis compte Dockhand |
+| Dockhand | `DOCKHAND_ENCRYPTION_KEY` | Chiffrement des identifiants Dockhand |
 | Minecraft | `MINECRAFT_RCON_PASSWORD` | Administration RCON interne |
 | Minecraft | `VELOCITY_SECRET` | Liaison Velocity / serveurs Paper |
 
 ## Modifier un mot de passe
 
-### Tableau de bord Traefik, phpMyAdmin, KeeWeb, code-server, Forgejo (HTTP Basic)
+### Tableau de bord Traefik, phpMyAdmin, KeeWeb, code-server, Forgejo, Dockhand (HTTP Basic)
 
 1. Modifier la valeur dans `.env`.
 2. Lancer `sudo make init` pour régénérer les fichiers `.htpasswd`.
@@ -191,6 +207,16 @@ compte déjà existant : utilisez l'interface Nextcloud ou `occ`.
 ```sh
 docker exec -u www-data nextcloud php occ user:resetpassword admin
 ```
+
+### Compte Dockhand
+
+Le compte Dockhand n'est **pas** défini dans `.env`. L'authentification de
+Dockhand est désactivée au premier démarrage : créez le compte administrateur
+dans `Settings` > `Authentication`, puis activez la protection.
+
+`DOCKHAND_HTTP_USER` / `DOCKHAND_HTTP_PASSWORD` protègent uniquement l'accès
+Traefik. Modifier ces valeurs puis lancer `sudo make init` et redémarrer
+Dockhand ne change pas le compte créé dans l'interface.
 
 ### Compte admin Forgejo
 

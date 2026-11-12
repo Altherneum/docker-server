@@ -19,6 +19,7 @@ Les adresses utilisent `supername.fr` comme exemple. Remplacez-le par
 | [code-server](code-server.md) | `code-server` | `https://code.<domaine>` | `CODE_SERVER_HTTP_PASSWORD` puis `CODE_SERVER_PASSWORD` |
 | [KeeWeb](keeweb.md) | `keeweb` | `https://keeweb.<domaine>` | `KEEWEB_UI_PASSWORD` |
 | [Nextcloud](nextcloud.md) | `nextcloud`, `nextcloud-cron`, `nextcloud-redis`, `db-nextcloud` | `https://cloud.<domaine>` | `NEXTCLOUD_ADMIN_PASSWORD` |
+| [Dockhand](dockhand.md) | `dockhand` | `https://dockhand.<domaine>` | `DOCKHAND_HTTP_PASSWORD` puis compte Dockhand |
 | [phpMyAdmin](phpmyadmin.md) | `phpmyadmin` | `https://phpmyadmin.<domaine>` | `PMA_ADMIN_PASSWORD` puis compte MariaDB |
 | [Meme](meme.md) | `meme` | `https://meme.<domaine>` | *(aucun)* |
 | [Minecraft](minecraft.md) | `velocity`, `mc-*` | `mc.<domaine>:25565` | *(aucun pour jouer)* |

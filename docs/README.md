@@ -114,6 +114,7 @@ secrets. Le fichier est déjà ignoré par Git.
 | code-server | [code-server.md](services/code-server.md) | `https://code.supername.fr` |
 | KeeWeb | [keeweb.md](services/keeweb.md) | `https://keeweb.supername.fr` |
 | Nextcloud | [nextcloud.md](services/nextcloud.md) | `https://cloud.supername.fr` |
+| Dockhand | [dockhand.md](services/dockhand.md) | `https://dockhand.supername.fr` |
 | phpMyAdmin | [phpmyadmin.md](services/phpmyadmin.md) | `https://phpmyadmin.supername.fr` |
 | Site de memes | [meme.md](services/meme.md) | `https://meme.supername.fr` |
 | Minecraft | [minecraft.md](services/minecraft.md) | `mc.supername.fr:25565` |
