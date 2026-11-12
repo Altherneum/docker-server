@@ -33,6 +33,9 @@ Renseignez au minimum :
 - `DOMAIN_NAME` et `TLD` ;
 - les webhooks Discord si vous les utilisez
   (`DISCORD_WEBHOOK_SSH`, `DISCORD_WEBHOOK_SESSION`) ;
+- le webhook Discord d'Uptime Kuma
+  (`UPTIME_KUMA_DISCORD_WEBHOOK_URL`) si vous voulez les alertes de
+  supervision ;
 - les autres valeurs utiles.
 
 Les secrets encore à `CHANGE_ME` seront générés automatiquement par
@@ -96,8 +99,9 @@ sudo make up
 sudo make ps
 ```
 
-`make up` construit les images manquantes, démarre tous les services et crée
-les comptes admin Forgejo et Uptime Kuma.
+`make up` construit les images manquantes, démarre tous les services, crée
+les comptes admin Forgejo et Uptime Kuma, puis ajoute les moniteurs Docker
+manquants et préconfigure la notification Discord dans Uptime Kuma.
 
 Le conteneur `fail2ban` lit les logs SSH de l'hôte. Sur Debian/Ubuntu, vérifiez
 que `/var/log/auth.log` existe ; sinon, consultez la
@@ -188,6 +192,7 @@ Toutes les commandes se lancent depuis la racine du dépôt.
 | Commande | Effet |
 |---|---|
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo depuis `.env` |
+| `sudo make uptime-kuma-docker-sync` | Ajoute les moniteurs Docker manquants et configure la notification Discord |
 | `sudo CONFIRM=yes make azuriom-seed` | Réapplique les données de démonstration Azuriom |
 | `sudo make mail-up` | Démarre mailcow |
 | `sudo make mail-down` | Arrête mailcow |

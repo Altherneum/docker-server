@@ -173,6 +173,88 @@ Si un compte existe déjà avec un autre mot de passe, utilisez l'outil intégr�
 docker exec -it uptime-kuma node extra/reset-password.js
 ```
 
+## Uptime Kuma : moniteurs Docker non créés
+
+La synchronisation automatique se lance avec `make up` et `make up-service`
+lorsque Uptime Kuma tourne. Vérifiez qu'elle n'est pas désactivée, puis
+relancez-la à la main :
+
+```sh
+grep '^UPTIME_KUMA_DOCKER_SYNC=' .env
+sudo make uptime-kuma-docker-sync
+```
+
+Les messages indiquent l'hôte Docker, le nombre de conteneurs détectés et les
+moniteurs ajoutés. Causes fréquentes :
+
+- le mot de passe admin a été changé dans l'interface mais pas dans
+  `UPTIME_KUMA_ADMIN_PASSWORD` : la connexion échoue avec
+  `authIncorrectCreds` ;
+- le proxy `uptime-kuma-docker-proxy` n'est pas démarré ou refuse les requêtes ;
+- le conteneur `uptime-kuma` n'est pas encore prêt : relancer la commande.
+
+Pour ignorer un conteneur, l'ajouter à `UPTIME_KUMA_DOCKER_EXCLUDE`, relancer
+la synchronisation, puis supprimer son moniteur dans l'interface.
+
+## Uptime Kuma : la synchronisation s'affiche à chaque `up-service`
+
+C'est normal : `make up-service SERVICE=<nom>` relance la synchronisation
+après le démarrage du service pour détecter le nouveau conteneur. Quand rien
+n'a changé, elle doit afficher une seule ligne :
+
+```text
+→ Uptime Kuma : 8 conteneur(s) détecté(s), aucun nouveau moniteur Docker, notification Discord à jour
+```
+
+Pour le détail :
+
+```sh
+sudo VERBOSE=1 make up-service SERVICE=<nom>
+```
+
+Si la sortie recrée le compte admin, la notification et les moniteurs avec des
+identifiants qui repartent à `1`, la base Uptime Kuma a été réinitialisée. Ce
+n'est **pas** le comportement normal de `up-service`, qui ne supprime pas les
+volumes. Vérifiez le volume :
+
+```sh
+docker volume inspect uptime-kuma-data
+```
+
+Les commandes `make clean`, `make down-clean`,
+`make clean-service SERVICE=uptime-kuma` et
+`docker compose down -v` suppriment le volume. Le compte admin n'est créé que
+par `make up` ou `make up-service SERVICE=uptime-kuma` ; si la ligne
+« compte admin créé » apparaît pour un autre service, vérifiez que le
+`Makefile` local est à jour.
+
+## Uptime Kuma : notification Discord absente
+
+Vérifiez d'abord que le webhook est renseigné dans `.env` et que la
+configuration automatique est active :
+
+```sh
+grep '^UPTIME_KUMA_DISCORD_' .env
+sudo make uptime-kuma-docker-sync
+```
+
+Le message `notification Discord ignorée` indique un webhook vide ou égal à
+`CHANGE_ME`. Le message `n'est pas une URL HTTPS valide` indique une URL
+incorrecte. Une fois
+le webhook renseigné, la synchronisation crée ou met à jour la notification
+dans `Settings` > `Notifications` ; utilisez le bouton **Test** pour vérifier
+l'envoi.
+
+Si la notification existe mais que certains moniteurs ne l'utilisent pas,
+vérifiez `UPTIME_KUMA_DISCORD_DEFAULT` (nouveaux moniteurs) et
+`UPTIME_KUMA_DISCORD_APPLY_EXISTING` (moniteurs déjà créés). Pour désactiver
+complètement la configuration automatique :
+`UPTIME_KUMA_DISCORD_ENABLED=false`.
+
+Si le test échoue, le webhook a probablement été révoqué ou le salon supprimé :
+recréez-le dans Discord et mettez `.env` à jour. Le webhook n'est jamais
+affiché dans les logs.
+
 ## Uptime Kuma : erreur 502 ou 503
 
 Le conteneur Uptime Kuma ne répond pas. Vérifiez son état et ses logs :
@@ -194,8 +276,11 @@ sudo make ps-service SERVICE=uptime-kuma-docker-proxy
 sudo make logs-service SERVICE=uptime-kuma-docker-proxy
 ```
 
-Dans Uptime Kuma, l'hôte Docker doit pointer vers
-`http://uptime-kuma-docker-proxy:2375`, pas vers `localhost`.
+L'hôte Docker `Local` est normalement créé automatiquement par
+`make uptime-kuma-docker-sync` et doit pointer vers
+`http://uptime-kuma-docker-proxy:2375`, pas vers `localhost`. S'il a été
+supprimé ou modifié, relancez la synchronisation ou corrigez-le dans
+`Settings` > `Docker Hosts`.
 
 ## Uptime Kuma : login ou WebSocket bloqué
 

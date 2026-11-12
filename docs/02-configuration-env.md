@@ -40,6 +40,7 @@ Ces valeurs ne peuvent pas être générées automatiquement :
 | `MICROSOFT_CLIENT_ID` | Non | Microsoft Entra ID |
 | `MICROSOFT_CLIENT_SECRET` | Non | Microsoft Entra ID |
 | `NEXTCLOUD_MAIL_HOST` | Non | Hôte SMTP de mailcow ; vide = e-mails Nextcloud désactivés |
+| `UPTIME_KUMA_DISCORD_WEBHOOK_URL` | Non | Discord : paramètres du serveur > intégrations > webhooks |
 
 ## Nextcloud
 
@@ -81,12 +82,32 @@ Voir la [fiche Dockhand](services/dockhand.md).
 | `UPTIME_KUMA_DB_TYPE` | Type de base ; SQLite incluse dans le volume | `sqlite` |
 | `UPTIME_KUMA_ADMIN_USER` | Compte administrateur créé au premier démarrage | `admin` |
 | `UPTIME_KUMA_ADMIN_PASSWORD` | Mot de passe du compte administrateur | généré par `make init` |
+| `UPTIME_KUMA_DOCKER_SYNC` | Crée automatiquement les moniteurs Docker | `true` |
+| `UPTIME_KUMA_DOCKER_HOST_NAME` | Nom de l'hôte Docker dans Uptime Kuma | `Local` |
+| `UPTIME_KUMA_DOCKER_HOST_URL` | URL interne du proxy Docker | `http://uptime-kuma-docker-proxy:2375` |
+| `UPTIME_KUMA_DOCKER_EXCLUDE` | Conteneurs exclus, séparés par des virgules | vide |
+| `UPTIME_KUMA_DISCORD_ENABLED` | Active la configuration automatique de la notification Discord | `true` |
+| `UPTIME_KUMA_DISCORD_WEBHOOK_URL` | URL du webhook Discord, à renseigner | vide |
+| `UPTIME_KUMA_DISCORD_BOT_NAME` | Nom affiché du bot Discord | `Uptime Kuma` |
+| `UPTIME_KUMA_DISCORD_PREFIX` | Préfixe des messages Discord | `[Uptime Kuma]` |
+| `UPTIME_KUMA_DISCORD_NOTIFICATION_NAME` | Nom de la notification dans Uptime Kuma | `Discord` |
+| `UPTIME_KUMA_DISCORD_DEFAULT` | Notification par défaut des nouveaux moniteurs | `true` |
+| `UPTIME_KUMA_DISCORD_APPLY_EXISTING` | Applique la notification aux moniteurs existants | `true` |
 
 Le compte admin est créé automatiquement par
 `scripts/uptime-kuma-admin.sh`, appelé par `make up` et
 `make up-service SERVICE=uptime-kuma`. Il n'y a pas de HTTP Basic Auth
-Traefik : seul le login Uptime Kuma protège le dashboard. Voir la
-[fiche Uptime Kuma](services/uptime-kuma.md).
+Traefik : seul le login Uptime Kuma protège le dashboard.
+
+`scripts/uptime-kuma-docker-sync.sh` utilise ce compte pour ajouter l'hôte
+Docker, les moniteurs de conteneurs manquants et la notification Discord. Il
+est appelé par `make up`, par `make up-service SERVICE=uptime-kuma`, et par les
+autres `make up-service` lorsque Uptime Kuma tourne. Le webhook Discord est la
+seule valeur à renseigner dans `.env` : le nom du bot, le préfixe et le nom de
+la notification sont préconfigurés. Tant que le webhook est vide, aucune
+notification Discord n'est créée. Si le mot de passe admin est changé dans
+l'interface, reportez-le dans `UPTIME_KUMA_ADMIN_PASSWORD` pour ne pas casser
+la synchronisation. Voir la [fiche Uptime Kuma](services/uptime-kuma.md).
 
 ## Import GitHub (Forgejo et code-server)
 
@@ -252,6 +273,11 @@ intégré :
 ```sh
 docker exec -it uptime-kuma node extra/reset-password.js
 ```
+
+Si vous changez le mot de passe dans l'interface, reportez la même valeur dans
+`UPTIME_KUMA_ADMIN_PASSWORD` : `make up` et
+`make uptime-kuma-docker-sync` utilisent ce compte pour synchroniser les
+moniteurs Docker.
 
 ### Compte admin Forgejo
 

@@ -96,6 +96,17 @@ set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
 set_env DOCKHAND_HTTP_PASSWORD  "$(gen_hex 16)"
 
 set_env UPTIME_KUMA_ADMIN_PASSWORD "$(gen_hex 24)"
+set_env UPTIME_KUMA_DOCKER_SYNC true
+set_env UPTIME_KUMA_DOCKER_HOST_NAME Local
+set_env UPTIME_KUMA_DOCKER_HOST_URL "http://uptime-kuma-docker-proxy:2375"
+set_env UPTIME_KUMA_DOCKER_EXCLUDE ""
+set_env UPTIME_KUMA_DISCORD_ENABLED true
+set_env UPTIME_KUMA_DISCORD_WEBHOOK_URL ""
+set_env UPTIME_KUMA_DISCORD_BOT_NAME "Uptime Kuma"
+set_env UPTIME_KUMA_DISCORD_PREFIX "[Uptime Kuma]"
+set_env UPTIME_KUMA_DISCORD_NOTIFICATION_NAME Discord
+set_env UPTIME_KUMA_DISCORD_DEFAULT true
+set_env UPTIME_KUMA_DISCORD_APPLY_EXISTING true
 
 set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"

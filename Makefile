@@ -6,7 +6,7 @@ FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
+        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service rebuild-service down-service \
         ps-service services azuriom-seed
 
@@ -56,6 +56,10 @@ up: check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infra
 	$(COMPOSE) up -d --remove-orphans
 	@./scripts/uptime-kuma-admin.sh \
 		|| echo "Attention : compte admin Uptime Kuma non créé (voir les messages ci-dessus)."
+	@if [ "$$(docker inspect -f '{{.State.Running}}' uptime-kuma 2>/dev/null || echo false)" = "true" ]; then \
+		./scripts/uptime-kuma-docker-sync.sh \
+			|| echo "Attention : synchronisation Uptime Kuma incomplète (voir les messages ci-dessus)." ; \
+	fi
 	@./scripts/forgejo-admin.sh
 	@./scripts/forgejo-runner.sh \
 		|| echo "Attention : runner Forgejo Actions indisponible (voir les messages ci-dessus)."
@@ -95,6 +99,9 @@ forgejo-mirror: ## Importe les dépôts GitHub dans Forgejo et configure le miro
 
 uptime-kuma-admin: ## Crée le compte admin Uptime Kuma depuis .env (idempotent)
 	./scripts/uptime-kuma-admin.sh
+
+uptime-kuma-docker-sync: ## Synchronise les moniteurs Docker et la notification Discord Uptime Kuma (idempotent)
+	./scripts/uptime-kuma-docker-sync.sh
 
 azuriom-seed: ## Réapplique les données de démonstration Azuriom (paramètres, rôles, boutique)
 	@printf "Cette commande réapplique les données de démonstration Azuriom. Confirmer avec CONFIRM=yes\n"
@@ -198,6 +205,14 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 	elif [ "$(SERVICE)" = "uptime-kuma" ]; then \
 		./scripts/uptime-kuma-admin.sh \
 			|| echo "Attention : compte admin Uptime Kuma non créé (voir les messages ci-dessus)." ; \
+		if [ "$$(docker inspect -f '{{.State.Running}}' uptime-kuma 2>/dev/null || echo false)" = "true" ]; then \
+			./scripts/uptime-kuma-docker-sync.sh \
+				|| echo "Attention : synchronisation Uptime Kuma incomplète (voir les messages ci-dessus)." ; \
+		fi ; \
+	fi
+	@if [ "$(SERVICE)" != "uptime-kuma" ] && [ "$$(docker inspect -f '{{.State.Running}}' uptime-kuma 2>/dev/null || echo false)" = "true" ]; then \
+		./scripts/uptime-kuma-docker-sync.sh \
+			|| echo "Attention : synchronisation Uptime Kuma incomplète (voir les messages ci-dessus)." ; \
 	fi
 
 rebuild-service: ## Reconstruit sans cache puis recrée un service (ex: make rebuild-service SERVICE=bot)

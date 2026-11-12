@@ -37,6 +37,8 @@ sudo make services      # liste les noms de services
 | `sudo make services` | Liste les noms de services |
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
 | `sudo make uptime-kuma-admin` | Crée le compte admin Uptime Kuma (idempotent) |
+| `sudo make uptime-kuma-docker-sync` | Ajoute les moniteurs Docker manquants et configure la notification Discord (idempotent) |
+| `sudo VERBOSE=1 make up-service SERVICE=nom` | Affiche le détail de la synchronisation Uptime Kuma (hôte, conteneurs déjà présents, notification) |
 | `sudo make forgejo-runner` | Vérifie que le runner Forgejo Actions est en ligne |
 | `sudo make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run` | Simule l'import GitHub sans modifier Forgejo |
@@ -47,6 +49,11 @@ sudo make services      # liste les noms de services
 | `sudo make mail-down` | Arrête mailcow |
 | `sudo make mail-logs` | Suit les logs de mailcow |
 | `sudo CONFIRM=yes make azuriom-seed` | Réapplique les données de démonstration Azuriom |
+
+Le mode `VERBOSE=1` est utile pour diagnostiquer la synchronisation Uptime
+Kuma : il affiche l'hôte Docker, la notification Discord et les conteneurs
+déjà surveillés. Sans cette option, une synchronisation sans changement
+affiche seulement une ligne de résumé.
 
 ## Commandes pour un seul service
 

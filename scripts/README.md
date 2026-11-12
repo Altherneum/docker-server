@@ -14,6 +14,7 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `forgejo-runner.sh` | `make forgejo-runner` | Vérifie que le runner Forgejo Actions est enregistré et en ligne (appelé automatiquement par `up` / `up-service`) |
 | `forgejo-github-mirror.sh` | `make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push (appelé automatiquement par `up` / `up-service`) ; sans `GITHUB_TOKEN`, code Git seul pour éviter le quota GitHub |
 | `uptime-kuma-admin.sh` | `make uptime-kuma-admin` | Crée le compte admin Uptime Kuma via Socket.IO (appelé automatiquement par `up` / `up-service`) |
+| `uptime-kuma-docker-sync.sh` | `make uptime-kuma-docker-sync` | Ajoute l'hôte Docker, les moniteurs de conteneurs manquants et la notification Discord via Socket.IO (appelé automatiquement par `up` / `up-service` si Uptime Kuma tourne) |
 | `mail-integrate.sh` | `make mail-integrate` | Prépare l'intégration Mailcow (voir la fiche Mailcow) |
 | `backup.sh` | `make backup` | Sauvegarde les bases et les volumes |
 | `restore.sh` | `make restore` | Restaure une sauvegarde |

@@ -250,7 +250,10 @@ n'ont pas besoin d'être publiés.
 Uptime Kuma n'a pas de HTTP Basic : son dashboard est protégé par son compte
 admin, créé automatiquement depuis `.env`. Son proxy Docker
 (`uptime-kuma-docker-proxy`) est limité aux lectures et n'est joignable que sur
-le réseau interne `uptime_kuma_internal`.
+le réseau interne `uptime_kuma_internal`. La synchronisation automatique des
+moniteurs utilise uniquement ce proxy en lecture seule : elle ne peut pas
+démarrer, arrêter ou modifier un conteneur. Le webhook Discord est un secret :
+il reste dans `.env`, qui n'est pas commité.
 
 ## Sauvegardes et restauration manuelle
 
