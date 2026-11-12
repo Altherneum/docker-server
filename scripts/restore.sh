@@ -20,9 +20,9 @@ echo "→ arrêt des applications"
 docker compose stop || true
 
 echo "→ démarrage des bases"
-docker compose up -d db-php db-azuriom db-forgejo
+docker compose up -d db-php db-azuriom db-nextcloud db-forgejo
 
-for db in db-php db-azuriom db-forgejo; do
+for db in db-php db-azuriom db-nextcloud db-forgejo; do
     i=0
     until [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$db" 2>/dev/null || true)" = "healthy" ]; do
         i=$((i + 1))
@@ -57,6 +57,7 @@ wait_postgres() {
 
 wait_mariadb db-php "$(get_env PHP_DB_ROOT_PASSWORD)"
 wait_mariadb db-azuriom "$(get_env AZURIOM_DB_ROOT_PASSWORD)"
+wait_mariadb db-nextcloud "$(get_env NEXTCLOUD_DB_ROOT_PASSWORD)"
 wait_postgres
 
 if [ -s "$BACKUP/db-php.sql" ]; then
@@ -69,6 +70,12 @@ if [ -s "$BACKUP/db-azuriom.sql" ]; then
     echo "→ restauration db-azuriom"
     docker exec -i -e MYSQL_PWD="$(get_env AZURIOM_DB_ROOT_PASSWORD)" db-azuriom \
         mariadb -uroot < "$BACKUP/db-azuriom.sql"
+fi
+
+if [ -s "$BACKUP/db-nextcloud.sql" ]; then
+    echo "→ restauration db-nextcloud"
+    docker exec -i -e MYSQL_PWD="$(get_env NEXTCLOUD_DB_ROOT_PASSWORD)" db-nextcloud \
+        mariadb -uroot < "$BACKUP/db-nextcloud.sql"
 fi
 
 if [ -s "$BACKUP/db-forgejo.sql" ]; then

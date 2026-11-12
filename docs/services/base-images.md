@@ -6,7 +6,7 @@ plusieurs services. Elles n'ont ni URL ni mot de passe.
 | Image | Dossier | Utilisée par |
 |---|---|---|
 | `php-apache:latest` | `images/php-apache` | Site PHP, Azuriom |
-| `mariadb:11.8` | `images/mariadb` | `db-php`, `db-azuriom` |
+| `mariadb:11.8` | `images/mariadb` | `db-php`, `db-azuriom`, `db-nextcloud` |
 | `postgres:18` | `images/postgres` | `db-forgejo` |
 | `paper:1.21.11` | `stacks/minecraft/paper` | Serveurs Paper |
 
@@ -62,5 +62,5 @@ sudo make up
 - Une mise à jour de l'image de base ne met pas à jour les conteneurs déjà
   créés : il faut reconstruire et recréer les services.
 - Les autres stacks sont construites à partir d'images officielles (Traefik,
-  Forgejo, code-server, phpMyAdmin, KeeWeb, fail2ban) téléchargées depuis leurs
-  registres respectifs.
+  Forgejo, code-server, phpMyAdmin, KeeWeb, Nextcloud, Redis, fail2ban)
+  téléchargées depuis leurs registres respectifs.

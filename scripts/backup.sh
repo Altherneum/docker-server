@@ -44,6 +44,15 @@ else
     echo "  ! db-azuriom non démarré : dump ignoré" >&2
 fi
 
+if running db-nextcloud; then
+    echo "  - dump db-nextcloud"
+    docker exec -e MYSQL_PWD="$(get_env NEXTCLOUD_DB_ROOT_PASSWORD)" db-nextcloud \
+        mariadb-dump -uroot --all-databases --single-transaction --quick \
+        --routines --events --triggers > "$DIR/db-nextcloud.sql"
+else
+    echo "  ! db-nextcloud non démarré : dump ignoré" >&2
+fi
+
 if running db-forgejo; then
     echo "  - dump db-forgejo"
     docker exec -e PGPASSWORD="$(get_env FORGEJO_DB_PASSWORD)" db-forgejo \

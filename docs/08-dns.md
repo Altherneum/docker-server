@@ -72,6 +72,7 @@ nécessaire d'en créer un par service.
 | Forgejo | `git`, `repo`, `forgejo` |
 | code-server | `code`, `vscode` |
 | KeeWeb | `keeweb`, `keepass`, `keys`, `key` |
+| Nextcloud | `cloud`, `nextcloud`, `drive`, `files` |
 | phpMyAdmin | `phpmyadmin` |
 | Site de memes | `meme`, `windows`, `microsoft`, `arch`, `linux` |
 | Mailcow | `mail`, `webmail`, `mails` |

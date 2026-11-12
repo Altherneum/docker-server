@@ -1,6 +1,6 @@
 # Docker Server
 
-Infrastructure Docker : proxy HTTPS, sites web, forge Git, éditeur de code, gestionnaire de mots de passe, serveurs Minecraft, bot Discord, messagerie et sauvegardes.
+Infrastructure Docker : proxy HTTPS, sites web, cloud Nextcloud, forge Git, éditeur de code, gestionnaire de mots de passe, serveurs Minecraft, bot Discord, messagerie et sauvegardes.
 
 ## Documentation
 
@@ -123,6 +123,7 @@ toutes les adresses changeront en même temps.
 ### Bases de données
 - `db-azuriom` : Base de données Azuriom
 - `db-forgejo` : Base de données Forgejo
+- `db-nextcloud` : Base de données Nextcloud
 - `db-php` : Base de données pour le site PHP
 
 ### Services de développement
@@ -135,6 +136,9 @@ toutes les adresses changeront en même temps.
 - `php-site` : Site web PHP
 - `meme` : Site de redirection de meme
 - `azuriom` : Site et panneau d'administration pour serveur Minecraft
+- `nextcloud` : Cloud personnel (fichiers, calendriers, contacts)
+- `nextcloud-cron` : Tâches de fond Nextcloud
+- `nextcloud-redis` : Cache, verrous et sessions Nextcloud
 
 ### Services système
 - `traefik` : Proxy
@@ -157,6 +161,7 @@ Les services communiquent via :
   - `forgejo_internal`
   - `minecraft`
   - `azuriom_internal`
+  - `nextcloud_internal`
   - `db_admin`
   - `php_internal`
 

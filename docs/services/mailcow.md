@@ -25,9 +25,10 @@ Mailcow suit sa propre documentation :
 | Compte admin Mailcow | Créé/configuré pendant l'installation de Mailcow, **pas dans ce `.env`** (souvent `admin` / `moohoo` au premier lancement, à changer immédiatement) |
 | Boîte `noreply@<domaine>` | `AZURIOM_MAIL_PASSWORD` dans `.env` |
 | Boîte `git@<domaine>` | `FORGEJO_MAIL_PASSWORD` dans `.env` |
+| Boîte `cloud@<domaine>` | `NEXTCLOUD_MAIL_PASSWORD` dans `.env` |
 | Bases Mailcow | Dans `mailcow.conf`, pas dans ce dépôt |
 
-Les deux mots de passe de boîtes sont générés par `make init`. Créez les boîtes
+Les mots de passe de ces boîtes sont générés par `make init`. Créez les boîtes
 dans l'interface Mailcow avec exactement ces mots de passe.
 
 ## Intégration à Traefik
@@ -85,7 +86,7 @@ sudo make mail-down
 `make mail-up` lance Mailcow avec `docker-compose.yml` et
 `docker-compose.override.yml`.
 
-## Configurer Azuriom et Forgejo
+## Configurer Azuriom, Forgejo et Nextcloud
 
 Une fois Mailcow prêt et les boîtes créées :
 
@@ -99,9 +100,14 @@ FORGEJO_MAIL_ENABLED=true
 FORGEJO_MAIL_HOST=mail.monprojet.com
 FORGEJO_MAIL_USER=git@monprojet.com
 FORGEJO_MAIL_PASSWORD=...
+
+NEXTCLOUD_MAIL_HOST=mail.monprojet.com
+NEXTCLOUD_MAIL_USERNAME=cloud@monprojet.com
+NEXTCLOUD_MAIL_PASSWORD=...
+NEXTCLOUD_MAIL_FROM_ADDRESS=cloud@monprojet.com
 ```
 
-Puis redémarrez Azuriom et Forgejo.
+Puis redémarrez Azuriom, Forgejo et Nextcloud.
 
 ## Nettoyer
 

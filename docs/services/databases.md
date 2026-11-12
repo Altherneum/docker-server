@@ -7,6 +7,7 @@ directement sur Internet.
 |---|---|---|---|---|
 | `db-php` | MariaDB 11.8 | Site PHP | `db-php` | Oui |
 | `db-azuriom` | MariaDB 11.8 | Azuriom | `db-azuriom` | Oui |
+| `db-nextcloud` | MariaDB 11.8 | Nextcloud | `db-nextcloud` | Oui |
 | `db-forgejo` | PostgreSQL 18 | Forgejo | `db-forgejo` | Non |
 
 ## Identifiants
@@ -15,6 +16,7 @@ directement sur Internet.
 |---|---|---|---|---|
 | `db-php` | `PHP_DB_NAME` | `PHP_DB_USER` | `PHP_DB_PASSWORD` | `PHP_DB_ROOT_PASSWORD` |
 | `db-azuriom` | `AZURIOM_DB_NAME` | `AZURIOM_DB_USER` | `AZURIOM_DB_PASSWORD` | `AZURIOM_DB_ROOT_PASSWORD` |
+| `db-nextcloud` | `NEXTCLOUD_DB_NAME` | `NEXTCLOUD_DB_USER` | `NEXTCLOUD_DB_PASSWORD` | `NEXTCLOUD_DB_ROOT_PASSWORD` |
 | `db-forgejo` | `FORGEJO_DB_NAME` | `FORGEJO_DB_USER` | `FORGEJO_DB_PASSWORD` | *(pas de root séparé)* |
 
 Tous ces mots de passe sont générés par `make init`.
@@ -28,6 +30,7 @@ Les bases démarrent normalement avec leur application :
 ```sh
 sudo make up-service SERVICE=php-site      # démarre aussi db-php
 sudo make up-service SERVICE=azuriom       # démarre aussi db-azuriom
+sudo make up-service SERVICE=nextcloud     # démarre aussi db-nextcloud
 sudo make up-service SERVICE=forgejo       # démarre aussi db-forgejo
 ```
 

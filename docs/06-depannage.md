@@ -10,7 +10,8 @@ docker inspect nom-du-conteneur
 ```
 
 Remplacez `nom` par le service voulu : `traefik`, `php-site`, `azuriom`,
-`forgejo`, `code-server`, `keeweb`, `phpmyadmin`, `velocity`, `bot`, etc.
+`forgejo`, `code-server`, `keeweb`, `nextcloud`, `phpmyadmin`, `velocity`,
+`bot`, etc.
 
 ## Le site affiche une erreur 404
 
@@ -105,6 +106,36 @@ sudo make forgejo-admin
 ```
 
 Le nom `admin` est réservé par Forgejo. Utilisez un autre nom.
+
+## Nextcloud : « Access through untrusted domain »
+
+Le nom d'hôte utilisé n'est pas dans les domaines de confiance. Au premier
+démarrage, `NEXTCLOUD_TRUSTED_DOMAINS` les enregistre ; après une modification
+de domaine, ajoutez-les avec `occ` :
+
+```sh
+docker exec -u www-data nextcloud php occ config:system:get trusted_domains
+docker exec -u www-data nextcloud php occ config:system:set trusted_domains 1 --value=cloud.mondomaine.fr
+```
+
+Vérifiez aussi que l'alias est bien déclaré dans la règle Traefik de
+`stacks/web/nextcloud/compose.yaml`.
+
+## Nextcloud : mauvais protocole ou redirections en boucle
+
+Traefik termine le HTTPS. Vérifiez dans `.env` puis `docker compose config`
+que `OVERWRITEPROTOCOL` vaut `https` et que `NEXTCLOUD_TRUSTED_PROXIES` couvre
+le réseau Docker de Traefik.
+
+## Nextcloud : upload de gros fichiers bloqué
+
+Augmentez `NEXTCLOUD_PHP_UPLOAD_LIMIT` (et éventuellement
+`NEXTCLOUD_PHP_MEMORY_LIMIT`), gardez `NEXTCLOUD_APACHE_BODY_LIMIT=0`, puis
+recréez le conteneur :
+
+```sh
+sudo make up-service SERVICE=nextcloud
+```
 
 ## Erreur d'authentification sur une base de données
 

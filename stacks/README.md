@@ -10,6 +10,7 @@ seulement le modèle d'intégration de Mailcow, qui est une stack externe.
 | `web/php-site` | `php-site`, `db-php` | [Site PHP](../docs/services/php-site.md) |
 | `web/azuriom` | `azuriom`, `db-azuriom` | [Azuriom](../docs/services/azuriom.md) |
 | `web/keeweb` | `keeweb` | [KeeWeb](../docs/services/keeweb.md) |
+| `web/nextcloud` | `nextcloud`, `nextcloud-cron`, `nextcloud-redis`, `db-nextcloud` | [Nextcloud](../docs/services/nextcloud.md) |
 | `web/phpmyadmin` | `phpmyadmin` | [phpMyAdmin](../docs/services/phpmyadmin.md) |
 | `web/meme` | `meme` | [Meme](../docs/services/meme.md) |
 | `forgejo` | `forgejo`, `db-forgejo` | [Forgejo](../docs/services/forgejo.md) |

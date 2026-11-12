@@ -28,9 +28,11 @@ phpMyAdmin demande **deux mots de passe différents**, dans cet ordre :
 | Site PHP | `db-php` | utilisateur applicatif | `PHP_DB_USER` / `PHP_DB_PASSWORD` |
 | Azuriom | `db-azuriom` | root | `AZURIOM_DB_ROOT_PASSWORD` |
 | Azuriom | `db-azuriom` | utilisateur applicatif | `AZURIOM_DB_USER` / `AZURIOM_DB_PASSWORD` |
+| Nextcloud | `db-nextcloud` | root | `NEXTCLOUD_DB_ROOT_PASSWORD` |
+| Nextcloud | `db-nextcloud` | utilisateur applicatif | `NEXTCLOUD_DB_USER` / `NEXTCLOUD_DB_PASSWORD` |
 
 Si phpMyAdmin propose plusieurs serveurs, choisissez l'hôte correspondant à la
-base ciblée (`db-php` ou `db-azuriom`, selon `PMA_HOSTS`).
+base ciblée (`db-php`, `db-azuriom` ou `db-nextcloud`, selon `PMA_HOSTS`).
 
 Les deux protections sont indépendantes : modifier `PMA_ADMIN_PASSWORD` ne
 change pas les mots de passe MariaDB, et inversement.
@@ -44,7 +46,7 @@ phpMyAdmin.
 |---|---|
 | `PMA_ADMIN_USER` | Identifiant de la protection HTTP |
 | `PMA_ADMIN_PASSWORD` | Mot de passe de la protection HTTP |
-| `PMA_HOSTS` | Hôtes MariaDB proposés (`db-azuriom,db-php`) |
+| `PMA_HOSTS` | Hôtes MariaDB proposés (`db-azuriom,db-php,db-nextcloud`) |
 | `PMA_BLOWFISH_SECRET` | Secret interne de phpMyAdmin, généré |
 
 ## Démarrer / arrêter

@@ -159,7 +159,7 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 		docker image inspect php-apache:latest >/dev/null 2>&1 \
 			|| $(MAKE) php-base ; \
 	fi
-	@if [ -n "$(filter $(SERVICE),php-site azuriom db-php db-azuriom)" ]; then \
+	@if [ -n "$(filter $(SERVICE),php-site azuriom nextcloud nextcloud-cron db-php db-azuriom db-nextcloud)" ]; then \
 		docker image inspect mariadb:11.8 >/dev/null 2>&1 \
 			|| $(MAKE) mariadb-base ; \
 	fi
@@ -175,6 +175,8 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 		$(COMPOSE) --env-file .env up -d --build forgejo forgejo-runner ; \
 	elif [ "$(SERVICE)" = "forgejo-runner" ]; then \
 		$(COMPOSE) --env-file .env up -d --build forgejo-runner ; \
+	elif [ "$(SERVICE)" = "nextcloud" ]; then \
+		$(COMPOSE) --env-file .env up -d --build nextcloud nextcloud-cron ; \
 	else \
 		$(COMPOSE) --env-file .env up -d --build $(SERVICE) ; \
 	fi

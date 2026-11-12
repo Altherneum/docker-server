@@ -31,4 +31,5 @@
 | `bot` | ------------ | ------------ | à faire |
 | `bot` | Test avec token | Ajouter le token et tester si le bot marche toujours, rapide et simple | à faire |
 | `fail2ban` | ------------ | ------------ | à faire |
+| `nextcloud`, `db-nextcloud`, `nextcloud-redis`, `nextcloud-cron` | ------------ | Installer la stack et vérifier la connexion, les synchronisations et les tâches cron | à tester |
 | `mailcow` | ------------ | ------------ | à faire |

@@ -4,6 +4,7 @@ include:
   - path: stacks/web/php-site/compose.yaml
   - path: stacks/web/azuriom/compose.yaml
   - path: stacks/web/keeweb/compose.yaml
+  - path: stacks/web/nextcloud/compose.yaml
   - path: stacks/web/phpmyadmin/compose.yaml
   - path: stacks/forgejo/compose.yaml
   - path: stacks/code-server/compose.yaml

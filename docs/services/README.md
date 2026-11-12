@@ -18,13 +18,14 @@ Les adresses utilisent `supername.fr` comme exemple. Remplacez-le par
 | [Forgejo](forgejo.md) | `forgejo`, `db-forgejo` | `https://git.<domaine>` | `FORGEJO_HTTP_PASSWORD` puis `FORGEJO_ADMIN_PASSWORD` |
 | [code-server](code-server.md) | `code-server` | `https://code.<domaine>` | `CODE_SERVER_HTTP_PASSWORD` puis `CODE_SERVER_PASSWORD` |
 | [KeeWeb](keeweb.md) | `keeweb` | `https://keeweb.<domaine>` | `KEEWEB_UI_PASSWORD` |
+| [Nextcloud](nextcloud.md) | `nextcloud`, `nextcloud-cron`, `nextcloud-redis`, `db-nextcloud` | `https://cloud.<domaine>` | `NEXTCLOUD_ADMIN_PASSWORD` |
 | [phpMyAdmin](phpmyadmin.md) | `phpmyadmin` | `https://phpmyadmin.<domaine>` | `PMA_ADMIN_PASSWORD` puis compte MariaDB |
 | [Meme](meme.md) | `meme` | `https://meme.<domaine>` | *(aucun)* |
 | [Minecraft](minecraft.md) | `velocity`, `mc-*` | `mc.<domaine>:25565` | *(aucun pour jouer)* |
 | [Bot Discord](discord-bot.md) | `discord-bot` | *(pas d'URL)* | `DISCORD_BOT_TOKEN` |
 | [fail2ban](fail2ban.md) | `fail2ban` | *(pas d'URL)* | *(aucun)* |
 | [Mailcow](mailcow.md) | stack externe | `https://mail.<domaine>` | Compte mailcow |
-| [Bases de données](databases.md) | `db-php`, `db-azuriom`, `db-forgejo` | *(accès interne)* | `*_DB_PASSWORD` |
+| [Bases de données](databases.md) | `db-php`, `db-azuriom`, `db-nextcloud`, `db-forgejo` | *(accès interne)* | `*_DB_PASSWORD` |
 | [Images de base](base-images.md) | *(images Docker)* | *(pas d'URL)* | *(aucun)* |
 
 ## Rappel des commandes

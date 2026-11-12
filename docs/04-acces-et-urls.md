@@ -36,10 +36,15 @@ Le domaine `supername.fr` n'est qu'un exemple.
 | Forgejo | `git`, `repo` ou `forgejo` | Compte Forgejo | `FORGEJO_ADMIN_NAME` / `FORGEJO_ADMIN_PASSWORD` |
 | code-server | `code` ou `vscode` | HTTP Basic puis mot de passe éditeur | `CODE_SERVER_HTTP_USER` / `CODE_SERVER_HTTP_PASSWORD` puis `CODE_SERVER_PASSWORD` |
 | KeeWeb | `keeweb`, `keepass`, `keys` ou `key` | HTTP Basic | `KEEWEB_UI_USER` / `KEEWEB_UI_PASSWORD` |
-| phpMyAdmin | `phpmyadmin` | HTTP Basic puis compte MariaDB | `PMA_ADMIN_USER` / `PMA_ADMIN_PASSWORD`, puis `PHP_DB_*` ou `AZURIOM_DB_*` |
+| Nextcloud | `cloud`, `nextcloud`, `drive` ou `files` | Compte Nextcloud | `NEXTCLOUD_ADMIN_USER` / `NEXTCLOUD_ADMIN_PASSWORD` |
+| phpMyAdmin | `phpmyadmin` | HTTP Basic puis compte MariaDB | `PMA_ADMIN_USER` / `PMA_ADMIN_PASSWORD`, puis `PHP_DB_*`, `AZURIOM_DB_*` ou `NEXTCLOUD_DB_*` |
 | Meme | `meme`, `windows`, `microsoft`, `arch` ou `linux` | Aucune | - |
 | Mailcow | `mail` | Compte mailcow | Mot de passe créé pendant l'installation de mailcow |
 | Webmail | `webmail` ou `mails` | Compte mailcow | Redirige vers `mail.<domaine>` |
+
+Nextcloud n'a **pas** de protection HTTP Basic : son authentification propre
+est utilisée pour rester compatible avec les clients desktop/mobile, WebDAV et
+CalDAV/CardDAV.
 
 Les bases de données, le bot Discord, fail2ban et les serveurs Paper ne sont
 pas accessibles par une URL publique. Voir leurs fiches.

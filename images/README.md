@@ -6,7 +6,7 @@ stacks et n'ont ni URL ni mot de passe.
 | Dossier | Image | Utilisée par |
 |---|---|---|
 | `php-apache` | `php-apache:latest` | Site PHP, Azuriom |
-| `mariadb` | `mariadb:11.8` | `db-php`, `db-azuriom` |
+| `mariadb` | `mariadb:11.8` | `db-php`, `db-azuriom`, `db-nextcloud` |
 | `postgres` | `postgres:18` | `db-forgejo` |
 
 ```sh

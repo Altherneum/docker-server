@@ -10,11 +10,13 @@ La sauvegarde est créée dans `backups/AAAA-MM-JJ_HHMMSS/`. Elle contient :
 
 - un dump SQL de `db-php` (MariaDB) ;
 - un dump SQL de `db-azuriom` (MariaDB) ;
+- un dump SQL de `db-nextcloud` (MariaDB) ;
 - un dump SQL de `db-forgejo` (PostgreSQL) ;
 - les volumes applicatifs marqués `should.backup=true` :
   - Azuriom : stockage, plugins, thèmes, configuration ;
   - Forgejo : dépôts, comptes, configuration ;
   - KeeWeb : fichiers WebDAV ;
+  - Nextcloud : fichiers, configuration et applications (`nextcloud-html`) ;
   - code-server : réglages et espace de travail ;
   - Minecraft : mondes des serveurs Paper, données partagées du plugin
     (`mc-plugin-data`) et configuration de Velocity ;
@@ -29,6 +31,7 @@ suffisent et sont plus fiables.
   sûr) ;
 - mailcow (il a sa propre procédure de sauvegarde) ;
 - les logs, les certificats et les données temporaires ;
+- le cache et les sessions Redis de Nextcloud ;
 - les plugins Minecraft téléchargés (ils peuvent être retéléchargés).
 
 > Copiez `.env` séparément : sans lui, les mots de passe des bases et des
@@ -71,6 +74,8 @@ sudo make stop SERVICE=php-site
 sudo make stop SERVICE=azuriom
 sudo make stop SERVICE=forgejo
 sudo make stop SERVICE=keeweb
+sudo make stop SERVICE=nextcloud
+sudo make stop SERVICE=nextcloud-cron
 sudo make stop SERVICE=code-server
 sudo make backup
 sudo make up

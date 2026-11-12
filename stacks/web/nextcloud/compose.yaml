@@ -1,0 +1,151 @@
+# =============================================================================
+# Nextcloud : cloud personnel (fichiers, calendriers, contacts).
+# Image officielle : https://github.com/nextcloud/docker
+# =============================================================================
+
+# Variables communes au conteneur web et au conteneur cron. Les deux doivent
+# voir le même Redis et le même SMTP, car les fichiers de configuration
+# automatiques de l'image lisent ces variables à chaque exécution.
+x-nextcloud-env: &nextcloud-env
+  TZ: ${TZ}
+  MYSQL_DATABASE: ${NEXTCLOUD_DB_NAME}
+  MYSQL_USER: ${NEXTCLOUD_DB_USER}
+  MYSQL_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+  MYSQL_HOST: db-nextcloud
+  NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+  NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+  NEXTCLOUD_ADMIN_EMAIL: ${NEXTCLOUD_ADMIN_EMAIL}
+  NEXTCLOUD_TRUSTED_DOMAINS: "cloud.${DOMAIN_NAME}${TLD} nextcloud.${DOMAIN_NAME}${TLD} drive.${DOMAIN_NAME}${TLD} files.${DOMAIN_NAME}${TLD}"
+  NEXTCLOUD_INIT_HTACCESS: "true"
+  # Cache, verrous et sessions PHP dans Redis.
+  REDIS_HOST: nextcloud-redis
+  REDIS_HOST_PASSWORD: ${NEXTCLOUD_REDIS_PASSWORD}
+  # Traefik termine le HTTPS : on lui fait confiance pour le protocole et
+  # l'adresse cliente. Les plages privées couvrent les réseaux Docker.
+  APACHE_DISABLE_REWRITE_IP: "1"
+  TRUSTED_PROXIES: "${NEXTCLOUD_TRUSTED_PROXIES:-172.16.0.0/12 10.0.0.0/8 192.168.0.0/16}"
+  FORWARDED_FOR_HEADERS: "HTTP_X_FORWARDED_FOR"
+  OVERWRITEPROTOCOL: "https"
+  OVERWRITECLIURL: "https://cloud.${DOMAIN_NAME}${TLD}"
+  PHP_MEMORY_LIMIT: ${NEXTCLOUD_PHP_MEMORY_LIMIT:-512M}
+  PHP_UPLOAD_LIMIT: ${NEXTCLOUD_PHP_UPLOAD_LIMIT:-10G}
+  APACHE_BODY_LIMIT: ${NEXTCLOUD_APACHE_BODY_LIMIT:-0}
+  # SMTP optionnel : l'image n'active l'envoi que si SMTP_HOST,
+  # MAIL_FROM_ADDRESS et MAIL_DOMAIN sont tous non vides.
+  SMTP_HOST: ${NEXTCLOUD_MAIL_HOST:-}
+  SMTP_PORT: ${NEXTCLOUD_MAIL_PORT:-587}
+  SMTP_SECURE: ${NEXTCLOUD_MAIL_SECURE:-tls}
+  SMTP_NAME: ${NEXTCLOUD_MAIL_USERNAME:-}
+  SMTP_PASSWORD: ${NEXTCLOUD_MAIL_PASSWORD:-}
+  MAIL_FROM_ADDRESS: ${NEXTCLOUD_MAIL_FROM_ADDRESS:-}
+  MAIL_DOMAIN: ${NEXTCLOUD_MAIL_DOMAIN:-}
+
+services:
+  nextcloud:
+    image: nextcloud:${NEXTCLOUD_VERSION:-35}-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    environment: *nextcloud-env
+    volumes:
+      # Données, configuration, applications et fichiers des utilisateurs.
+      - nextcloud-html:/var/www/html
+      # Configure l'e-mail admin et le mode cron au premier démarrage.
+      - ./hooks:/docker-entrypoint-hooks.d:ro
+    networks:
+      - proxy
+      - nextcloud_internal
+    depends_on:
+      db-nextcloud:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${PROXY_NETWORK}
+      traefik.http.routers.nextcloud.rule: "Host(`cloud.${DOMAIN_NAME}${TLD}`) || Host(`nextcloud.${DOMAIN_NAME}${TLD}`) || Host(`drive.${DOMAIN_NAME}${TLD}`) || Host(`files.${DOMAIN_NAME}${TLD}`)"
+      traefik.http.routers.nextcloud.entrypoints: "websecure"
+      traefik.http.routers.nextcloud.tls.certResolver: "letsencrypt"
+      # Pas de Basic Auth : Nextcloud gère ses propres comptes et les clients
+      # desktop/mobile, WebDAV et CalDAV ne sauraient pas la franchir.
+      traefik.http.routers.nextcloud.middlewares: "secure-headers@file"
+      traefik.http.services.nextcloud.loadbalancer.server.port: "80"
+
+  # Tâches de fond Nextcloud (cron.php toutes les 5 minutes).
+  nextcloud-cron:
+    image: nextcloud:${NEXTCLOUD_VERSION:-35}-apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    entrypoint: /cron.sh
+    environment: *nextcloud-env
+    volumes:
+      - nextcloud-html:/var/www/html
+    networks:
+      - proxy
+      - nextcloud_internal
+    depends_on:
+      - nextcloud
+
+  nextcloud-redis:
+    image: redis:${NEXTCLOUD_REDIS_VERSION:-8-alpine}
+    container_name: nextcloud-redis
+    restart: unless-stopped
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$NEXTCLOUD_REDIS_PASSWORD\""]
+    environment:
+      TZ: ${TZ}
+      NEXTCLOUD_REDIS_PASSWORD: ${NEXTCLOUD_REDIS_PASSWORD}
+    volumes:
+      - nextcloud-redis:/data
+    networks:
+      - nextcloud_internal
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$NEXTCLOUD_REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  db-nextcloud:
+    image: mariadb:11.8
+    container_name: db-nextcloud
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+      TZ: ${TZ}
+      MARIADB_ROOT_PASSWORD: ${NEXTCLOUD_DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${NEXTCLOUD_DB_NAME}
+      MARIADB_USER: ${NEXTCLOUD_DB_USER}
+      MARIADB_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+    volumes:
+      - db-nextcloud:/var/lib/mysql
+    networks:
+      - nextcloud_internal
+      - db_admin
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK}
+    external: true
+  nextcloud_internal:
+    name: nextcloud_internal
+    internal: true
+  db_admin:
+    name: ${DB_ADMIN_NETWORK}
+    external: true
+
+volumes:
+  nextcloud-html:
+    name: nextcloud-html
+    labels:
+      should.backup: "true"
+  # Base de données : sauvegardée par un dump SQL, pas par l'archive du volume.
+  db-nextcloud:
+    name: db-nextcloud
+  # Cache et sessions : pas de sauvegarde, les données peuvent être perdues.
+  nextcloud-redis:
+    name: nextcloud-redis

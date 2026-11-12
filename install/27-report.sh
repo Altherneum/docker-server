@@ -46,7 +46,7 @@ show_report() {
        \$EDITOR .env
      Variables obligatoires : DISCORD_BOT_TOKEN, MINECRAFT_DISCORD_TOKEN_*,
      AZURIOM_ADMIN_GAME_ID.
-     Si mailcow est utilisé, créer les boîtes noreply@ et git@.
+     Si mailcow est utilisé, créer les boîtes noreply@, git@ et cloud@.
 
   2. Vérifier la configuration :
        make check-env

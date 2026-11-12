@@ -39,6 +39,24 @@ Ces valeurs ne peuvent pas être générées automatiquement :
 | `WEBSITE_DISCORD_CLIENT_SECRET` | Non | Application Discord OAuth |
 | `MICROSOFT_CLIENT_ID` | Non | Microsoft Entra ID |
 | `MICROSOFT_CLIENT_SECRET` | Non | Microsoft Entra ID |
+| `NEXTCLOUD_MAIL_HOST` | Non | Hôte SMTP de mailcow ; vide = e-mails Nextcloud désactivés |
+
+## Nextcloud
+
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `NEXTCLOUD_VERSION` | Version majeure de l'image officielle | `35` |
+| `NEXTCLOUD_REDIS_VERSION` | Image Redis | `8-alpine` |
+| `NEXTCLOUD_ADMIN_USER` | Compte administrateur | `admin` |
+| `NEXTCLOUD_ADMIN_EMAIL` | E-mail de l'administrateur | `admin@monprojet.com` |
+| `NEXTCLOUD_TRUSTED_PROXIES` | Proxies de confiance Docker | `172.16.0.0/12 10.0.0.0/8 192.168.0.0/16` |
+| `NEXTCLOUD_PHP_UPLOAD_LIMIT` | Taille maximale d'un fichier | `10G` |
+| `NEXTCLOUD_MAIL_HOST` | Hôte SMTP ; vide = e-mails désactivés | `mail.monprojet.com` |
+| `NEXTCLOUD_MAIL_USERNAME` | Boîte d'envoi | `cloud@monprojet.com` |
+
+Nextcloud ne peut être mis à jour que d'**une version majeure à la fois**.
+Changez `NEXTCLOUD_VERSION`, puis `sudo make up-service SERVICE=nextcloud`.
+Voir la [fiche Nextcloud](services/nextcloud.md#mettre-à-jour-nextcloud).
 
 ## Import GitHub (Forgejo et code-server)
 
@@ -109,6 +127,12 @@ Gardez les 32 caractères hexadécimaux, sans tirets.
 | code-server | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Profil Git global du conteneur (commits) |
 | KeeWeb | `KEEWEB_UI_USER`, `KEEWEB_UI_PASSWORD` | Accès à l'interface KeeWeb |
 | KeeWeb | `KEEWEB_WEBDAV_USER`, `KEEWEB_WEBDAV_PASSWORD` | Accès WebDAV |
+| Nextcloud | `NEXTCLOUD_ADMIN_USER`, `NEXTCLOUD_ADMIN_PASSWORD` | Compte admin Nextcloud |
+| Nextcloud | `NEXTCLOUD_ADMIN_EMAIL` | E-mail du compte admin |
+| Nextcloud / base | `NEXTCLOUD_DB_USER`, `NEXTCLOUD_DB_PASSWORD` | Base MariaDB |
+| Nextcloud / base | `NEXTCLOUD_DB_ROOT_PASSWORD` | Compte root MariaDB (dump de sauvegarde) |
+| Nextcloud / Redis | `NEXTCLOUD_REDIS_PASSWORD` | Cache, verrous et sessions Redis |
+| Nextcloud / mail | `NEXTCLOUD_MAIL_PASSWORD` | Boîte `cloud@` (optionnel) |
 | Minecraft | `MINECRAFT_RCON_PASSWORD` | Administration RCON interne |
 | Minecraft | `VELOCITY_SECRET` | Liaison Velocity / serveurs Paper |
 
@@ -157,6 +181,16 @@ Le compte est créé **au premier démarrage**. Modifier la variable dans `.env`
 ne change pas le mot de passe d'un compte déjà existant. Connectez-vous à
 l'interface du service pour le changer, ou supprimez les données du service
 pour repartir de zéro (destructif).
+
+### Compte admin Nextcloud
+
+Le compte est créé **au premier démarrage**. Modifier
+`NEXTCLOUD_ADMIN_PASSWORD` dans `.env` ne change pas le mot de passe d'un
+compte déjà existant : utilisez l'interface Nextcloud ou `occ`.
+
+```sh
+docker exec -u www-data nextcloud php occ user:resetpassword admin
+```
 
 ### Compte admin Forgejo
 
