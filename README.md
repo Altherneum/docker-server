@@ -20,12 +20,12 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 | [Fiches services](docs/services/README.md) | Une fiche par service |
 
 ## Démarrage rapide
-
+### Créer une clée SSH
 ```sh
 ssh-keygen -t ed25519 -C "admin@mon-poste" # Crée votre clé SSH
 scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
 ```
-
+### Déployer le repo
 ```sh
 ssh root@<ip>
 
@@ -42,7 +42,8 @@ nano .env
 
 sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
 ```
-
+### Tester l'installation
+#### Tester la clée SSH
 - Dans un nouveau terminal :
   - Testez directement la connexion (nouveau port SSH, clé SSH, etc)
   - Avant de fermer le terminal actuel
@@ -52,26 +53,26 @@ ssh -p <port> admin@<ip-du-serveur>
 # Sinon, ajoutez le fichier de clé SSH privé
 ssh -p <port> -i ~/.ssh/<id_rsa|ed25519> admin@<ip-du-serveur>
 ```
-
+#### Passer en root
 ```sh
 su - # Passer en root
 sudo su - # Alternative
 ```
-
+## Configurer les clée .env
 - `install.sh` installe Docker, génère les secrets, crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour)
 - fail2ban est lancé avec les conteneurs
 
-Ensuite :
+- Les adresses suivent le modèle `https://<service>.<DOMAIN_NAME><TLD>`.
+  - Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est sur `https://git.supername.fr`.
+- Le domaine et l'extension peuvent être changés : toutes les adresses changeront en même temps.
 
+### Rajoutez votre .env
+### Tester les clée
 ```sh
 sudo make check-env
 sudo make up
 sudo make ps
 ```
-
-Les adresses suivent le modèle `https://<service>.<DOMAIN_NAME><TLD>`.
-Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est sur `https://git.supername.fr`. Le domaine et l'extension peuvent être changés :
-toutes les adresses changeront en même temps.
 
 ## Commandes
 `sudo make help`
