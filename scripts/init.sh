@@ -97,7 +97,6 @@ set_env NEXTCLOUD_ADMIN_PASSWORD   "$(gen_hex 16)"
 set_env NEXTCLOUD_REDIS_PASSWORD   "$(gen_hex 24)"
 set_env NEXTCLOUD_MAIL_PASSWORD    "$(gen_hex 24)"
 
-set_env DOCKHAND_VERSION        "v1.0.57"
 set_env DOCKHAND_PUID           "1001"
 set_env DOCKHAND_PGID           "1001"
 set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
