@@ -174,7 +174,8 @@ Les services communiquent via :
 
 ## Utilisation
 - `sudo make init` - Initialisation (création des secrets, htpasswd et réseaux)
-- `sudo make up` - Démarrage complet
+- `sudo make up` - Démarrage complet (génère les htpasswd manquants)
+- `sudo make ensure-auth` - Génère uniquement les fichiers htpasswd manquants
 - `sudo make down` - Arrêt complet sans supprimer les conteneurs
 - `sudo make down-service SERVICE=azuriom` - Arrêt d'un service sans supprimer son conteneur
 - `sudo make services` - Liste complète des services disponibles

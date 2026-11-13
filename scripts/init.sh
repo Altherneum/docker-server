@@ -56,7 +56,9 @@ gen_hex() {
 }
 
 # --- Secrets applicatifs ----------------------------------------------------
+set_env TRAEFIK_DASHBOARD_USER   "admin"
 set_env TRAEFIK_DASHBOARD_PASSWORD "$(gen_hex 16)"
+set_env PMA_ADMIN_USER           "admin"
 set_env PMA_ADMIN_PASSWORD       "$(gen_hex 16)"
 
 set_env PHP_DB_ROOT_PASSWORD      "$(gen_hex 24)"
@@ -81,8 +83,11 @@ set_env FORGEJO_HTTP_PASSWORD     "$(gen_hex 16)"
 set_env FORGEJO_MAIL_PASSWORD     "$(gen_hex 24)"
 
 set_env CODE_SERVER_PASSWORD      "$(gen_hex 16)"
+set_env CODE_SERVER_HTTP_USER     "code-server"
+set_env KEEWEB_UI_USER            "keeweb"
 set_env KEEWEB_UI_PASSWORD        "$(gen_hex 16)"
 set_env CODE_SERVER_HTTP_PASSWORD "$(gen_hex 32)"
+set_env KEEWEB_WEBDAV_USER        "webdav"
 set_env KEEWEB_WEBDAV_PASSWORD    "$(gen_hex 16)"
 set_env PMA_BLOWFISH_SECRET       "$(gen_hex 16)"
 
@@ -92,7 +97,11 @@ set_env NEXTCLOUD_ADMIN_PASSWORD   "$(gen_hex 16)"
 set_env NEXTCLOUD_REDIS_PASSWORD   "$(gen_hex 24)"
 set_env NEXTCLOUD_MAIL_PASSWORD    "$(gen_hex 24)"
 
+set_env DOCKHAND_VERSION        "v1.0.57"
+set_env DOCKHAND_PUID           "1001"
+set_env DOCKHAND_PGID           "1001"
 set_env DOCKHAND_ENCRYPTION_KEY "$(openssl rand -base64 32 | tr -d '\n')"
+set_env DOCKHAND_HTTP_USER      "dockhand"
 set_env DOCKHAND_HTTP_PASSWORD  "$(gen_hex 16)"
 set_env DOCKHAND_AUTO_LOCAL_ENV true
 set_env DOCKHAND_AUTO_NOTIFICATIONS true
@@ -133,6 +142,13 @@ write_htpasswd() {
     file=$1
     user=$2
     password=$3
+
+    if [ -z "$user" ] || [ -z "$password" ]; then
+        echo "Erreur : identifiants manquants pour $file." >&2
+        echo "        Vérifier les variables d'authentification dans $ENV_FILE." >&2
+        exit 1
+    fi
+
     hash=$(openssl passwd -apr1 "$password" 2>/dev/null || openssl passwd -1 "$password")
     printf '%s:%s\n' "$user" "$hash" > "$file"
     chmod 644 "$file"
@@ -155,13 +171,18 @@ write_htpasswd stacks/web/keeweb/auth/webdav.htpasswd \
     "$(get_env KEEWEB_WEBDAV_USER)" "$(get_env KEEWEB_WEBDAV_PASSWORD)"
 
 # --- Réseaux Docker ---------------------------------------------------------
-ENV_FILE="$ENV_FILE" ./scripts/ensure-networks.sh
+# ensure-auth.sh appelle init.sh uniquement pour générer les htpasswd.
+if [ "${SKIP_NETWORKS:-false}" != "true" ]; then
+    ENV_FILE="$ENV_FILE" ./scripts/ensure-networks.sh
+fi
 
 echo
 echo "Initialisation terminée."
 echo "  - secrets générés dans .env (chmod 600) ;"
 echo "  - htpasswd dans stacks/proxy/auth et stacks/web/keeweb/auth ;"
-echo "  - réseaux Docker vérifiés."
+if [ "${SKIP_NETWORKS:-false}" != "true" ]; then
+    echo "  - réseaux Docker vérifiés."
+fi
 echo
 echo "À renseigner manuellement avant le premier démarrage :"
 echo "  - DISCORD_BOT_TOKEN (bot Discord général) ;"

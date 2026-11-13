@@ -37,6 +37,19 @@ sudo make restart-service SERVICE=nom
 
 Vérifiez aussi que le conteneur écoute sur le port attendu par Traefik.
 
+## Traefik : `middleware ... does not exist`
+
+Un routeur référence un middleware absent de la configuration dynamique. Deux
+causes fréquentes après un `git pull` :
+
+- le fichier `.htpasswd` du nouveau service n'existe pas encore (il est ignoré
+  par Git) : lancer `sudo make ensure-auth` ;
+- l'image Traefik n'a pas été reconstruite avec les nouveaux templates : lancer
+  `sudo make ensure-traefik`.
+
+`sudo make up` et `sudo make up-service SERVICE=nom` exécutent maintenant ces
+deux vérifications automatiquement.
+
 ## Le certificat HTTPS ne se crée pas
 
 - Le port `80` doit être ouvert et accessible depuis Internet.

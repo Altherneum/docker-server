@@ -34,6 +34,8 @@ sudo make services      # liste les noms de services
 | Commande | Effet |
 |---|---|
 | `sudo make init` | Régénère `.env`, les secrets et les réseaux Docker |
+| `sudo make ensure-auth` | Génère les fichiers htpasswd manquants (automatique avec `up`) |
+| `sudo make ensure-traefik` | Reconstruit et recrée Traefik si ses templates ont changé |
 | `sudo make services` | Liste les noms de services |
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
 | `sudo make uptime-kuma-admin` | Crée le compte admin Uptime Kuma (idempotent) |
@@ -99,7 +101,8 @@ Un volume partagé avec un autre service est conservé automatiquement.
 | Modification | Commande conseillée |
 |---|---|
 | `.env` d'un service | `sudo make restart-service SERVICE=nom` |
-| `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer |
+| `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer (ou `sudo make ensure-auth` si un fichier manque) |
+| Templates Traefik (`stacks/proxy/templates`) | `sudo make ensure-traefik` |
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |
 | `Dockerfile` | `sudo make build` puis `sudo make up` |
 | Code du site PHP | `/api/deploy` ou `sudo make php-site-src` |

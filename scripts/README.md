@@ -9,6 +9,7 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `init.sh` | `make init` | Crée `.env`, les secrets, les htpasswd et les réseaux |
 | `check-env.sh` | `make check-env` | Vérifie que `.env` contient les variables de base |
 | `ensure-networks.sh` | `make ensure-networks` | Crée les réseaux Docker externes manquants |
+| `ensure-auth.sh` | `make ensure-auth` | Génère les htpasswd manquants (appelé automatiquement par `up` / `up-service`) |
 | `php-site-src.sh` | `make php-site-src` / `php-site-env` | Clone le site PHP et génère son `.env` |
 | `forgejo-admin.sh` | `make forgejo-admin` | Crée le compte admin Forgejo (appelé automatiquement par `up` / `up-service`) |
 | `forgejo-runner.sh` | `make forgejo-runner` | Vérifie que le runner Forgejo Actions est enregistré et en ligne (appelé automatiquement par `up` / `up-service`) |

@@ -4,7 +4,7 @@ MAILCOW_DIR := $(or $(shell sed -n 's/^MAILCOW_DIR=//p' .env 2>/dev/null | tail 
 SERVICE ?=
 FORGEJO_MIRROR_ARGS ?=
 
-.PHONY: help init check-env ensure-networks build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
+.PHONY: help init check-env ensure-networks ensure-auth ensure-traefik build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
         forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service rebuild-service down-service \
@@ -22,6 +22,13 @@ check-env: ## Vérifie que .env contient les secrets nécessaires avant make up
 
 ensure-networks: ## Crée les réseaux Docker externes manquants
 	./scripts/ensure-networks.sh
+
+ensure-auth: ## Génère les fichiers htpasswd manquants (idempotent)
+	./scripts/ensure-auth.sh
+
+ensure-traefik: ## Reconstruit et recrée Traefik si ses templates ont changé
+	$(COMPOSE) build traefik
+	$(COMPOSE) up -d traefik
 
 build: base ## Construit les images de base puis celles des stacks
 	$(COMPOSE) build
@@ -52,7 +59,7 @@ ensure-base: ## Construit les images de base manquantes
 	@docker image inspect postgres:18 >/dev/null 2>&1 || $(MAKE) postgres-base
 	@docker image inspect paper:1.21.11 >/dev/null 2>&1 || $(MAKE) paper-base
 
-up: check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infrastructure
+up: ensure-auth check-env ensure-networks ensure-traefik ensure-base php-site-src ## Démarre toute l'infrastructure
 	$(COMPOSE) up -d --remove-orphans
 	@./scripts/uptime-kuma-admin.sh \
 		|| echo "Attention : compte admin Uptime Kuma non créé (voir les messages ci-dessus)."
@@ -173,7 +180,11 @@ logs-service: ## Suit les logs d'un service (ex: make logs-service SERVICE=azuri
 
 up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 	@test -n "$(SERVICE)" || (echo "Usage: make up-service SERVICE=nom"; exit 1)
+	@./scripts/ensure-auth.sh
 	@./scripts/ensure-networks.sh
+	@if [ "$(SERVICE)" != "traefik" ]; then \
+		$(MAKE) --no-print-directory ensure-traefik ; \
+	fi
 	@if [ -n "$(filter $(SERVICE),php-site)" ]; then \
 		$(MAKE) php-site-src ; \
 	fi
@@ -233,7 +244,11 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 
 rebuild-service: ## Reconstruit sans cache puis recrée un service (ex: make rebuild-service SERVICE=bot)
 	@test -n "$(SERVICE)" || (echo "Usage: make rebuild-service SERVICE=nom"; exit 1)
+	@./scripts/ensure-auth.sh
 	@./scripts/ensure-networks.sh
+	@if [ "$(SERVICE)" != "traefik" ]; then \
+		$(MAKE) --no-print-directory ensure-traefik ; \
+	fi
 	$(COMPOSE) --env-file .env build --no-cache --pull $(SERVICE)
 	$(COMPOSE) --env-file .env up -d --force-recreate --no-deps $(SERVICE)
 
