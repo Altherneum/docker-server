@@ -27,7 +27,7 @@ scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
 ```
 ### Déployer le repo
 ```sh
-ssh root@<ip>
+ssh root@<IP|DNS>
 
 sudo apt update && sudo apt install -y git   # Debian/Ubuntu, if git is missing
 
