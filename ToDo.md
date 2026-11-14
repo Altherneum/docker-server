@@ -1,15 +1,8 @@
 # ToDo list
-## SSH + UFW
-- Quand docker-server est installé
-- il faut ajouter les clefs SSH privés
-- Configurer UFW ?
-## JDA bot discord convert
-- Vérifier + tester si la conversion vers JDA est OK
 ## Liste
 | Services | Sous-Section | Description | Validation |
 |---|---|---|---|
 | `traefik` | ------------ | ------------ | OK |
-| `traefik` #2 | TLS pour remplacer cerbot | Vérifier si le TLS se crée sur un VPS avec DNS | à faire |
 | `php-site` | ------------ | ------------ | OK |
 | `php-site` #1 | Vérifie le /api/deploy | Vérifier si le git pull marche bien lors d'un /api/deploy | à re valider |
 | `azuriom` | ------------ | ------------ | OK |

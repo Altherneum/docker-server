@@ -32,50 +32,71 @@ ssh root@<ip>
 sudo apt update && sudo apt install -y git   # Debian/Ubuntu, if git is missing
 
 sudo git clone https://github.com/Altherneum/docker-server.git /opt/docker-server
-
+```
+### Configurer les clée .env
+- Les adresses suivent le modèle `https://<service>.<DOMAIN_NAME><TLD>`.
+  - Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est sur `https://git.supername.fr`.
+  - Le domaine et l'extension peuvent être changés : toutes les adresses changeront en même temps.
+- Votre DNS doit déjà être configuré et pointer vers votre IP du VPS
+  - Afin que Traefik génère les certificats TLS pour obtenir le `HTTPS`
+```
+COPIE DU DNS
+```
+#### Rajoutez votre copie d'un .env
+```sh
 cd /opt/docker-server
 
-cp .env.example .env # Vous pouvez aussi directement coller le fichier avec les tokens déjà configurés
+touch .env
 chmod 600 .env
 
-nano .env
+nano .env # Coller votre copie du .env
+```
+#### Copier le .env d'exemple
+```sh
+cd /opt/docker-server
 
+cp .env.example .env
+chmod 600 .env
+
+nano .env # Modifier le .env (CHANGE_ME sera remplacé automatiquement durant l'install.sh)
+```
+### Lancer l'installation
+```sh
 sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
 ```
+- `install.sh` installe Docker, génère les secrets (où `CHANGE_ME` est trouvé), crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour, etc)
+
 ### Tester l'installation
 #### Tester la clée SSH
-- Dans un nouveau terminal :
+- Dans un **__nouveau terminal__** :
   - Testez directement la connexion (nouveau port SSH, clé SSH, etc)
-  - Avant de fermer le terminal actuel
-```sh
-# Si vous avez l'ajout de clé automatique via Keepass ou un agent SSH
-ssh -p <port> admin@<ip-du-serveur>
-# Sinon, ajoutez le fichier de clé SSH privé
-ssh -p <port> -i ~/.ssh/<id_rsa|ed25519> admin@<ip-du-serveur>
-```
+  - **__Avant de fermer le terminal actuel__**
+- Connectez vous avec l'utilisateur `admin`
+  - Le hardening va bloquer les connexions SSH à partir de `root`
+##### Tester avec un agent SSH
+`ssh -p <port> admin@<ip-du-serveur>`
+##### Tester sans agent SSH
+`ssh -p <port> -i ~/.ssh/<id_rsa|ed25519> admin@<ip-du-serveur>`
 #### Passer en root
 ```sh
 su - # Passer en root
 sudo su - # Alternative
 ```
-## Configurer les clée .env
-- `install.sh` installe Docker, génère les secrets, crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour)
-- fail2ban est lancé avec les conteneurs
-
-- Les adresses suivent le modèle `https://<service>.<DOMAIN_NAME><TLD>`.
-  - Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est sur `https://git.supername.fr`.
-- Le domaine et l'extension peuvent être changés : toutes les adresses changeront en même temps.
-
-### Rajoutez votre .env
-### Tester les clée
-```sh
-sudo make check-env
-sudo make up
-sudo make ps
-```
+#### Tester les conteneurs
+- `sudo make init` Gère la création des clées du .env
+- `sudo make check-env` Vérifie le .env
+- `sudo make up` Lance tout les conteneurs
+- `sudo make ps` Liste les conteneurs
 
 ## Commandes
+### Afficher l'aide
 `sudo make help`
+### Cheat sheet
+- `sudo make up-service SERVICE=abc_container_name` : Démarre un service (ex: `SERVICE=azuriom`)
+- `sudo make rebuild-service SERVICE=abc_container_name` Reconstruit sans cache une image puis recrée un service (ex: `SERVICE=bot`)
+- `sudo make restart-service SERVICE=abc_container_name` Redémarre un service (ex: `SERVICE=azuriom`)
+- `sudo make clean-service SERVICE=abc_container_name CONFIRM=yes` Supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**, `CONFIRM=yes`)
+### Liste complète
 - **__help__** : Affiche cette aide
 - **__init__** : Génère .env, les mots de passe, les htpasswd et les réseaux Docker
 - **__check-env__** : Vérifie que .env contient les secrets nécessaires avant make up
@@ -112,6 +133,7 @@ sudo make ps
 - **__down-clean__** : Arrête puis supprime tous les conteneurs ET les volumes (**__DESTRUCTIF__**, `CONFIRM=yes`)
 - **__down-clean-service__** : Arrête puis supprime un service ciblé et ses volumes exclusifs (**__DESTRUCTIF__**, `CONFIRM=yes`)
 - **__stop__** : Arrête un service (ex: make stop `SERVICE=azuriom`)
+- **__rebuild-service__** : Reconstruit sans cache une image puis recrée un service (ex: make rebuild-service `SERVICE=bot`)
 - **__restart-service__** : Redémarre un service (ex: make restart-service `SERVICE=azuriom`)
 - **__logs-service__** : Suit les logs d'un service (ex: make logs-service `SERVICE=azuriom`)
 - **__up-service__** : Démarre un service (ex: make up-service `SERVICE=azuriom`)

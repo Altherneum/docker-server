@@ -100,12 +100,18 @@ Un volume partagé avec un autre service est conservé automatiquement.
 
 | Modification | Commande conseillée |
 |---|---|
-| `.env` d'un service | `sudo make restart-service SERVICE=nom` |
+| `.env` d'un service | `sudo make up-service SERVICE=nom` (recrée le conteneur avec les nouvelles variables) |
 | `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer (ou `sudo make ensure-auth` si un fichier manque) |
-| Templates Traefik (`stacks/proxy/templates`) | `sudo make ensure-traefik` |
+| Templates Traefik (`stacks/proxy/templates`) | `sudo make up-service SERVICE=traefik` (ou `sudo make ensure-traefik`) |
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |
-| `Dockerfile` | `sudo make build` puis `sudo make up` |
+| `Dockerfile` ou code embarqué dans l'image | `sudo make up-service SERVICE=nom` |
+| Image récalcitrante / cache Docker | `sudo make rebuild-service SERVICE=nom` |
 | Code du site PHP | `/api/deploy` ou `sudo make php-site-src` |
+
+`make restart-service` ne fait que redémarrer le conteneur existant : il ne
+reconstruit pas l'image et ne réapplique pas les variables de `.env`.
+Utiliser `up-service` par défaut, et `rebuild-service` uniquement si Docker
+semble réutiliser une image ou un cache obsolète.
 
 ## Docker Compose directement
 
