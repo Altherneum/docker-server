@@ -20,29 +20,54 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 | [Fiches services](docs/services/README.md) | Une fiche par service |
 
 ## Démarrage rapide
-### Créer une clée SSH
-```sh
-ssh-keygen -t ed25519 -C "admin@mon-poste" # Crée votre clé SSH
-scp ~/.ssh/id_ed25519.pub root@<ip>:/tmp/id_ed25519.pub
-```
-### Déployer le repo
-```sh
-ssh root@<IP|DNS>
 
-sudo apt update && sudo apt install -y git   # Debian/Ubuntu, if git is missing
+### Créer une clé SSH
+
+Sur votre poste :
+
+#### ED25519
+Clé Ed25519 (Standard moderne, plus rapide)
+```sh
+ssh-keygen -t ed25519 -C "admin@mon-poste"
+scp ~/.ssh/id_ed25519.pub root@<IP_OU_DNS>:/tmp/id_ed25519.pub
+```
+#### RSA
+Clé RSA (Recommandé pour compatibilité/sécurité)
+```sh
+ssh-keygen -t rsa -C "admin@mon-poste"
+scp ~/.ssh/id_rsa.pub root@<IP_OU_DNS>:/tmp/id_rsa.pub
+```
+
+---
+
+### Cloner le dépôt sur le VPS
+
+```sh
+ssh root@<IP_OU_DNS>
+
+sudo apt update && sudo apt install -y git   # Debian/Ubuntu, si Git n'est pas installé
 
 sudo git clone https://github.com/Altherneum/docker-server.git /opt/docker-server
 ```
-### Configurer les clée .env
+
+---
+
+### Configurer le fichier `.env`
+
 - Les adresses suivent le modèle `https://<service>.<DOMAIN_NAME><TLD>`.
-  - Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est sur `https://git.supername.fr`.
+  - Exemple : avec `DOMAIN_NAME=supername` et `TLD=.fr`, Forgejo est accessible sur `https://git.supername.fr`.
   - Le domaine et l'extension peuvent être changés : toutes les adresses changeront en même temps.
-- Votre DNS doit déjà être configuré et pointer vers votre IP du VPS
-  - Afin que Traefik génère les certificats TLS pour obtenir le `HTTPS`
-```
-COPIE DU DNS
-```
-#### Rajoutez votre copie d'un .env
+- Le DNS doit déjà être configuré et pointer vers l'IP de votre VPS, afin que Traefik puisse générer les certificats TLS et fournir le HTTPS. Voir [DNS](docs/08-dns.md).
+
+Exemple minimal d'enregistrements DNS :
+
+| Type | Nom | Valeur |
+|---|---|---|
+| `A` | `@` | `<IP du VPS>` |
+| `CNAME` | `*` | `<DOMAIN_NAME><TLD>.` |
+
+#### Utilisez votre copie d'un .env
+
 ```sh
 cd /opt/docker-server
 
@@ -51,56 +76,87 @@ chmod 600 .env
 
 nano .env # Coller votre copie du .env
 ```
+
 #### Copier le .env d'exemple
+
 ```sh
 cd /opt/docker-server
 
 cp .env.example .env
 chmod 600 .env
 
-nano .env # Modifier le .env (CHANGE_ME sera remplacé automatiquement durant l'install.sh)
+nano .env   # Modifier le .env ; les valeurs CHANGE_ME seront remplacées par install.sh et make init
 ```
+
+---
+
 ### Lancer l'installation
+
 ```sh
-sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
+cd /opt/docker-server
+sudo ./install.sh --pubkey-file /tmp/id_rsa.pub
 ```
-- `install.sh` installe Docker, génère les secrets (où `CHANGE_ME` est trouvé), crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour, etc)
+
+`install.sh` installe Docker, génère les secrets manquants (valeurs `CHANGE_ME`), crée les réseaux, puis sécurise l'hôte (compte admin, SSH, UFW, mises à jour, etc.).
 
 ### Tester l'installation
-#### Tester la clée SSH
-- Dans un **__nouveau terminal__** :
-  - Testez directement la connexion (nouveau port SSH, clé SSH, etc)
-  - **__Avant de fermer le terminal actuel__**
-- Connectez vous avec l'utilisateur `admin`
-  - Le hardening va bloquer les connexions SSH à partir de `root`
-##### Tester avec un agent SSH
-`ssh -p <port> admin@<ip-du-serveur>`
-##### Tester sans agent SSH
-`ssh -p <port> -i ~/.ssh/<id_rsa|ed25519> admin@<ip-du-serveur>`
-#### Passer en root
+
+#### Tester la clé SSH
+
+Dans un **nouveau terminal** :
+
+- testez la connexion (nouveau port SSH, authentification par clé, etc.) **avant de fermer le terminal actuel** ;
+- connectez-vous avec l'utilisateur `admin`. Le hardening bloque les connexions SSH en tant que `root`.
+
+##### Avec un agent SSH
+
 ```sh
-su - # Passer en root
-sudo su - # Alternative
+ssh -p <port> admin@<IP_OU_DNS>
 ```
+
+##### Sans agent SSH
+
+```sh
+ssh -p <port> -i ~/.ssh/id_rsa admin@<IP_OU_DNS>
+```
+
+#### Passer en root
+
+```sh
+su -
+# ou
+sudo su -
+```
+
 #### Tester les conteneurs
+
 - `sudo make init` Gère la création des clées du .env
+  - Notez que `install.sh` a déjà lancé `make init`.
 - `sudo make check-env` Vérifie le .env
 - `sudo make up` Lance tout les conteneurs
 - `sudo make ps` Liste les conteneurs
 
 ## Commandes
+
 ### Afficher l'aide
+
 `sudo make help`
-### Cheat sheet
-- `sudo make up-service SERVICE=abc_container_name` : Démarre un service (ex: `SERVICE=azuriom`)
-- `sudo make rebuild-service SERVICE=abc_container_name` Reconstruit sans cache une image puis recrée un service (ex: `SERVICE=bot`)
-- `sudo make restart-service SERVICE=abc_container_name` Redémarre un service (ex: `SERVICE=azuriom`)
-- `sudo make clean-service SERVICE=abc_container_name CONFIRM=yes` Supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**, `CONFIRM=yes`)
+
+### Aide-mémoire
+
+- `sudo make up-service SERVICE=azuriom` : démarre un service ;
+- `sudo make rebuild-service SERVICE=bot` : reconstruit l'image sans cache puis recrée le service ;
+- `sudo make restart-service SERVICE=azuriom` : redémarre un service ;
+- `sudo CONFIRM=yes make clean-service SERVICE=azuriom` : supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**).
+
 ### Liste complète
+
 - **__help__** : Affiche cette aide
-- **__init__** : Génère .env, les mots de passe, les htpasswd et les réseaux Docker
-- **__check-env__** : Vérifie que .env contient les secrets nécessaires avant make up
+- **__init__** : Génère `.env`, les mots de passe, les htpasswd et les réseaux Docker
+- **__check-env__** : Vérifie que `.env` contient les secrets nécessaires avant `make up`
 - **__ensure-networks__** : Crée les réseaux Docker externes manquants
+- **__ensure-auth__** : Génère les fichiers htpasswd manquants (automatique avec `up` / `up-service`)
+- **__ensure-traefik__** : Reconstruit et recrée Traefik si ses templates ont changé
 - **__build__** : Construit les images de base puis celles des stacks
 - **__php-site-src__** : Clone le dépôt website dans stacks/web/php-site/src
 - **__php-site-env__** : Régénère stacks/web/php-site/src/.env depuis .env
@@ -152,21 +208,21 @@ sudo su - # Alternative
 - `db-php` : Base de données pour le site PHP
 
 ### Services de développement
-- `code-server` : Interface web pour vs-code
-- `phpmyadmin` : Gestionnaire de bases MariaDB via interface web
+- `code-server` : Interface web pour VS Code
+- `phpmyadmin` : Gestionnaire de bases MariaDB via une interface web
 - `forgejo` : Forge Git auto-hébergée
 - `keeweb` : Gestion des mots de passe (`.kdbx` / KeePass)
 
 ### Services Web
 - `php-site` : Site web PHP
-- `meme` : Site de redirection de meme
+- `meme` : Site de redirection de mèmes
 - `azuriom` : Site et panneau d'administration pour serveur Minecraft
 - `nextcloud` : Cloud personnel (fichiers, calendriers, contacts)
 - `nextcloud-cron` : Tâches de fond Nextcloud
 - `nextcloud-redis` : Cache, verrous et sessions Nextcloud
 
 ### Services système
-- `traefik` : Proxy
+- `traefik` : Proxy HTTPS et certificats
 - `dockhand` : Interface d'administration Docker
 - `uptime-kuma` : Supervision des services et des conteneurs
 - `uptime-kuma-docker-proxy` : Proxy Docker en lecture seule pour Uptime Kuma
@@ -174,9 +230,9 @@ sudo su - # Alternative
 - `bot` : Bot Discord
 
 ### Messagerie
-- `mail-integrate` : Override Traefik dans MAILCOW_DIR
-- `mail-up` / `mail-down` : Gestion de MailCow
-- `mail-logs` : Logs de MailCow
+- `mail-integrate` : Override Traefik dans `MAILCOW_DIR`
+- `mail-up` / `mail-down` : Gestion de Mailcow
+- `mail-logs` : Logs de Mailcow
 
 ### Applications Minecraft
 - `mc-anarchie`, `mc-creatif`, `mc-opprison`, `mc-hub`, `mc-skyblock`, `mc-survie`, `mc-rpg`, `mc-test` : Serveurs de jeu Minecraft
@@ -196,8 +252,9 @@ Les services communiquent via :
 
 ## Utilisation
 - `sudo make init` - Initialisation (création des secrets, htpasswd et réseaux)
-- `sudo make up` - Démarrage complet (génère les htpasswd manquants)
+- `sudo make up` - Démarrage complet (génère les htpasswd manquants et met Traefik à jour)
 - `sudo make ensure-auth` - Génère uniquement les fichiers htpasswd manquants
+- `sudo make ensure-traefik` - Reconstruit et recrée Traefik si ses templates ont changé
 - `sudo make down` - Arrêt complet sans supprimer les conteneurs
 - `sudo make down-service SERVICE=azuriom` - Arrêt d'un service sans supprimer son conteneur
 - `sudo make services` - Liste complète des services disponibles
