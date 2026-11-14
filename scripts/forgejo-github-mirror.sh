@@ -27,6 +27,8 @@ DRY_RUN=0
 RESET_STUCK=0
 FORCE_ALL=0
 FORCE_REPOS=""
+RUN_EXISTING=0
+RUN_ACTIONS_FLAG=0
 for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY_RUN=1 ;;
@@ -35,11 +37,13 @@ for arg in "$@"; do
         --force=*)
             FORCE_REPOS="$FORCE_REPOS $(printf '%s' "${arg#--force=}" | tr ',' ' ')"
             ;;
+        --run-actions) RUN_EXISTING=1; RUN_ACTIONS_FLAG=1 ;;
         -h|--help)
-            echo "Usage : $0 [--dry-run] [--reset-stuck] [--force | --force=depot1,depot2]"
+            echo "Usage : $0 [--dry-run] [--reset-stuck] [--run-actions] [--force | --force=depot1,depot2]"
             echo
             echo "  --dry-run       liste les dépôts et les actions sans rien modifier"
             echo "  --reset-stuck   supprime les dépôts restés bloqués en migration"
+            echo "  --run-actions   démarre aussi les workflows des dépôts déjà présents"
             echo "  --force         réimporte tous les dépôts (suppression préalable)"
             echo "  --force=nom     réimporte uniquement le ou les dépôts indiqués"
             exit 0
@@ -96,6 +100,28 @@ case "$SYNC_ON_COMMIT" in
     true|false) ;;
     *) SYNC_ON_COMMIT=true ;;
 esac
+
+# Forgejo ne déclenche aucun workflow lors d'une migration : un dépôt importé
+# reste donc sans exécution CI tant qu'aucun push n'a lieu. Après chaque import,
+# on démarre une fois les workflows via l'API de dispatch.
+#   push (défaut) = uniquement les workflows déclenchés par un push
+#   all           = tous les workflows du dépôt
+#   false / none  = aucun démarrage automatique
+RUN_ACTIONS=$(get_env FORGEJO_GITHUB_RUN_ACTIONS)
+[ -n "$RUN_ACTIONS" ] || RUN_ACTIONS=push
+case "$RUN_ACTIONS" in
+    true|push) RUN_ACTIONS=push ;;
+    all) ;;
+    false|no|none) RUN_ACTIONS=none ;;
+    *)
+        echo "Erreur : FORGEJO_GITHUB_RUN_ACTIONS doit valoir push, all ou false." >&2
+        exit 1
+        ;;
+esac
+# --run-actions est une demande explicite : il reprend le dessus sur false.
+if [ "$RUN_ACTIONS_FLAG" -eq 1 ] && [ "$RUN_ACTIONS" = "none" ]; then
+    RUN_ACTIONS=push
+fi
 
 # auto = métadonnées uniquement si GITHUB_TOKEN est présent ; true = toujours ;
 # false = code Git seul (rapide, aucune limite d'API GitHub).
@@ -216,6 +242,97 @@ force_repo() {
     return 1
 }
 
+# Liste les fichiers de workflow d'un dépôt, en respectant la même priorité que
+# Forgejo : .forgejo/workflows, puis .gitea/workflows, puis .github/workflows.
+# Affiche des chemins relatifs à la racine du dépôt.
+list_workflow_files() {
+    lw_repo=$1
+    lw_ref=$2
+    for lw_dir in .forgejo/workflows .gitea/workflows .github/workflows; do
+        RESPONSE=$(forgejo_api GET "/repos/$FORGEJO_OWNER/$lw_repo/contents/$lw_dir?ref=$lw_ref") || continue
+        CODE=$(api_code "$RESPONSE")
+        [ "$CODE" = "200" ] || continue
+
+        BODY=$(api_body "$RESPONSE")
+        if command -v jq >/dev/null 2>&1; then
+            FILES=$(printf '%s' "$BODY" | jq -r '.[] | select(.type == "file") | .name' 2>/dev/null || true)
+        else
+            FILES=$(printf '%s\n' "$BODY" | tr ',' '\n' \
+                | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
+        fi
+
+        for lw_file in $FILES; do
+            case "$lw_file" in
+                *.yml|*.yaml) printf '%s/%s\n' "$lw_dir" "$lw_file" ;;
+            esac
+        done
+        # Ce dossier existe : Forgejo ne consultera pas les suivants, même s'il
+        # ne contient aucun workflow.
+        return 0
+    done
+    return 0
+}
+
+# Vrai si le workflow contient un déclencheur push. Le test reste volontairement
+# simple : on ne cherche pas à valider le YAML, seulement à éviter de lancer un
+# workflow de déploiement ou planifié lors de l'import.
+workflow_has_push() {
+    wp_repo=$1
+    wp_path=$2
+    wp_ref=$3
+    RESPONSE=$(forgejo_api GET "/repos/$FORGEJO_OWNER/$wp_repo/raw/$wp_path?ref=$wp_ref") || return 1
+    CODE=$(api_code "$RESPONSE")
+    [ "$CODE" = "200" ] || return 1
+    printf '%s\n' "$(api_body "$RESPONSE")" | tr -d '\r' | sed -n '1,120p' \
+        | grep -Eq '^[[:space:]]*(push[[:space:]]*:|on[[:space:]]*:[[:space:]]*\[[^]]*push([],]|$)|on[[:space:]]*:[[:space:]]*push([[:space:]]|$))'
+}
+
+# Démarre une fois les workflows du dépôt après son import.
+start_workflows() {
+    sw_repo=$1
+    sw_ref=$2
+    [ "$RUN_ACTIONS" != "none" ] || return 0
+
+    SW_LIST="$TMP_DIR/workflows-$sw_repo.txt"
+    list_workflow_files "$sw_repo" "$sw_ref" > "$SW_LIST"
+    if [ ! -s "$SW_LIST" ]; then
+        echo "      aucun workflow Actions détecté"
+        return 0
+    fi
+
+    while IFS= read -r wf_path; do
+        [ -n "$wf_path" ] || continue
+        wf_name=${wf_path##*/}
+
+        if [ "$RUN_ACTIONS" = "push" ] && ! workflow_has_push "$sw_repo" "$wf_path" "$sw_ref"; then
+            echo "      workflow $wf_name ignoré (pas de déclencheur push)"
+            ACTIONS_SKIPPED=$((ACTIONS_SKIPPED + 1))
+            continue
+        fi
+
+        if ! RESPONSE=$(forgejo_api POST \
+                "/repos/$FORGEJO_OWNER/$sw_repo/actions/workflows/$wf_name/dispatches" \
+                "{\"ref\":\"$(json_escape "$sw_ref")\"}"); then
+            echo "      échec du démarrage de $wf_name (appel API)" >&2
+            ACTIONS_FAILED=$((ACTIONS_FAILED + 1))
+            continue
+        fi
+        CODE=$(api_code "$RESPONSE")
+        case "$CODE" in
+            200|201|204)
+                echo "      workflow $wf_name démarré"
+                ACTIONS_TRIGGERED=$((ACTIONS_TRIGGERED + 1))
+                ;;
+            *)
+                echo "      échec du démarrage de $wf_name (HTTP $CODE)" >&2
+                printf '%s\n' "$(api_body "$RESPONSE")" | head -c 300 >&2
+                echo >&2
+                ACTIONS_FAILED=$((ACTIONS_FAILED + 1))
+                ;;
+        esac
+    done < "$SW_LIST"
+}
+
 # Convertit la réponse JSON de GitHub en lignes tabulées :
 # nom, clone_url, private, archived, fork, disabled.
 parse_github_repos() {
@@ -312,6 +429,9 @@ IMPORTED=0
 SKIPPED=0
 MIRRORS=0
 FAILED=0
+ACTIONS_TRIGGERED=0
+ACTIONS_SKIPPED=0
+ACTIONS_FAILED=0
 PAGE=1
 
 if [ "$RESET_STUCK" -eq 0 ]; then
@@ -398,6 +518,9 @@ while :; do
         if [ "$DRY_RUN" -eq 1 ]; then
             echo "      [dry-run] migration depuis $CLONE_URL"
             IMPORTED=$((IMPORTED + 1))
+            if [ "$RUN_ACTIONS" != "none" ]; then
+                echo "      [dry-run] démarrage des workflows ($RUN_ACTIONS)"
+            fi
             if [ "$PUSH_MIRROR" = "true" ] && [ -n "$GITHUB_TOKEN" ]; then
                 echo "      [dry-run] miroir push vers $CLONE_URL"
                 MIRRORS=$((MIRRORS + 1))
@@ -425,6 +548,12 @@ while :; do
         if [ "$CODE" = "200" ]; then
             echo "      dépôt déjà présent"
             SKIPPED=$((SKIPPED + 1))
+            if [ "$RUN_EXISTING" -eq 1 ]; then
+                BRANCH=$(printf '%s' "$(api_body "$RESPONSE")" \
+                    | sed -n 's/.*"default_branch":"\([^"]*\)".*/\1/p')
+                [ -n "$BRANCH" ] || BRANCH=main
+                start_workflows "$REPO" "$BRANCH"
+            fi
         elif [ "$CODE" = "404" ]; then
             if [ "$IMPORT_METADATA" = "true" ]; then
                 IMPORT_ISSUES=true
@@ -479,6 +608,14 @@ while :; do
             if [ "$CODE" = "201" ]; then
                 echo "      migré"
                 IMPORTED=$((IMPORTED + 1))
+
+                # Une migration ne produit aucun événement push : sans ce
+                # déclenchement explicite, la CI du dépôt importé ne démarre
+                # jamais tant qu'aucun commit n'est poussé.
+                BRANCH=$(printf '%s' "$(api_body "$RESPONSE")" \
+                    | sed -n 's/.*"default_branch":"\([^"]*\)".*/\1/p')
+                [ -n "$BRANCH" ] || BRANCH=main
+                start_workflows "$REPO" "$BRANCH"
             else
                 echo "      échec de la migration (HTTP $CODE)" >&2
                 printf '%s\n' "$(api_body "$RESPONSE")" | head -c 500 >&2
@@ -536,6 +673,9 @@ done
 
 echo
 echo "→ import terminé : $IMPORTED migré(s), $SKIPPED ignoré(s), $MIRRORS miroir(s), $FAILED échec(s)"
+if [ "$RUN_ACTIONS" != "none" ]; then
+    echo "→ workflows Actions : $ACTIONS_TRIGGERED démarré(s), $ACTIONS_SKIPPED ignoré(s), $ACTIONS_FAILED échec(s)"
+fi
 if [ "$FAILED" -gt 0 ]; then
     exit 1
 fi

@@ -103,6 +103,11 @@ sudo make ps
 les comptes admin Forgejo et Uptime Kuma, puis ajoute les moniteurs Docker
 manquants et préconfigure la notification Discord dans Uptime Kuma.
 
+`make up` importe aussi les dépôts GitHub manquants dans Forgejo et démarre la
+CI des dépôts nouvellement importés. Un dépôt déjà présent n'est pas relancé
+automatiquement ; voir la fiche
+[Forgejo](services/forgejo.md#démarrage-après-import).
+
 Le conteneur `fail2ban` lit les logs SSH de l'hôte. Sur Debian/Ubuntu, vérifiez
 que `/var/log/auth.log` existe ; sinon, consultez la
 [fiche fail2ban](services/fail2ban.md).
@@ -147,6 +152,14 @@ sudo make up-service SERVICE=<nom>
 | `mc-plugins` | Prépare les plugins Minecraft (one-shot) | `sudo make up-service SERVICE=mc-plugins` |
 | `bot` | Bot Discord | `sudo make up-service SERVICE=bot` |
 | `fail2ban` | Bannit les IP sur les journaux Traefik et SSH | `sudo make up-service SERVICE=fail2ban` |
+
+Pour Forgejo, `sudo make up-service SERVICE=forgejo` effectue aussi la création
+du compte admin, l'import des dépôts GitHub absents (si
+`FORGEJO_GITHUB_ORG_URL` est renseigné) et le démarrage de leur CI. Aucun
+`make forgejo-admin`, `make forgejo-runner` ou `make forgejo-mirror`
+supplémentaire n'est nécessaire sur une installation neuve. Les dépôts déjà
+présents ne sont pas relancés : utiliser `--run-actions` sans redémarrer
+Forgejo (voir [Démarrage après import](services/forgejo.md#démarrage-après-import)).
 
 Pour connaître la liste exacte des services :
 

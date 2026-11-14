@@ -133,12 +133,15 @@ déjà configurés ne sont pas dupliqués.
 sudo make forgejo-mirror
 sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run
 sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions
 sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=nom-du-depot
 ```
 
 - `--dry-run` liste uniquement les dépôts et les actions prévues, sans modifier
   Forgejo.
 - `--reset-stuck` supprime les dépôts restés bloqués en migration.
+- `--run-actions` démarre aussi les workflows des dépôts déjà présents, sans
+  les réimporter. Utile pour lancer la CI sur une instance existante.
 - `--force` réimporte tous les dépôts après suppression ; `--force=nom` cible un
   ou plusieurs dépôts (séparés par des virgules). **Destructif** : les commits
   poussés uniquement sur Forgejo sont perdus.
@@ -218,6 +221,96 @@ Les workflows sont lus dans `.forgejo/workflows/`. En l'absence de ce dossier,
 Forgejo utilise `.github/workflows/` : les workflows GitHub déjà présents dans
 les dépôts importés sont donc détectés. Forgejo Actions n'étant pas totalement
 compatible avec GitHub Actions, certains workflows devront être adaptés.
+
+### Démarrage après import
+
+Une migration ou un `git clone` ne produit aucun événement : Forgejo ne lance
+donc pas les workflows d'un dépôt qui vient d'être importé. C'est le
+comportement normal d'Actions, qui réagit aux événements (`push`,
+`pull_request`, `workflow_dispatch`, etc.).
+
+Pour éviter une CI inactive après un import, le script démarre une fois les
+workflows de chaque dépôt **nouvellement importé**, via l'API
+`/actions/workflows/{fichier}/dispatches`. Le comportement est contrôlé par
+`FORGEJO_GITHUB_RUN_ACTIONS` :
+
+| Valeur | Effet |
+|---|---|
+| `push` (défaut) | Démarre uniquement les workflows qui ont un déclencheur `push`. |
+| `all` | Démarre tous les workflows, y compris de déploiement ou planifiés. |
+| `false` | Aucun démarrage automatique. |
+
+Le déclenchement utilise l'événement `workflow_dispatch`. Il est donc préférable
+d'ajouter `workflow_dispatch:` aux workflows concernés.
+
+#### Installation ou mise à jour
+
+Sur une instance neuve, une seule commande suffit :
+
+```sh
+sudo make up-service SERVICE=forgejo
+```
+
+Elle construit et démarre `forgejo`, `forgejo-runner` et `db-forgejo`, crée le
+compte admin, attend que le runner soit en ligne, importe les dépôts GitHub
+absents (si `FORGEJO_GITHUB_ORG_URL` est renseigné), puis démarre la CI des
+dépôts importés. `make up` fait la même chose pour toute l'infrastructure.
+
+Il n'est donc pas nécessaire de lancer ensuite `make forgejo-admin`,
+`make forgejo-runner` ou `make forgejo-mirror`, ni de faire un `down-service`
+avant. `make up-service` est idempotent : Docker Compose recrée les conteneurs
+si nécessaire, sans arrêt manuel préalable.
+
+#### Dépôts déjà présents
+
+L'import est idempotent : un dépôt déjà présent dans Forgejo est ignoré, et sa
+CI n'est pas relancée automatiquement. C'est volontaire, sinon chaque
+`make up` relancerait tous les workflows.
+
+Pour démarrer la CI des dépôts existants **sans réimporter et sans redémarrer
+Forgejo** :
+
+```sh
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions
+```
+
+Cette commande est non destructive : elle ne supprime aucun dépôt et ne pousse
+aucun commit. Elle est suffisante quand les conteneurs tournent déjà. Comme
+l'import normal, elle importe aussi les dépôts encore absents.
+
+Pour inclure aussi les workflows de déploiement ou planifiés :
+
+```sh
+FORGEJO_GITHUB_RUN_ACTIONS=all sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions
+```
+
+#### Commandes utiles
+
+| Commande | Effet | Redémarre Forgejo ? | Destructif ? |
+|---|---|---|---|
+| `sudo make up-service SERVICE=forgejo` | Installe/met à jour, importe les dépôts absents et démarre leur CI | oui, si nécessaire | non |
+| `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions` | Démarre la CI des dépôts existants (et importe les absents) | non | non |
+| `sudo make forgejo-runner` | Vérifie seulement que le runner est en ligne | non | non |
+| `sudo make logs-service SERVICE=forgejo-runner` | Suit les logs du runner | non | non |
+| `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=depot` | Réimporte un dépôt après suppression | non | **oui** |
+
+`FORGEJO_GITHUB_RUN_ACTIONS` est lue par le script sur l'hôte : la modifier dans
+`.env` ne nécessite pas de recréer les conteneurs. Relancez simplement
+`make forgejo-mirror` (ou `--run-actions` pour les dépôts existants).
+
+#### À savoir
+
+- Par défaut (`push`), seuls les workflows avec un déclencheur `push` sont
+  lancés ; un workflow uniquement `workflow_dispatch`, `schedule` ou
+  `workflow_run` est ignoré.
+- Les workflows importés peuvent échouer si les secrets ou les actions GitHub
+  n'ont pas été recréés sur Forgejo. C'est indépendant du runner.
+- Le premier job avec `runs-on: ubuntu-latest` télécharge l'image
+  `ghcr.io/catthehacker/ubuntu:act-latest` (plusieurs Go).
+- Le runner exécute `FORGEJO_RUNNER_CAPACITY` jobs à la fois ; les autres
+  restent en attente.
+- Si le runner n'est pas encore en ligne, les jobs restent en attente :
+  `sudo make forgejo-runner` permet de vérifier son état.
 
 Exemple minimal :
 
@@ -325,6 +418,10 @@ sauvegardé : il est recréé automatiquement au démarrage du runner.
   ```
   Le script réimporte ensuite les dépôts absents. Pour un dépôt déjà présent
   mais incomplet, utilisez `--force=nom-du-depot`.
+- **Aucune exécution après un import** : c'est normal, une migration ne produit
+  pas d'événement `push`. Vérifier `FORGEJO_GITHUB_RUN_ACTIONS` (voir
+  [Démarrage après import](#démarrage-après-import)), ou pousser un commit /
+  lancer le workflow manuellement depuis l'onglet Actions.
 - **Runner Actions hors ligne** : `sudo make forgejo-runner` puis
   `sudo make logs-service SERVICE=forgejo-runner`. Vérifier `DOCKER_GID`
   (`make init`) et que le socket Docker est accessible.

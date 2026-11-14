@@ -177,7 +177,7 @@ sudo su -
 - **__azuriom-seed__** : Réapplique les données de démonstration Azuriom (paramètres, rôles, boutique)
 - **__forgejo-admin__** : Crée le compte admin Forgejo depuis .env (automatique avec `up` / `up-service`)
 - **__forgejo-runner__** : Vérifie que le runner Forgejo Actions est en ligne (automatique avec `up` / `up-service`)
-- **__forgejo-mirror__** : Importe les dépôts GitHub dans Forgejo et configure le miroir push (automatique avec `up` / `up-service`) ; options `--dry-run`, `--reset-stuck`, `--force`
+- **__forgejo-mirror__** : Importe les dépôts GitHub dans Forgejo, configure le miroir push et démarre la CI des dépôts importés (automatique avec `up` / `up-service`) ; options `--dry-run`, `--reset-stuck`, `--run-actions`, `--force`
 - **__uptime-kuma-admin__** : Crée le compte admin Uptime Kuma depuis .env (automatique avec `up` / `up-service`)
 - **__uptime-kuma-docker-sync__** : Ajoute les moniteurs Docker manquants et configure la notification Discord dans Uptime Kuma (automatique avec `up` / `up-service` si Uptime Kuma tourne) ; mode détaillé avec `VERBOSE=1`
 - **__mail-integrate__** : Installe l'override Traefik dans MAILCOW_DIR

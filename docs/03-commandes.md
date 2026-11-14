@@ -42,9 +42,10 @@ sudo make services      # liste les noms de services
 | `sudo make uptime-kuma-docker-sync` | Ajoute les moniteurs Docker manquants et configure la notification Discord (idempotent) |
 | `sudo VERBOSE=1 make up-service SERVICE=nom` | Affiche le détail de la synchronisation Uptime Kuma (hôte, conteneurs déjà présents, notification) |
 | `sudo make forgejo-runner` | Vérifie que le runner Forgejo Actions est en ligne |
-| `sudo make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push |
+| `sudo make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo, configure le miroir push et démarre la CI |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--dry-run` | Simule l'import GitHub sans modifier Forgejo |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck` | Supprime les dépôts bloqués en migration |
+| `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions` | Démarre la CI des dépôts déjà présents, sans les réimporter |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=depot` | Réimporte un dépôt après suppression (destructif) |
 | `sudo make php-site-src` | Met à jour le dépôt du site PHP |
 | `sudo make mail-up` | Démarre mailcow |
@@ -79,6 +80,26 @@ sudo make logs-service SERVICE=forgejo
 sudo make stop SERVICE=forgejo
 ```
 
+### Cas particulier : Forgejo
+
+`sudo make up-service SERVICE=forgejo` ne se contente pas de démarrer le
+conteneur : la commande crée aussi le compte admin, attend le runner Actions,
+importe les dépôts GitHub absents (si `FORGEJO_GITHUB_ORG_URL` est renseigné)
+et démarre la CI des dépôts nouvellement importés. Aucune commande
+supplémentaire n'est nécessaire sur une instance neuve, et il n'est pas utile
+de faire `down-service` avant.
+
+Les dépôts déjà présents ne sont pas relancés automatiquement. Pour démarrer
+leur CI sans réimporter et sans redémarrer Forgejo :
+
+```sh
+sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions
+```
+
+`make forgejo-runner` et `make logs-service SERVICE=forgejo-runner` servent
+uniquement à vérifier/diagnostiquer le runner. Voir la fiche
+[Forgejo](services/forgejo.md#démarrage-après-import).
+
 ## Nettoyage : les niveaux
 
 | Commande | Conteneurs | Volumes | Données |
@@ -101,6 +122,7 @@ Un volume partagé avec un autre service est conservé automatiquement.
 | Modification | Commande conseillée |
 |---|---|
 | `.env` d'un service | `sudo make up-service SERVICE=nom` (recrée le conteneur avec les nouvelles variables) |
+| `.env` Forgejo : import/CI (`FORGEJO_GITHUB_*`) | `sudo make forgejo-mirror` (variable lue par le script, pas besoin de recréer Forgejo) |
 | `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer (ou `sudo make ensure-auth` si un fichier manque) |
 | Templates Traefik (`stacks/proxy/templates`) | `sudo make up-service SERVICE=traefik` (ou `sudo make ensure-traefik`) |
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |

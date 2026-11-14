@@ -15,7 +15,7 @@
 | `meme` | ------------ | ------------------------------------ | à faire |
 | `meme` #1 | Dynamic variable .env | Cacher les termes "Altherneum" dans le code source, utiliser une variable, et l'ajouter au .env, puis faire un script qui remplace la variable lors de l'installation de ce site | à faire |
 | `forgejo` | ------------ | ------------------------------------ | OK |
-| `forgejo` #1 | CI/CD auto start | Lorsque les repos sont clonés, le CI CD ne se lance pas automatiquement | à faire |
+| `forgejo` #1 | CI/CD auto start | Lorsque les repos sont clonés, le CI CD ne se lance pas automatiquement | OK |
 | `code-server` | ------------ | ------------------------------------ | OK |
 | `velocity`, `mc-*` | ------------ | ------------------------------------ | OK |
 | `Plugin` | ------------ | ------------------------------------ | OK |

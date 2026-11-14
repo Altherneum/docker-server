@@ -132,6 +132,7 @@ la synchronisation. Voir la [fiche Uptime Kuma](services/uptime-kuma.md).
 | `FORGEJO_GITHUB_PUSH_MIRROR` | Crée un miroir push Forgejo → GitHub. | `true` |
 | `FORGEJO_GITHUB_MIRROR_INTERVAL` | Fréquence de synchronisation du miroir. | `8h` |
 | `FORGEJO_GITHUB_MIRROR_SYNC_ON_COMMIT` | Synchronise à chaque push reçu. | `true` |
+| `FORGEJO_GITHUB_RUN_ACTIONS` | Démarre les workflows après import : `push` (défaut), `all` ou `false`. | `push` |
 | `CODE_SERVER_CLONE_GITHUB_ORG` | Clone les dépôts GitHub dans code-server. | `true` |
 | `FORGEJO_INTERNAL_URL` | URL interne de Forgejo pour Git depuis code-server. | `http://forgejo:3000` |
 
@@ -140,6 +141,14 @@ clone dans son workspace. Sans `GITHUB_TOKEN`, seuls les dépôts publics sont
 traités, l'import se limite au code Git (pas d'issues/PR/releases) et le miroir
 push vers GitHub est désactivé. Avec `auto`, ajouter un jeton suffit à activer
 l'import complet lors de la prochaine exécution.
+
+Forgejo ne déclenche pas les workflows Actions lors d'une migration. Pour que la
+CI démarre dès l'import, `FORGEJO_GITHUB_RUN_ACTIONS=push` lance une fois chaque
+workflow du dépôt qui possède un déclencheur `push`. `all` lance aussi les
+workflows de déploiement ou planifiés ; `false` désactive ce démarrage
+automatique. Cette variable est lue par le script sur l'hôte : la modifier ne
+nécessite pas de recréer les conteneurs, il suffit de relancer
+`make forgejo-mirror` (ou `--run-actions` pour les dépôts existants).
 
 ## Forgejo Actions (CI/CD)
 

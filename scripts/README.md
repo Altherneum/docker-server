@@ -13,7 +13,7 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `php-site-src.sh` | `make php-site-src` / `php-site-env` | Clone le site PHP et génère son `.env` |
 | `forgejo-admin.sh` | `make forgejo-admin` | Crée le compte admin Forgejo (appelé automatiquement par `up` / `up-service`) |
 | `forgejo-runner.sh` | `make forgejo-runner` | Vérifie que le runner Forgejo Actions est enregistré et en ligne (appelé automatiquement par `up` / `up-service`) |
-| `forgejo-github-mirror.sh` | `make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo et configure le miroir push (appelé automatiquement par `up` / `up-service`) ; sans `GITHUB_TOKEN`, code Git seul pour éviter le quota GitHub |
+| `forgejo-github-mirror.sh` | `make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo, configure le miroir push et démarre la CI des dépôts importés (appelé automatiquement par `up` / `up-service`) ; sans `GITHUB_TOKEN`, code Git seul pour éviter le quota GitHub |
 | `uptime-kuma-admin.sh` | `make uptime-kuma-admin` | Crée le compte admin Uptime Kuma via Socket.IO (appelé automatiquement par `up` / `up-service`) |
 | `uptime-kuma-docker-sync.sh` | `make uptime-kuma-docker-sync` | Ajoute l'hôte Docker, les moniteurs de conteneurs manquants et la notification Discord via Socket.IO (appelé automatiquement par `up` / `up-service` si Uptime Kuma tourne) |
 | `dockhand-local-env.sh` | `make dockhand-local-env` | Enregistre l'environnement Docker local `/var/run/docker.sock` dans Dockhand (appelé automatiquement par `up` / `up-service` si `DOCKHAND_AUTO_LOCAL_ENV=true`) |
