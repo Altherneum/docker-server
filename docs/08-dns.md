@@ -140,7 +140,7 @@ Traefik, mais SMTP/IMAP doivent joindre directement le serveur.
 | `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | DMARC |
 
-- Le `PTR` est attribué automatiquement par l'hébergeur du VPS. 
+- Le `PTR` est attribué automatiquement par l'hébergeur du VPS.
 - À vérifier seulement si les mails sortants posent problème : voir [Mailcow](services/mailcow.md#ptr-reverse-dns).
 
 > Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
