@@ -138,29 +138,27 @@ sudo su -
 - `sudo make ps` Liste les conteneurs
 
 ### Configurer Mailcow et son DNS (optionnel)
+#### Détails sur le stack
+- Mailcow est une stack séparée : `make up` ne la démarre pas,
+  - mais `make up-service SERVICE=mailcow` déclenche son installation et son démarrage dédiés (elle n'est pas dans `compose.yaml`).
+- Le HTTPS de `mail.<domaine>` passera par Traefik,
+  - mais **la réception des e-mails dépend d'enregistrements DNS que Traefik ne crée pas** (MX, SPF, DKIM, DMARC, PTR).
 
-Mailcow est une stack séparée : `make up` ne la démarre pas, mais
-`make up-service SERVICE=mailcow` déclenche son installation et son démarrage
-dédiés (elle n'est pas dans `compose.yaml`). Le HTTPS
-de `mail.<domaine>` passera par Traefik, mais **la réception des e-mails dépend
-d'enregistrements DNS que Traefik ne crée pas** (MX, SPF, DKIM, DMARC, PTR).
-
-À remplir au minimum : `DOMAIN_NAME`, `TLD` et `MAIL_ENABLED=true` dans `.env`.
+> À remplir au minimum : `DOMAIN_NAME`, `TLD` et `MAIL_ENABLED=true` dans `.env`.
 Rien à configurer côté certificat : Traefik fournit le certificat web et Mailcow
 le réutilise automatiquement pour SMTP/IMAP.
 
-Si tu as déjà un `A` sur `@` et un `CNAME` `*` vers `@` pour le HTTPS
-« basique », il reste **5 entrées** à ajouter dans la zone DNS, plus le `PTR`.
+#### Détails sur le DNS
+- Si tu as déjà :
+  - un `A` sur `@`
+  - et un `CNAME` `*` vers `@`
+- pour le HTTPS « basique », il reste **5 entrées** à ajouter dans la zone DNS.
+- Le `PTR` (reverse DNS) est créé automatiquement par l'hébergeur du VPS : rien à ajouter dans ta zone DNS.
+  - À vérifier seulement si les mails sortants partent en spam ou sont rejetés : voir [Mailcow](docs/services/mailcow.md#ptr-reverse-dns).
 
 #### 1. Préparer le DNS et les ports
 
-Ajoutez explicitement un `A` sur `mail` :
-
-```text
-A    mail.altherneum.fr    <IP du VPS>
-```
-
-Créez ensuite les autres enregistrements dans la zone DNS du domaine :
+Créez les autres enregistrements dans la zone DNS du domaine :
 
 | Type | Nom | Valeur |
 |---|---|---|
@@ -169,10 +167,6 @@ Créez ensuite les autres enregistrements dans la zone DNS du domaine :
 | `TXT` | `@` | `v=spf1 mx ~all` |
 | `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ci-dessous) |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` |
-
-Le `PTR` (reverse DNS) ne se met pas dans la zone DNS : il se configure dans le
-panneau de l'hébergeur du VPS, section « reverse DNS » (ou « rDNS ») de
-l'adresse IP, et pointe vers `mail.altherneum.fr.`.
 
 > Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
 > `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
