@@ -175,11 +175,9 @@ Créez les autres enregistrements dans la zone DNS du domaine :
 
 Pour le DKIM :
 
-- **Nouvelle clé** : lance `sudo make mail-dkim-key`. Il affiche la valeur à
-  mettre dans `dkim._domainkey` et prépare `.env` pour l'import.
-- **Ancienne clé conservée** : si tu as déjà le TXT de l'ancien serveur,
-  garde-le et renseigne `MAIL_DKIM_PRIVATE_KEY_FILE` (avec
-  `MAIL_CREATE_KEYS=no`).
+- **Nouvelle clé** : lance `sudo make mail-dkim-key`.
+  - Il affiche la valeur à  mettre dans `dkim._domainkey` et prépare `.env` pour l'import.
+- **Ancienne clé conservée** : si tu as déjà le TXT de l'ancien serveur, garde-le et renseigne `MAIL_DKIM_PRIVATE_KEY_FILE` (avec `MAIL_CREATE_KEYS=no`) dans le `.env`.
 
 ```sh
 sudo make mail-dkim-key
@@ -188,14 +186,12 @@ sudo make mail-dkim-key
 Points importants :
 
 - Le `CNAME *` déjà présent suffit pour le web, mais **pas pour le MX** :
-  ajoutez l'`A mail`. Un MX ne doit pas pointer vers un CNAME.
-- S'il existe déjà un TXT SPF, fusionnez-le : il ne doit y avoir qu'un seul
-  enregistrement SPF par domaine.
-- Le TXT DKIM peut être long : le script fournit la valeur brute et la version
-  découpée en chaînes de 255 caractères.
+  - ajoutez l'`A mail`. Un MX ne doit pas pointer vers un CNAME.
+- S'il existe déjà un TXT SPF, fusionnez-le
+  - il ne doit y avoir qu'un seul enregistrement SPF par domaine.
+- Le TXT DKIM peut être long : le script fournit la valeur brute et la version découpée en chaînes de 255 caractères.
 - Pour DMARC, `p=none` permet d'observer avant de passer à `quarantine`.
-- Si un proxy ou un CDN est activé devant le domaine, désactive-le pour `mail`
-  (validation HTTP). Les MX et TXT ne sont jamais proxifiés.
+- Si un proxy ou un CDN est activé devant le domaine, désactive-le pour `mail` (validation HTTP). Les MX et TXT ne sont jamais proxifiés.
 
 | À vérifier | Pourquoi |
 |---|---|
