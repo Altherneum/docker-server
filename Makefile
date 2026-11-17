@@ -156,6 +156,7 @@ mail-setup: ensure-networks ensure-traefik ## Installe, démarre et configure ma
 
 mail-up: ensure-networks mail-install mail-integrate ## Installe si besoin et démarre mailcow
 	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
+	@./scripts/mail-cert-sync.sh || echo "  certificat Traefik non synchronisé (voir make mail-cert-sync)" >&2
 
 mail-down: ## Arrête mailcow
 	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml down

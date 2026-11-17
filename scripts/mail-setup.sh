@@ -106,10 +106,6 @@ fi
 mail_info "boîtes mail de base"
 "$SCRIPT_DIR/mail-mailboxes.sh"
 
-mail_info "vérification"
-check_ok=1
-"$SCRIPT_DIR/mail-check.sh" || check_ok=0
-
 mail_info "certificat SMTP/IMAP depuis Traefik"
 "$SCRIPT_DIR/mail-cert-sync.sh" || mail_warn "synchro du certificat Traefik impossible ; mailcow garde son certificat interne."
 if [ "$(id -u)" -eq 0 ]; then
@@ -117,6 +113,10 @@ if [ "$(id -u)" -eq 0 ]; then
 else
     mail_info "timer certificat : lancez sudo make mail-cert-timer (une seule fois) pour le renouvellement automatique."
 fi
+
+mail_info "vérification"
+check_ok=1
+"$SCRIPT_DIR/mail-check.sh" || check_ok=0
 
 printf '\n'
 mail_info "Mailcow est configuré"

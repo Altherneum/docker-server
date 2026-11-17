@@ -14,7 +14,7 @@
 1. `.env` : `DOMAIN_NAME`, `TLD`, `MAIL_ENABLED=true`.
 2. `sudo make mail-dkim-key` : affiche le TXT DKIM à publier.
 3. Zone DNS : ajoute `A mail`, `MX`, SPF, DKIM et DMARC.
-4. Panneau de l'hébergeur du VPS : mets le PTR de l'IP vers `mail.<domaine>`.
+4. PTR : rien à faire, l'hébergeur en crée un. À vérifier seulement si les mails sortants posent problème (voir plus bas).
 5. `sudo make mail-setup` : installe, démarre et configure tout.
 
 Le certificat web vient de Traefik et il est copié automatiquement vers
@@ -253,9 +253,29 @@ Exemple pour `altherneum.fr` : remplacez le domaine et l'IP par les vôtres.
 | `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | DMARC |
 
-Le `PTR` (reverse DNS) ne se met pas dans la zone DNS : configurez-le dans le
-panneau de l'hébergeur du VPS, section « reverse DNS » de l'adresse IP, vers
-`mail.altherneum.fr.`.
+### PTR (reverse DNS)
+
+Le `PTR` est attribué automatiquement par l'hébergeur du VPS : il n'y a rien à
+ajouter dans votre zone DNS.
+
+À vérifier **uniquement si les mails sortants partent en spam ou sont rejetés**
+(par exemple par Gmail) :
+
+```sh
+dig -x <IP du VPS> +short      # doit renvoyer mail.<domaine>.
+dig +short A mail.<domaine>    # doit renvoyer <IP du VPS>
+```
+
+Si le premier ne renvoie pas `mail.<domaine>.`, ou si les deux résultats ne
+concordent pas, modifiez le reverse DNS dans le panneau de l'hébergeur (section
+« reverse DNS » / « rDNS » / « PTR »), ou demandez au support.
+
+La règle officielle est que le PTR corresponde au FQDN de Mailcow
+(`MAILCOW_HOSTNAME`) :
+<https://docs.mailcow.email/getstarted/prerequisite-dns>.
+
+Sans `PTR` valide, Gmail peut refuser les messages (`550-5.7.25`) ou les classer
+en spam. La réception n'est pas concernée.
 
 > Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
 > `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
@@ -274,9 +294,9 @@ Points importants :
 - Si un proxy ou un CDN est activé devant le domaine, désactivez-le pour `mail`
   (validation HTTP). Les MX et TXT ne sont jamais proxifiés.
 
-## Vérifier
+## Mise en service sur le VPS
 
-Après propagation (quelques minutes à quelques heures) :
+1. Vérifiez le DNS après propagation (quelques minutes à quelques heures) :
 
 ```sh
 dig +short A mail.altherneum.fr
@@ -285,11 +305,24 @@ dig +short TXT altherneum.fr
 dig +short TXT dkim._domainkey.altherneum.fr
 dig +short TXT _dmarc.altherneum.fr
 dig -x <IP> +short
-curl -I https://mail.altherneum.fr
 ```
 
-Envoyez ensuite un message vers un test (Gmail, mail-tester.com) et vérifiez
-SPF/DKIM/DMARC. Logs : `sudo make mail-logs`.
+2. Installez et démarrez :
+
+```sh
+sudo make mail-setup
+```
+
+3. Vérifiez les services et le certificat :
+
+```sh
+sudo make mail-check
+systemctl list-timers mail-cert-sync.timer
+openssl s_client -connect mail.<domaine>:993 -servername mail.<domaine> </dev/null 2>/dev/null | openssl x509 -noout -issuer -dates
+```
+
+4. Envoyez un message vers une boîte externe (Gmail, mail-tester.com) et
+   vérifiez SPF, DKIM et DMARC. Logs : `sudo make mail-logs`.
 
 ## Démarrer / arrêter
 
@@ -375,6 +408,9 @@ sudo make mail-cert-sync    # forcer la copie maintenant
 sudo make mail-cert-timer   # réinstaller le timer si besoin
 systemctl list-timers mail-cert-sync.timer
 ```
+
+Si le dépôt change de dossier, relancez `sudo make mail-cert-timer` : le
+service systemd contient le chemin absolu du script.
 
 Vérifier le certificat présenté par IMAP :
 
