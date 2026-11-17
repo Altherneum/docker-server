@@ -6,7 +6,7 @@
 # - retire les ports 80/443 de nginx-mailcow (Traefik les publie) ;
 # - connecte nginx-mailcow au réseau proxy ;
 # - choisit un sous-réseau mailcow qui ne rentre pas en conflit avec Docker ;
-# - configure l'ACME de mailcow (désactivé par défaut, DNS-01 en option) ;
+# - désactive l'ACME de mailcow (certificat fourni par Traefik, web et SMTP/IMAP) ;
 # - prépare une clé API mailcow pour créer le domaine sans l'interface.
 #
 # Usage : ./scripts/mail-integrate.sh
@@ -67,58 +67,11 @@ fi
 mail_domain_valid "$MAILCOW_HOSTNAME" || mail_die "MAILCOW_HOSTNAME invalide : $MAILCOW_HOSTNAME"
 
 # --- ACME de mailcow -------------------------------------------------------
-# Par défaut, Traefik gère le web et mailcow garde son certificat interne.
-# En option, mailcow peut obtenir un certificat public (SMTP/IMAP) via DNS-01.
-acme_dns=$(env_get MAIL_ACME_DNS_CHALLENGE)
-acme_dns=$(printf '%s' "$acme_dns" | tr '[:upper:]' '[:lower:]')
-case "$acme_dns" in
-    true|yes|1|on) acme_dns_enabled=1 ;;
-    ''|false|no|0|off) acme_dns_enabled=0 ;;
-    *) mail_die "MAIL_ACME_DNS_CHALLENGE doit valoir true ou false (valeur : $acme_dns)." ;;
-esac
-
-if [ "$acme_dns_enabled" -eq 1 ]; then
-    acme_provider=$(env_get MAIL_ACME_DNS_PROVIDER)
-    [ -n "$acme_provider" ] || mail_die "MAIL_ACME_DNS_PROVIDER est requis quand MAIL_ACME_DNS_CHALLENGE=true."
-    [ "$acme_provider" != "dns_xxx" ] || mail_die "MAIL_ACME_DNS_PROVIDER doit être un fournisseur acme.sh (ex: dns_cf, dns_ovh)."
-
-    acme_email=$(env_get MAIL_ACME_ACCOUNT_EMAIL)
-    [ -n "$acme_email" ] || acme_email="admin@$DOMAIN"
-
-    mailcow_set SKIP_LETS_ENCRYPT n
-    mailcow_set ACME_DNS_CHALLENGE y
-    mailcow_set ACME_DNS_PROVIDER "$acme_provider"
-    mailcow_set ACME_ACCOUNT_EMAIL "$acme_email"
-
-    acme_dir="$MAILCOW_DIR/data/conf/acme"
-    mkdir -p "$acme_dir"
-    acme_config=$(env_get MAIL_ACME_DNS_CONFIG_FILE)
-    if [ -n "$acme_config" ]; then
-        case "$acme_config" in
-            "~/"*) acme_source="$HOME/${acme_config#~/}" ;;
-            /*) acme_source=$acme_config ;;
-            *) acme_source="$MAIL_ROOT/$acme_config" ;;
-        esac
-        [ -f "$acme_source" ] || mail_die "MAIL_ACME_DNS_CONFIG_FILE introuvable : $acme_source"
-        if [ "$acme_source" != "$acme_dir/dns-01.conf" ]; then
-            cp "$acme_source" "$acme_dir/dns-01.conf"
-        fi
-        chmod 600 "$acme_dir/dns-01.conf"
-        if ! mail_acme_secrets_present "$acme_dir/dns-01.conf"; then
-            mail_die "MAIL_ACME_DNS_CONFIG_FILE ne contient aucune variable KEY=VALUE : $acme_source"
-        fi
-        mail_info "secrets DNS-01 copiés dans $acme_dir/dns-01.conf"
-    elif mail_acme_secrets_present "$acme_dir/dns-01.conf"; then
-        mail_info "secrets DNS-01 existants conservés dans $acme_dir/dns-01.conf"
-    else
-        mail_warn "DNS-01 activé mais $acme_dir/dns-01.conf est absent ou vide : ajoutez les secrets du fournisseur."
-    fi
-    mail_info "ACME DNS-01 activé pour mailcow ($acme_provider)"
-else
-    mailcow_set SKIP_LETS_ENCRYPT y
-    mailcow_set ACME_DNS_CHALLENGE n
-    mail_info "ACME mailcow désactivé (web via Traefik ; SMTP/IMAP avec certificat interne)"
-fi
+# Traefik gère le HTTPS web. Mailcow garde son certificat interne pour
+# SMTP/IMAP : aucun ACME côté mailcow, donc aucune API DNS nécessaire.
+mailcow_set SKIP_LETS_ENCRYPT y
+mailcow_set ACME_DNS_CHALLENGE n
+mail_info "ACME mailcow désactivé : certificat fourni par Traefik (copie via mail-cert-sync)"
 
 HTTPS_PORT=$(mailcow_get HTTPS_PORT)
 [ -n "$HTTPS_PORT" ] || HTTPS_PORT=443
@@ -253,8 +206,8 @@ Mailcow est prêt :
 Rappel :
   - MAIL_CREATE_KEYS=yes régénère les clés DKIM et affiche les TXT à publier.
   - MAIL_CREATE_KEYS=no importe la clé privée existante (DNS inchangé).
-  - SMTP/IMAP utilisent le certificat interne de mailcow ; pour un certificat
-    public, activez MAIL_ACME_DNS_CHALLENGE=true et fournissez les secrets DNS-01.
+  - SMTP/IMAP réutilisent le certificat de Traefik (mail-cert-sync). Aucune API
+    DNS n'est nécessaire.
 EOF
 
 mail_chown_user "$ENV_FILE"

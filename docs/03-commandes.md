@@ -52,6 +52,8 @@ sudo make services      # liste les noms de services
 | `sudo make mail-setup` | Installe, démarre et configure Mailcow en une commande |
 | `sudo make mail-integrate` | Prépare l'override Traefik, le réseau et la clé API de mailcow |
 | `sudo make mail-check` | Vérifie que mailcow peut démarrer (réseau, ports, override) |
+| `sudo make mail-cert-sync` | Copie le certificat Traefik vers mailcow (SMTP/IMAP) |
+| `sudo make mail-cert-timer` | Installe le timer systemd de synchro du certificat |
 | `sudo make mail-up` | Installe si besoin et démarre mailcow |
 | `sudo make mail-dkim` | Crée/importe la clé DKIM et affiche le TXT DNS |
 | `sudo make mail-dkim-key` | Pré-génère la clé DKIM avant l'installation de mailcow |

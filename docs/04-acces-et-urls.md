@@ -112,9 +112,9 @@ minimal complet (apex, wildcard, exceptions, mail) est dans
 [DNS](08-dns.md).
 
 Les certificats sont demandés **automatiquement** par Traefik lors du premier
-accès. Ils peuvent prendre quelques secondes. Si vous utilisez Cloudflare,
-désactivez le proxy pour les noms concernés, sinon la validation HTTP peut
-échouer.
+accès. Ils peuvent prendre quelques secondes. Si un proxy ou un CDN est activé
+devant le domaine, désactivez-le pour les noms gérés par Traefik, sinon la
+validation HTTP peut échouer.
 
 ## Tester une adresse
 

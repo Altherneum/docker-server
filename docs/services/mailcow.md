@@ -9,6 +9,17 @@
 **Webmail :** `https://webmail.<domaine>` ou `https://mails.<domaine>`  
 **Exemple :** `https://mail.altherneum.fr`
 
+## En bref
+
+1. `.env` : `DOMAIN_NAME`, `TLD`, `MAIL_ENABLED=true`.
+2. `sudo make mail-dkim-key` : affiche le TXT DKIM à publier.
+3. Zone DNS : ajoute `A mail`, `MX`, SPF, DKIM et DMARC.
+4. Panneau de l'hébergeur du VPS : mets le PTR de l'IP vers `mail.<domaine>`.
+5. `sudo make mail-setup` : installe, démarre et configure tout.
+
+Le certificat web vient de Traefik et il est copié automatiquement vers
+SMTP/IMAP. Aucune API DNS n'est nécessaire.
+
 ## Installation automatique
 
 Le dossier est défini par `MAILCOW_DIR` dans `.env` :
@@ -96,8 +107,8 @@ L'override généré par le dépôt :
   `mails`) ;
 - choisit un sous-réseau Docker libre (le défaut `172.22.1.0/24` entre souvent
   en conflit avec un ancien réseau) ;
-- désactive l'ACME de mailcow (`SKIP_LETS_ENCRYPT=y`) : le web passe par
-  Traefik ;
+- désactive l'ACME de mailcow (`SKIP_LETS_ENCRYPT=y`) : le certificat vient de
+  Traefik et `mail-cert-sync` le copie pour SMTP/IMAP ;
 - prépare la clé API qui permet de créer le domaine sans passer par l'interface.
 
 `make mail-check` doit finir sur `0 erreur(s)`. Un avertissement DNS est normal
@@ -239,11 +250,17 @@ Exemple pour `altherneum.fr` : remplacez le domaine et l'IP par les vôtres.
 | `A` | `mail` | IP du serveur | nom d'hôte mailcow ; **pas un CNAME** |
 | `MX` | `@` | `mail.altherneum.fr.` (priorité `10`) | réception |
 | `TXT` | `@` | `v=spf1 mx ~all` | SPF |
-| `TXT` | `dkim._domainkey` | valeur affichée par `make mail-dkim` | DKIM |
+| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | DMARC |
-| `CNAME` | `autodiscover` | `mail.altherneum.fr.` | Outlook |
-| `CNAME` | `autoconfig` | `mail.altherneum.fr.` | Thunderbird |
-| `PTR` | IP du serveur | `mail.altherneum.fr.` | reverse DNS, chez l'hébergeur |
+
+Le `PTR` (reverse DNS) ne se met pas dans la zone DNS : configurez-le dans le
+panneau de l'hébergeur du VPS, section « reverse DNS » de l'adresse IP, vers
+`mail.altherneum.fr.`.
+
+> Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
+> `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
+> automatiquement. Ce ne sont pas des services d'hébergement DNS : ce sont de
+> simples alias, non nécessaires au fonctionnement.
 
 Points importants :
 
@@ -254,9 +271,8 @@ Points importants :
 - Le TXT DKIM peut être long : le script fournit la valeur brute et la version
   découpée en chaînes de 255 caractères.
 - Pour DMARC, `p=none` permet d'observer avant de passer à `quarantine`.
-- Chez Cloudflare : `mail`, `autodiscover` et `autoconfig` en **DNS only**
-  (nuage gris). Les MX et TXT ne sont pas proxifiés.
-- Le `PTR` se configure chez l'hébergeur du VPS, pas dans la zone DNS.
+- Si un proxy ou un CDN est activé devant le domaine, désactivez-le pour `mail`
+  (validation HTTP). Les MX et TXT ne sont jamais proxifiés.
 
 ## Vérifier
 
@@ -286,10 +302,9 @@ sudo make mail-down
 ```
 
 `make mail-setup` installe Mailcow si nécessaire, prépare l'override Traefik,
-démarre la stack, importe la clé DKIM et crée les boîtes de base. `make mail-up`
-installe si besoin et démarre uniquement la stack. `make mail-dkim` n'est
-volontairement pas appelé à chaque redémarrage : cela éviterait de régénérer la
-clé par accident.
+démarre la stack, importe la clé DKIM sans la régénérer et crée les boîtes de
+base. `make mail-up` installe si besoin et démarre uniquement la stack, sans
+toucher aux clés ni aux boîtes.
 
 ## Configurer Azuriom, Forgejo et Nextcloud
 
@@ -332,59 +347,43 @@ docker compose down -v
 `make backup` ne sauvegarde **pas** Mailcow. Utilisez la procédure officielle de
 Mailcow (`backup_and_restore.sh`) et sauvegardez aussi `mailcow.conf`.
 
-## Certificat SMTP/IMAP (optionnel)
+## Certificats
 
-Par défaut, `https://mail.<domaine>` utilise le certificat public de Traefik et
-SMTP/IMAP utilisent le certificat interne auto-signé de Mailcow. Votre client
-peut donc afficher un avertissement.
+`https://mail.<domaine>` est couvert par Traefik, qui obtient un certificat
+Let's Encrypt en HTTP-01 (enregistrement `A` + port `80`).
 
-Pour un certificat public sur SMTP/IMAP, le dépôt peut activer le **DNS-01** de
-Mailcow. Il faut les identifiants API de votre fournisseur DNS :
+Le même certificat est copié automatiquement vers Mailcow pour SMTP/IMAP :
 
-```dotenv
-MAIL_ACME_DNS_CHALLENGE=true
-MAIL_ACME_DNS_PROVIDER=dns_cf
-MAIL_ACME_ACCOUNT_EMAIL=admin@altherneum.fr
-MAIL_ACME_DNS_CONFIG_FILE=/root/mailcow-dns-01.conf
-```
+- `make mail-setup` lance une première synchro et installe un timer systemd
+  quotidien (`mail-cert-sync.timer`) ;
+- la synchro lit `acme.json` dans le conteneur `traefik`, extrait le certificat
+  de `mail.<domaine>` et écrit `$MAILCOW_DIR/data/assets/ssl/cert.pem` et
+  `key.pem` ;
+- Postfix, Dovecot et nginx-mailcow redémarrent uniquement quand le certificat
+  change (quelques secondes, au renouvellement).
 
-Le fichier de secrets reprend les variables d’acme.sh. Un modèle est fourni :
+Aucune API DNS n'est nécessaire : tout repose sur l'enregistrement `A` et le
+port `80` déjà utilisés par Traefik.
 
-```sh
-sudo cp stacks/mail/acme-dns.conf.example /root/mailcow-dns-01.conf
-sudo chmod 600 /root/mailcow-dns-01.conf
-sudo nano /root/mailcow-dns-01.conf
-```
+Si Traefik n'a pas encore de certificat (premier démarrage, Traefik arrêté),
+Mailcow garde son certificat interne : le timer réessaie chaque jour.
 
-Exemple Cloudflare (`dns_cf`) :
-
-```dotenv
-CF_Token=votre_token_api
-#CF_Account_ID=
-#CF_Zone_ID=
-```
-
-Puis relance :
+Commandes utiles :
 
 ```sh
-sudo make mail-setup
-# ou : sudo make mail-integrate && sudo make mail-up
+sudo make mail-cert-sync    # forcer la copie maintenant
+sudo make mail-cert-timer   # réinstaller le timer si besoin
+systemctl list-timers mail-cert-sync.timer
 ```
 
-`mail-integrate` écrit automatiquement `SKIP_LETS_ENCRYPT=n`,
-`ACME_DNS_CHALLENGE=y`, le fournisseur et l’e-mail dans `mailcow.conf`, puis
-copie les secrets dans `$MAILCOW_DIR/data/conf/acme/dns-01.conf`. Mailcow
-renouvelle ensuite le certificat automatiquement.
-
-Vérification :
+Vérifier le certificat présenté par IMAP :
 
 ```sh
-sudo make mail-check
-openssl s_client -connect mail.altherneum.fr:993 -servername mail.altherneum.fr </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+openssl s_client -connect mail.<domaine>:993 -servername mail.<domaine> </dev/null 2>/dev/null | openssl x509 -noout -issuer -dates
 ```
 
-Le fournisseur DNS doit autoriser la création de TXT `_acme-challenge`, et le
-domaine doit autoriser Let’s Encrypt via CAA si un enregistrement CAA existe.
+L'émetteur doit être Let's Encrypt. Tant que la copie n'a pas eu lieu, c'est le
+certificat interne de Mailcow.
 
 ## Dépannage
 
@@ -392,8 +391,10 @@ domaine doit autoriser Let’s Encrypt via CAA si un enregistrement CAA existe.
   `sudo make mail-check` ne signale pas d'erreur.
 - **Erreur de certificat web** : vérifiez l'`A mail`, le port `80` et
   `sudo make mail-check`.
-- **Erreur de certificat SMTP/IMAP** : c'est le certificat interne de Mailcow ;
-  acceptez-le dans le client ou configurez DNS-01.
+- **Erreur de certificat SMTP/IMAP** : le certificat Traefik n'a pas encore
+  été copié. Lancez `sudo make mail-cert-sync`, vérifiez
+  `systemctl list-timers mail-cert-sync.timer`, sinon acceptez le certificat
+  interne dans le client.
 - **Mailcow ne démarre pas** : le sous-réseau `172.22.1.0/24` est peut-être déjà
   utilisé. `make mail-integrate` en choisit un autre automatiquement ; sinon
   renseignez `MAILCOW_IPV4_NETWORK=172.30.1` dans `.env`.

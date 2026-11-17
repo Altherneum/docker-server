@@ -110,6 +110,14 @@ mail_info "vérification"
 check_ok=1
 "$SCRIPT_DIR/mail-check.sh" || check_ok=0
 
+mail_info "certificat SMTP/IMAP depuis Traefik"
+"$SCRIPT_DIR/mail-cert-sync.sh" || mail_warn "synchro du certificat Traefik impossible ; mailcow garde son certificat interne."
+if [ "$(id -u)" -eq 0 ]; then
+    "$SCRIPT_DIR/mail-cert-timer.sh" || mail_warn "timer certificat non installé ; lancez sudo make mail-cert-timer."
+else
+    mail_info "timer certificat : lancez sudo make mail-cert-timer (une seule fois) pour le renouvellement automatique."
+fi
+
 printf '\n'
 mail_info "Mailcow est configuré"
 mailboxes=$(env_get MAIL_MAILBOXES)
@@ -132,16 +140,4 @@ else
     printf 'DKIM : clé existante/pré-générée importée, le DNS ne change pas.\n'
 fi
 
-acme_dns=$(env_get MAIL_ACME_DNS_CHALLENGE | tr '[:upper:]' '[:lower:]')
-mailcow_hostname=$(mailcow_get MAILCOW_HOSTNAME 2>/dev/null || true)
-[ -n "$mailcow_hostname" ] || mailcow_hostname="mail.$DOMAIN"
-case "$acme_dns" in
-    true|yes|1|on)
-        printf 'SMTP/IMAP : certificat public via DNS-01 en cours (acme-mailcow).\n'
-        printf 'Vérifie plus tard avec :\n'
-        printf '  openssl s_client -connect %s:993 -servername %s\n' "$mailcow_hostname" "$mailcow_hostname"
-        ;;
-    *)
-        printf 'SMTP/IMAP : certificat interne auto-signé (normal sans DNS-01).\n'
-        ;;
-esac
+printf 'SMTP/IMAP : certificat Traefik synchronisé si disponible (sinon interne).\n'

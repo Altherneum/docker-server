@@ -28,10 +28,6 @@ partir de `.env.example` par `sudo make init`.
 | `MAIL_DKIM_PRIVATE_KEY_FILE` | Clé privée PEM à importer | `/root/dkim.pem` |
 | `MAIL_DKIM_PRIVATE_KEY` | Variante inline de la clé PEM (une ligne, `\n`) | *(secret)* |
 | `MAILCOW_API_KEY` | Clé API mailcow (générée automatiquement) | *(secret)* |
-| `MAIL_ACME_DNS_CHALLENGE` | Certificat public SMTP/IMAP via DNS-01 | `false` |
-| `MAIL_ACME_DNS_PROVIDER` | Fournisseur acme.sh | `dns_cf` |
-| `MAIL_ACME_ACCOUNT_EMAIL` | E-mail du compte ACME | `admin@monprojet.com` |
-| `MAIL_ACME_DNS_CONFIG_FILE` | Fichier des secrets DNS-01 | `/root/mailcow-dns-01.conf` |
 | `MAIL_MAILBOXES` | Boîtes de base créées par `make mail-mailboxes` | `admin,contact,root,postmaster,abuse` |
 | `MAILBOX_*_PASSWORD` | Mots de passe des boîtes de base (générés) | *(secret)* |
 | `MAILCOW_IPV4_NETWORK` | Sous-réseau Docker mailcow sans `.0/24` | `172.30.1` |
@@ -45,6 +41,10 @@ etc.). Les boîtes se créent ensuite dans l'interface Mailcow.
 
 `MAIL_ENABLED=true` est appliqué par `install.sh`. Si l'installation a déjà été
 faite avec `false`, relancez `install.sh` ou ouvrez les ports mail avec `ufw`.
+
+Le certificat web `mail.<domaine>` est géré par Traefik. Le même certificat est
+copié automatiquement vers Mailcow pour SMTP/IMAP (timer systemd). Aucune API
+DNS n'est nécessaire.
 
 ## Valeurs à renseigner à la main
 

@@ -135,13 +135,6 @@ mail_domain_valid() {
     esac
 }
 
-# Vrai si le fichier contient au moins une ligne KEY=VALUE (hors commentaires).
-mail_acme_secrets_present() {
-    file=$1
-    [ -s "$file" ] || return 1
-    grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$file"
-}
-
 # Résout un chemin de clé DKIM (absolu, ~/ ou relatif au dépôt).
 mail_resolve_key_path() {
     case "$1" in
@@ -301,7 +294,9 @@ mail_api_post() {
             ],
         ]);
         $result = @file_get_contents("https://nginx:" . $port . "/api/v1/" . $path, false, $context);
-        if ($result === false) {
+        // Une page HTML signifie nginx/php-fpm pas encore prêt (502) ou une
+        // erreur de proxy : on renvoie une erreur propre, pas le HTML.
+        if ($result === false || substr(ltrim((string) $result), 0, 1) === "<") {
             fwrite(STDERR, "api_request_failed\n");
             exit(1);
         }
@@ -338,7 +333,9 @@ mail_api_get() {
             ],
         ]);
         $result = @file_get_contents("https://nginx:" . $port . "/api/v1/" . $path, false, $context);
-        if ($result === false) {
+        // Une page HTML signifie nginx/php-fpm pas encore prêt (502) ou une
+        // erreur de proxy : on renvoie une erreur propre, pas le HTML.
+        if ($result === false || substr(ltrim((string) $result), 0, 1) === "<") {
             fwrite(STDERR, "api_request_failed\n");
             exit(1);
         }

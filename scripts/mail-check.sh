@@ -169,33 +169,25 @@ fi
 # --- Configuration mailcow.conf -------------------------------------------
 if [ -f "$MAILCOW_CONF" ]; then
     skip_acme=$(mailcow_get SKIP_LETS_ENCRYPT | tr '[:upper:]' '[:lower:]')
-    acme_dns=$(mailcow_get ACME_DNS_CHALLENGE | tr '[:upper:]' '[:lower:]')
-    if [ "$acme_dns" = "y" ]; then
-        if [ "$skip_acme" = "n" ]; then
-            ok "ACME DNS-01 activé (certificat public SMTP/IMAP)"
+    if [ "$skip_acme" = "y" ]; then
+        ssl_cert="$MAILCOW_DIR/data/assets/ssl/cert.pem"
+        if [ -f "$ssl_cert" ] && command -v openssl >/dev/null 2>&1; then
+            case "$(openssl x509 -in "$ssl_cert" -noout -issuer 2>/dev/null || true)" in
+                *"Let's Encrypt"*) ok "certificat SMTP/IMAP public (Let's Encrypt, copié de Traefik)" ;;
+                *) ok "certificat SMTP/IMAP interne (auto-signé)" ;;
+            esac
         else
-            fail "ACME_DNS_CHALLENGE=y mais SKIP_LETS_ENCRYPT=$skip_acme (attendu : n)"
+            ok "certificat SMTP/IMAP géré hors mailcow (Traefik)"
         fi
-        acme_provider=$(mailcow_get ACME_DNS_PROVIDER)
-        case "$acme_provider" in
-            ''|dns_xxx) fail "ACME_DNS_PROVIDER non configuré" ;;
-            *) ok "fournisseur DNS-01 : $acme_provider" ;;
-        esac
-        acme_email=$(mailcow_get ACME_ACCOUNT_EMAIL)
-        if [ -n "$acme_email" ]; then
-            ok "compte ACME : $acme_email"
-        else
-            fail "ACME_ACCOUNT_EMAIL non configuré"
+        if command -v systemctl >/dev/null 2>&1; then
+            if systemctl is-active --quiet mail-cert-sync.timer 2>/dev/null; then
+                ok "timer de synchro du certificat actif"
+            else
+                warn "timer de synchro du certificat absent (sudo make mail-cert-timer)"
+            fi
         fi
-        if mail_acme_secrets_present "$MAILCOW_DIR/data/conf/acme/dns-01.conf"; then
-            ok "secrets DNS-01 présents"
-        else
-            fail "secrets DNS-01 absents ou vides : $MAILCOW_DIR/data/conf/acme/dns-01.conf"
-        fi
-    elif [ "$skip_acme" = "y" ]; then
-        ok "SKIP_LETS_ENCRYPT=y (web via Traefik, SMTP/IMAP certificat interne)"
     else
-        warn "SKIP_LETS_ENCRYPT=$skip_acme : mailcow pourrait tenter son ACME sur 80/443, déjà pris par Traefik"
+        fail "SKIP_LETS_ENCRYPT=$skip_acme : mailcow tenterait son ACME sur 80/443, déjà pris par Traefik (lancez make mail-integrate)"
     fi
 
     # Clé API et IP autorisées (nécessaires à mail-dkim et mail-mailboxes).

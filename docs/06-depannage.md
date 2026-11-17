@@ -54,8 +54,8 @@ deux vérifications automatiquement.
 
 - Le port `80` doit être ouvert et accessible depuis Internet.
 - Le DNS doit pointer vers le serveur.
-- Cloudflare doit être en mode « DNS only » (proxy désactivé) pour la
-  validation HTTP.
+- Un éventuel proxy ou CDN devant le domaine doit être désactivé pour la
+  validation HTTP (HTTP-01).
 - Consultez les logs Traefik :
 
 ```sh
@@ -365,7 +365,7 @@ docker image prune
 | Service | Symptôme | Cause probable |
 |---|---|---|
 | Mailcow | `make mail-check` signale un sous-réseau occupé | `172.22.1.0/24` est déjà utilisé par Docker ; `make mail-integrate` choisit un autre /24, sinon renseignez `MAILCOW_IPV4_NETWORK` |
-| Mailcow | Certificat invalide dans un client IMAP/SMTP | Certificat interne par défaut ; active `MAIL_ACME_DNS_CHALLENGE=true` + DNS-01 (voir fiche Mailcow) ou accepte le certificat |
+| Mailcow | Certificat invalide dans un client IMAP/SMTP | Le certificat Traefik n'a pas encore été copié ; lancez `sudo make mail-cert-sync`, puis vérifiez `systemctl list-timers mail-cert-sync.timer`. Sinon, acceptez le certificat interne |
 | Mailcow | DKIM en échec après `MAIL_CREATE_KEYS=yes` | Le TXT DNS n'a pas encore été remplacé ; comparez avec `backups/mail-dkim-*/dns-records.txt` |
 | Mailcow | Les e-mails entrants n'arrivent pas | Vérifiez le `MX`, l'`A mail` (pas un CNAME), le port `25` chez l'hébergeur et le PTR |
 | Mailcow | Les boîtes `contact@`, `admin@`, etc. n'existent pas | Lancez `sudo make mail-mailboxes` ou créez-les dans l'interface ; une clé DKIM couvre toutes les adresses |

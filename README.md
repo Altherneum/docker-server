@@ -145,8 +145,12 @@ dédiés (elle n'est pas dans `compose.yaml`). Le HTTPS
 de `mail.<domaine>` passera par Traefik, mais **la réception des e-mails dépend
 d'enregistrements DNS que Traefik ne crée pas** (MX, SPF, DKIM, DMARC, PTR).
 
-Si vous avez déjà un `A` sur `@` et un `CNAME` `*` vers `@` pour le HTTPS
-« basique », il reste à faire les étapes ci-dessous.
+À remplir au minimum : `DOMAIN_NAME`, `TLD` et `MAIL_ENABLED=true` dans `.env`.
+Rien à configurer côté certificat : Traefik fournit le certificat web et Mailcow
+le réutilise automatiquement pour SMTP/IMAP.
+
+Si tu as déjà un `A` sur `@` et un `CNAME` `*` vers `@` pour le HTTPS
+« basique », il reste **5 entrées** à ajouter dans la zone DNS, plus le `PTR`.
 
 #### 1. Préparer le DNS et les ports
 
@@ -163,26 +167,29 @@ Créez ensuite les autres enregistrements dans la zone DNS du domaine :
 | `A` | `mail` | `<IP du VPS>` |
 | `MX` | `@` | `mail.altherneum.fr.` priorité `10` |
 | `TXT` | `@` | `v=spf1 mx ~all` |
-| `TXT` | `dkim._domainkey` | valeur affichée par `make mail-dkim` (étape 4) |
+| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ci-dessous) |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` |
-| `CNAME` | `autodiscover` | `mail.altherneum.fr.` |
-| `CNAME` | `autoconfig` | `mail.altherneum.fr.` |
-| `PTR` | `<IP du VPS>` | `mail.altherneum.fr.` (chez l'hébergeur) |
 
-Pour le DKIM, deux possibilités :
+Le `PTR` (reverse DNS) ne se met pas dans la zone DNS : il se configure dans le
+panneau de l'hébergeur du VPS, section « reverse DNS » (ou « rDNS ») de
+l'adresse IP, et pointe vers `mail.altherneum.fr.`.
 
-- **Ancienne clé conservée** : si tu as déjà le TXT DKIM de l'ancien serveur,
-  mets-le maintenant et importe la clé avec `MAIL_CREATE_KEYS=no`
-- **Nouvelle clé** : lance `sudo make mail-dkim-key` dès maintenant. Il génère
-  la clé, affiche le TXT et prépare `.env` pour l'import. Après l'installation,
-  `sudo make mail-dkim` importera cette clé sans changer le DNS
-- Si tu ne pré-génères pas la clé, laisse seulement la ligne DKIM pour l'étape 4
+> Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
+> `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
+> automatiquement. Ce ne sont pas des services d'hébergement DNS : ce sont de
+> simples alias, non nécessaires au fonctionnement.
+
+Pour le DKIM :
+
+- **Nouvelle clé** : lance `sudo make mail-dkim-key`. Il affiche la valeur à
+  mettre dans `dkim._domainkey` et prépare `.env` pour l'import.
+- **Ancienne clé conservée** : si tu as déjà le TXT de l'ancien serveur,
+  garde-le et renseigne `MAIL_DKIM_PRIVATE_KEY_FILE` (avec
+  `MAIL_CREATE_KEYS=no`).
 
 ```sh
 sudo make mail-dkim-key
 ```
-
-Les autres enregistrements peuvent déjà être créés.
 
 Points importants :
 
@@ -193,10 +200,8 @@ Points importants :
 - Le TXT DKIM peut être long : le script fournit la valeur brute et la version
   découpée en chaînes de 255 caractères.
 - Pour DMARC, `p=none` permet d'observer avant de passer à `quarantine`.
-- Chez Cloudflare : `mail`, `autodiscover` et `autoconfig` en **DNS only**
-  (nuage gris). Les MX et TXT ne sont pas proxifiés.
-- Le `PTR` (reverse DNS) se configure chez l'hébergeur du VPS, pas dans la zone
-  DNS.
+- Si un proxy ou un CDN est activé devant le domaine, désactive-le pour `mail`
+  (validation HTTP). Les MX et TXT ne sont jamais proxifiés.
 
 | À vérifier | Pourquoi |
 |---|---|
@@ -364,42 +369,13 @@ nc -vz mail.altherneum.fr 993
 Puis envoyez un message vers un test (Gmail, mail-tester.com) et vérifiez
 SPF/DKIM/DMARC. Logs : `sudo make mail-logs`.
 
-#### 7. Certificat SMTP/IMAP
+`https://mail.<domaine>` est couvert par Traefik. Le même certificat Let's
+Encrypt est copié automatiquement vers Mailcow pour SMTP/IMAP, avec un timer
+systemd quotidien. Rien à remplir : si Traefik n'a pas encore de certificat,
+Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
+`sudo make mail-cert-sync`.
 
-`https://mail.<domaine>` utilise le certificat public de Traefik. Par défaut,
-SMTP/IMAP utilisent le certificat interne auto-signé de Mailcow : votre client
-peut afficher un avertissement.
-
-Pour un certificat public sur SMTP/IMAP, active le DNS-01 de Mailcow :
-
-```dotenv
-MAIL_ACME_DNS_CHALLENGE=true
-MAIL_ACME_DNS_PROVIDER=dns_cf
-MAIL_ACME_ACCOUNT_EMAIL=admin@altherneum.fr
-MAIL_ACME_DNS_CONFIG_FILE=/root/mailcow-dns-01.conf
-```
-
-Crée le fichier de secrets depuis le modèle, puis relance `make mail-setup` :
-
-```sh
-sudo cp stacks/mail/acme-dns.conf.example /root/mailcow-dns-01.conf
-sudo chmod 600 /root/mailcow-dns-01.conf
-sudo nano /root/mailcow-dns-01.conf
-sudo make mail-setup
-```
-
-`mail-integrate` configure `mailcow.conf` et copie les secrets dans
-`$MAILCOW_DIR/data/conf/acme/dns-01.conf`. Mailcow renouvelle ensuite le
-certificat automatiquement. Vérifie avec :
-
-```sh
-openssl s_client -connect mail.altherneum.fr:993 -servername mail.altherneum.fr </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
-```
-
-Sans cette option, tout fonctionne, mais les clients SMTP/IMAP affichent le
-certificat auto-signé.
-
-#### 8. Si l'IP ou le domaine change
+#### 7. Si l'IP ou le domaine change
 
 - mettez à jour l'`A mail` et le `PTR` ;
 - le `CNAME *` reste valable ;
@@ -457,6 +433,8 @@ certificat auto-signé.
 - **__mail-setup__** : Installe, démarre et configure Mailcow en une commande
 - **__mail-integrate__** : Prépare l'override Traefik, le réseau et la clé API de mailcow
 - **__mail-check__** : Vérifie que mailcow peut démarrer (réseau, ports, override)
+- **__mail-cert-sync__** : Copie le certificat Traefik vers mailcow (SMTP/IMAP)
+- **__mail-cert-timer__** : Installe le timer systemd de synchro du certificat
 - **__mail-up__** : Installe si besoin et démarre mailcow avec l'intégration Traefik
 - **__mail-dkim__** : Crée/importe la clé DKIM et affiche le TXT DNS
 - **__mail-dkim-key__** : Pré-génère la clé DKIM avant l'installation de mailcow
@@ -513,6 +491,8 @@ certificat auto-signé.
 - `mail-setup` : Installe, démarre et configure Mailcow en une commande
 - `mail-integrate` : Override Traefik dans `MAILCOW_DIR`
 - `mail-check` : Vérifie le réseau, les ports et l'override Mailcow
+- `mail-cert-sync` : Copie le certificat Traefik vers mailcow (SMTP/IMAP)
+- `mail-cert-timer` : Installe le timer systemd de synchro du certificat
 - `mail-dkim` : Crée/importe la clé DKIM et affiche le TXT DNS
 - `mail-dkim-key` : Pré-génère la clé DKIM avant l'installation de mailcow
 - `mail-mailboxes` : Crée les boîtes de base (admin, contact, root, ...)

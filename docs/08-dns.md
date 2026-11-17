@@ -99,13 +99,10 @@ Traefik utilise la validation **HTTP-01** de Let's Encrypt :
 Un wildcard DNS (`*`) ne crée donc pas un certificat wildcard : chaque
 sous-domaine reçoit son propre certificat. C'est normal et suffisant ici.
 
-Si vous utilisez Cloudflare :
+Si un proxy ou un CDN est activé devant le domaine :
 
-- laissez le proxy **désactivé** (« DNS only ») pour les noms gérés par
-  Traefik, sinon la validation HTTP-01 peut échouer ;
-- si vous voulez garder le proxy Cloudflare, il faut passer Traefik en
-  validation DNS-01 et demander un certificat wildcard (non configuré dans ce
-  dépôt) ;
+- désactivez-le pour les noms gérés par Traefik, sinon la validation HTTP-01
+  peut échouer ;
 - si la zone contient un enregistrement `CAA`, il doit autoriser
   `letsencrypt.org`, sinon aucun certificat ne sera émis.
 
@@ -127,7 +124,8 @@ curl -I https://traefik.altherneum.fr
 - `200` ou `302` : DNS et HTTPS fonctionnent ;
 - `404` : le DNS est bon, mais aucun routeur Traefik ne correspond au nom ;
 - `502` : le service derrière Traefik est arrêté ;
-- erreur de certificat : vérifiez le port `80`, le DNS et le proxy Cloudflare.
+- erreur de certificat : vérifiez le port `80`, le DNS et l'absence de proxy
+  devant le nom.
 
 ## Messagerie (optionnel, Mailcow)
 
@@ -139,11 +137,17 @@ Traefik, mais SMTP/IMAP doivent joindre directement le serveur.
 | `A` | `mail` | IP du serveur | nom d'hôte Mailcow, sans proxy |
 | `MX` | `@` | `mail.altherneum.fr.` (priorité `10`) | réception des e-mails |
 | `TXT` | `@` | `v=spf1 mx ~all` | SPF |
-| `TXT` | `<selecteur>._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
+| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | DMARC |
-| `CNAME` | `autodiscover` | `mail.altherneum.fr.` | configuration Outlook |
-| `CNAME` | `autoconfig` | `mail.altherneum.fr.` | configuration Thunderbird |
-| `PTR` | IP du serveur | `mail.altherneum.fr.` | reverse DNS, chez l'hébergeur |
+
+Le `PTR` (reverse DNS) ne se met pas dans la zone DNS : configurez-le dans le
+panneau de l'hébergeur du VPS, section « reverse DNS » de l'adresse IP, vers
+`mail.altherneum.fr.`.
+
+> Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
+> `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
+> automatiquement. Ce ne sont pas des services d'hébergement DNS : ce sont de
+> simples alias, non nécessaires au fonctionnement.
 
 > Le `CNAME *` déjà présent suffit pour le web, mais **pas pour le MX** :
 > ajoutez un `A` (et éventuellement `AAAA`) sur `mail`. Une cible de MX ne doit
@@ -153,11 +157,11 @@ Traefik, mais SMTP/IMAP doivent joindre directement le serveur.
 Ordre simple :
 
 1. `sudo make mail-dkim-key` (génère la clé et affiche le TXT DKIM) ;
-2. ajoutez `A mail`, `MX`, `SPF`, `DKIM`, `DMARC`, `autodiscover` et
-   `autoconfig` dans la zone DNS ;
+2. ajoutez `A mail`, `MX`, `SPF`, `DKIM` et `DMARC` dans la zone DNS ;
 3. `sudo make mail-setup` (installe Mailcow, importe la clé et crée les boîtes
    `admin@`, `contact@`, etc.) ;
-4. configurez le `PTR` chez l'hébergeur, puis vérifiez la propagation.
+4. configurez le `PTR` dans le panneau de l'hébergeur du VPS (section
+   « reverse DNS » de l'adresse IP), puis vérifiez la propagation.
 
 Si une clé DKIM existe déjà sur l'ancien serveur, importez-la avec
 `MAIL_CREATE_KEYS=no` et `MAIL_DKIM_PRIVATE_KEY_FILE` au lieu de l'étape 1 :
@@ -179,14 +183,15 @@ sudo make mail-dkim
   `600`).
 
 Ouvrez aussi les ports mail (`25`, `465`, `587`, `143`, `993`, et si besoin
-`110`, `995`, `4190`) et configurez le reverse DNS chez l'hébergeur : ce n'est
-pas un enregistrement de la zone DNS. `MAIL_ENABLED=true` dans `.env` les ouvre
-dans UFW lors d'une installation.
+`110`, `995`, `4190`) et configurez le reverse DNS dans le panneau de
+l'hébergeur du VPS, section « reverse DNS » de l'adresse IP : ce n'est pas un
+enregistrement de la zone DNS. `MAIL_ENABLED=true` dans `.env` les ouvre dans
+UFW lors d'une installation.
 
 ## Si vous ne pouvez pas utiliser de wildcard
 
 Créez un enregistrement `A` (ou `AAAA`) pour chaque nom listé dans
 « Sous-domaines servis », avec la même IP que `@`. Utilisez `CNAME` uniquement
-pour les alias (`www`, `git.arch`, `autodiscover`, `autoconfig`). Le wildcard
-reste la solution la plus simple et la plus facile à maintenir : si l'IP change,
-un seul enregistrement est à modifier.
+pour les alias (`www`, `git.arch`, etc.). Le wildcard reste la solution la plus
+simple et la plus facile à maintenir : si l'IP change, un seul enregistrement
+est à modifier.
