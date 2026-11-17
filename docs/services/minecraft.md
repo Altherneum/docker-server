@@ -330,6 +330,11 @@ spawn_Survie, spawn_OPPrison, mine, Island) depuis ce dépôt et
 `~/repo/server/Serveurs/DataFolder`. Le type est transmis au plugin par
 `SERVER_NAME` : le port ne sert qu'à se connecter.
 
+Le domaine affiché par le plugin (tab, boss bar, MOTD) vient de `DOMAIN_NAME` +
+`TLD` ; en local le script utilise `localhost` sans TLD (aucun `.test`), et
+`DOMAIN_NAME=example TLD=.test ./scripts/test-local.sh` permet de simuler un
+domaine.
+
 Prérequis sur la machine de dev : Docker, Maven + JDK 21, Python 3, curl,
 unzip. Détails, options et déroulé du test : voir le README du dépôt plugin.
 
