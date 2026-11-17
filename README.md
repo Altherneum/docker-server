@@ -134,7 +134,280 @@ sudo su -
   - Notez que `install.sh` a déjà lancé `make init`.
 - `sudo make check-env` Vérifie le .env
 - `sudo make up` Lance tout les conteneurs
+  - `sudo make up-service SERVICE=nom` Lance le conteneur `nom`
 - `sudo make ps` Liste les conteneurs
+
+### Configurer Mailcow et son DNS (optionnel)
+
+Mailcow est une stack séparée : `make up` ne la démarre pas, mais
+`make up-service SERVICE=mailcow` déclenche son installation et son démarrage
+dédiés (elle n'est pas dans `compose.yaml`). Le HTTPS
+de `mail.<domaine>` passera par Traefik, mais **la réception des e-mails dépend
+d'enregistrements DNS que Traefik ne crée pas** (MX, SPF, DKIM, DMARC, PTR).
+
+Si vous avez déjà un `A` sur `@` et un `CNAME` `*` vers `@` pour le HTTPS
+« basique », il reste à faire les étapes ci-dessous.
+
+#### 1. Préparer le DNS et les ports
+
+Ajoutez explicitement un `A` sur `mail` :
+
+```text
+A    mail.altherneum.fr    <IP du VPS>
+```
+
+Créez ensuite les autres enregistrements dans la zone DNS du domaine :
+
+| Type | Nom | Valeur |
+|---|---|---|
+| `A` | `mail` | `<IP du VPS>` |
+| `MX` | `@` | `mail.altherneum.fr.` priorité `10` |
+| `TXT` | `@` | `v=spf1 mx ~all` |
+| `TXT` | `dkim._domainkey` | valeur affichée par `make mail-dkim` (étape 4) |
+| `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` |
+| `CNAME` | `autodiscover` | `mail.altherneum.fr.` |
+| `CNAME` | `autoconfig` | `mail.altherneum.fr.` |
+| `PTR` | `<IP du VPS>` | `mail.altherneum.fr.` (chez l'hébergeur) |
+
+Pour le DKIM, deux possibilités :
+
+- **Ancienne clé conservée** : si tu as déjà le TXT DKIM de l'ancien serveur,
+  mets-le maintenant et importe la clé avec `MAIL_CREATE_KEYS=no`
+- **Nouvelle clé** : lance `sudo make mail-dkim-key` dès maintenant. Il génère
+  la clé, affiche le TXT et prépare `.env` pour l'import. Après l'installation,
+  `sudo make mail-dkim` importera cette clé sans changer le DNS
+- Si tu ne pré-génères pas la clé, laisse seulement la ligne DKIM pour l'étape 4
+
+```sh
+sudo make mail-dkim-key
+```
+
+Les autres enregistrements peuvent déjà être créés.
+
+Points importants :
+
+- Le `CNAME *` déjà présent suffit pour le web, mais **pas pour le MX** :
+  ajoutez l'`A mail`. Un MX ne doit pas pointer vers un CNAME.
+- S'il existe déjà un TXT SPF, fusionnez-le : il ne doit y avoir qu'un seul
+  enregistrement SPF par domaine.
+- Le TXT DKIM peut être long : le script fournit la valeur brute et la version
+  découpée en chaînes de 255 caractères.
+- Pour DMARC, `p=none` permet d'observer avant de passer à `quarantine`.
+- Chez Cloudflare : `mail`, `autodiscover` et `autoconfig` en **DNS only**
+  (nuage gris). Les MX et TXT ne sont pas proxifiés.
+- Le `PTR` (reverse DNS) se configure chez l'hébergeur du VPS, pas dans la zone
+  DNS.
+
+| À vérifier | Pourquoi |
+|---|---|
+| `A` sur `mail` vers l'IP du VPS | cible du MX ; **ne doit pas être un CNAME** |
+| port `80` ouvert | certificat Let's Encrypt de Traefik |
+| ports `25`, `110`, `143`, `465`, `587`, `993`, `995`, `4190` ouverts | SMTP/IMAP |
+| `MAIL_ENABLED=true` dans `.env` | ouvre ces ports dans UFW à l'installation |
+
+Si `install.sh` a déjà tourné avec `MAIL_ENABLED=false`, ouvrez les ports
+manuellement (ou relancez `install.sh`) :
+
+```sh
+sudo ufw allow 25,110,143,465,587,993,995,4190/tcp
+```
+
+Vérifiez aussi le pare-feu de l'hébergeur : beaucoup de VPS bloquent le port
+`25` par défaut et il faut demander son déblocage.
+
+> Docker publie lui-même les ports mailcow. UFW ne filtre pas les ports publiés
+> par Docker (le dépôt laisse `DEFAULT_FORWARD_POLICY=ACCEPT`).
+> `MAIL_ENABLED=true` ajoute bien les règles UFW, mais le contrôle réel des
+> ports mail reste le pare-feu de l'hébergeur. Voir
+> [Sécurisation](docs/07-securisation.md#docker-et-ufw).
+
+Sur le VPS, `.env` doit contenir le domaine réel, par exemple :
+
+```dotenv
+DOMAIN_NAME=altherneum
+TLD=.fr
+MAIL_ENABLED=true
+```
+
+`localhost` est réservé au développement local : l'installation Mailcow refuse
+un domaine sans point.
+
+#### 2. Tout installer en une commande
+
+Une fois le DNS de l'étape 1 terminé, lance :
+
+```sh
+cd /opt/docker-server
+sudo make mail-setup
+```
+
+C'est la seule commande à retenir après le DNS. Elle fait tout le reste :
+
+- installe Mailcow si absent (clone + `mailcow.conf`) ;
+- installe l'override Traefik, choisit un sous-réseau Docker libre et crée la
+  clé API ;
+- démarre Mailcow et attend que les services et l'API soient prêts ;
+- importe la clé DKIM pré-générée, ou en génère une automatiquement si aucune
+  clé n'est disponible (`MAIL_CREATE_KEYS=yes` force une nouvelle clé) ;
+- crée les boîtes de base (`admin@`, `contact@`, etc.) ;
+- lance `make mail-check`.
+
+`sudo make up-service SERVICE=mailcow` fait exactement la même chose. Aucun
+clone ni `generate_config.sh` manuel n'est nécessaire.
+
+Si tu n'as pas pré-généré la clé à l'étape 1, `mail-setup` en crée une et
+affiche le TXT : ajoute-le au DNS, puis relance `sudo make mail-check`.
+
+#### 3. Vérifier l'intégration
+
+```sh
+sudo make mail-check
+```
+
+`mail-check` doit finir sur `0 erreur(s)` (un avertissement DNS est normal avant
+la propagation). Ouvre ensuite `https://mail.<domaine>` : le certificat web est
+demandé par Traefik. Premier compte Mailcow : `admin` / `moohoo`, à changer
+immédiatement.
+
+Pour diagnostiquer ou relancer les étapes séparément :
+
+```sh
+sudo make mail-install
+sudo make mail-integrate
+sudo make mail-up
+```
+
+#### 4. Clé DKIM (détail)
+
+`make mail-setup` importe ou génère déjà la clé. Pour la gérer manuellement :
+
+```sh
+sudo make mail-dkim
+```
+
+Le script importe la clé fournie, conserve la clé existante, ou en génère une
+nouvelle selon `MAIL_CREATE_KEYS`. Il l'écrit dans Mailcow (sans passer par
+l'interface) et affiche le TXT à publier.
+
+- Si tu as utilisé `make mail-dkim-key` à l'étape 1, la clé est déjà prête et le
+  TXT déjà publié : `make mail-dkim` l'importe dans Mailcow, sans changer le DNS
+- Si aucune clé n'existe, `make mail-setup` en génère une automatiquement :
+  ajoute le TXT affiché sur `dkim._domainkey` dans la zone DNS (ligne prévue à
+  l'étape 1)
+- Pour forcer une nouvelle clé manuellement : mets `MAIL_CREATE_KEYS=yes` dans
+  `.env`, lance `sudo make mail-dkim` ; le script remet `no` automatiquement
+
+Il sauvegarde aussi les fichiers dans `backups/mail-dkim-<date>/`.
+
+Une seule clé DKIM couvre **toutes les adresses** du domaine (`contact@`,
+`admin@`, etc.) : les boîtes se créent avec `make mail-mailboxes` ou dans
+l'interface Mailcow et n'ont pas de clé individuelle.
+
+Après cette première génération, garde `MAIL_CREATE_KEYS=no` dans `.env` :
+`sudo make mail-dkim` réaffichera la clé existante sans la régénérer.
+
+#### 5. Boîtes de base (détail)
+
+`make mail-setup` crée déjà les boîtes par défaut. Pour les relancer ou les
+modifier :
+
+```sh
+sudo make mail-mailboxes
+```
+
+Par défaut, le script crée `admin@`, `contact@`, `root@`, `postmaster@` et
+`abuse@`. Les mots de passe sont générés et stockés dans `.env`
+(`MAILBOX_*_PASSWORD`). La liste est modifiable avec `MAIL_MAILBOXES`.
+
+Pour créer aussi les boîtes utilisées par les intégrations du dépôt, ajoutez :
+
+```dotenv
+MAIL_MAILBOXES=admin,contact,root,postmaster,abuse,noreply,git,cloud
+```
+
+`noreply` utilise `AZURIOM_MAIL_PASSWORD`, `git` utilise
+`FORGEJO_MAIL_PASSWORD` et `cloud` utilise `NEXTCLOUD_MAIL_PASSWORD`.
+
+> `admin@altherneum.fr` est une boîte mail. Le compte d'administration Mailcow
+> est `admin` (sans `@`), avec le mot de passe initial `moohoo`.
+
+#### 6. Vérifier
+
+Après propagation (quelques minutes à quelques heures) :
+
+```sh
+dig +short A mail.altherneum.fr
+dig +short MX altherneum.fr
+dig +short TXT altherneum.fr
+dig +short TXT dkim._domainkey.altherneum.fr
+dig +short TXT _dmarc.altherneum.fr
+dig -x <IP> +short
+curl -I https://mail.altherneum.fr
+```
+
+Vérification des ports sur le VPS :
+
+```sh
+sudo ss -lntp | grep -E ':(25|80|110|143|443|465|587|993|995|4190)\b'
+sudo docker ps --format 'table {{.Names}}\t{{.Ports}}' | grep -E 'mailcow|traefik'
+sudo ufw status | grep -E '25|80|110|143|443|465|587|993|995|4190'
+```
+
+Depuis un autre poste, testez au moins SMTP et IMAPS :
+
+```sh
+nc -vz mail.altherneum.fr 25
+nc -vz mail.altherneum.fr 465
+nc -vz mail.altherneum.fr 993
+```
+
+Puis envoyez un message vers un test (Gmail, mail-tester.com) et vérifiez
+SPF/DKIM/DMARC. Logs : `sudo make mail-logs`.
+
+#### 7. Certificat SMTP/IMAP
+
+`https://mail.<domaine>` utilise le certificat public de Traefik. Par défaut,
+SMTP/IMAP utilisent le certificat interne auto-signé de Mailcow : votre client
+peut afficher un avertissement.
+
+Pour un certificat public sur SMTP/IMAP, active le DNS-01 de Mailcow :
+
+```dotenv
+MAIL_ACME_DNS_CHALLENGE=true
+MAIL_ACME_DNS_PROVIDER=dns_cf
+MAIL_ACME_ACCOUNT_EMAIL=admin@altherneum.fr
+MAIL_ACME_DNS_CONFIG_FILE=/root/mailcow-dns-01.conf
+```
+
+Crée le fichier de secrets depuis le modèle, puis relance `make mail-setup` :
+
+```sh
+sudo cp stacks/mail/acme-dns.conf.example /root/mailcow-dns-01.conf
+sudo chmod 600 /root/mailcow-dns-01.conf
+sudo nano /root/mailcow-dns-01.conf
+sudo make mail-setup
+```
+
+`mail-integrate` configure `mailcow.conf` et copie les secrets dans
+`$MAILCOW_DIR/data/conf/acme/dns-01.conf`. Mailcow renouvelle ensuite le
+certificat automatiquement. Vérifie avec :
+
+```sh
+openssl s_client -connect mail.altherneum.fr:993 -servername mail.altherneum.fr </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+```
+
+Sans cette option, tout fonctionne, mais les clients SMTP/IMAP affichent le
+certificat auto-signé.
+
+#### 8. Si l'IP ou le domaine change
+
+- mettez à jour l'`A mail` et le `PTR` ;
+- le `CNAME *` reste valable ;
+- la clé DKIM ne dépend pas de l'IP ; `sudo make mail-dkim` réaffiche
+  l'enregistrement ;
+- si le domaine change, mettez à jour `.env` et `MAILCOW_HOSTNAME` dans
+  `$MAILCOW_DIR/mailcow.conf`, relancez `sudo make mail-up`, puis ajoutez les
+  nouveaux DNS.
 
 ## Commandes
 
@@ -180,8 +453,14 @@ sudo su -
 - **__forgejo-mirror__** : Importe les dépôts GitHub dans Forgejo, configure le miroir push et démarre la CI des dépôts importés (automatique avec `up` / `up-service`) ; options `--dry-run`, `--reset-stuck`, `--run-actions`, `--force`
 - **__uptime-kuma-admin__** : Crée le compte admin Uptime Kuma depuis .env (automatique avec `up` / `up-service`)
 - **__uptime-kuma-docker-sync__** : Ajoute les moniteurs Docker manquants et configure la notification Discord dans Uptime Kuma (automatique avec `up` / `up-service` si Uptime Kuma tourne) ; mode détaillé avec `VERBOSE=1`
-- **__mail-integrate__** : Installe l'override Traefik dans MAILCOW_DIR
-- **__mail-up__** : Démarre mailcow avec l'intégration Traefik
+- **__mail-install__** : Clone et configure Mailcow si absent
+- **__mail-setup__** : Installe, démarre et configure Mailcow en une commande
+- **__mail-integrate__** : Prépare l'override Traefik, le réseau et la clé API de mailcow
+- **__mail-check__** : Vérifie que mailcow peut démarrer (réseau, ports, override)
+- **__mail-up__** : Installe si besoin et démarre mailcow avec l'intégration Traefik
+- **__mail-dkim__** : Crée/importe la clé DKIM et affiche le TXT DNS
+- **__mail-dkim-key__** : Pré-génère la clé DKIM avant l'installation de mailcow
+- **__mail-mailboxes__** : Crée les boîtes de base (admin, contact, root, ...)
 - **__mail-down__** : Arrête mailcow
 - **__mail-logs__** : Suit les logs de mailcow
 - **__clean__** : Supprime tous les conteneurs ET les volumes (**__DESTRUCTIF__**, `CONFIRM=yes`)
@@ -230,7 +509,13 @@ sudo su -
 - `bot` : Bot Discord
 
 ### Messagerie
+- `mail-install` : Clone et configure Mailcow si absent
+- `mail-setup` : Installe, démarre et configure Mailcow en une commande
 - `mail-integrate` : Override Traefik dans `MAILCOW_DIR`
+- `mail-check` : Vérifie le réseau, les ports et l'override Mailcow
+- `mail-dkim` : Crée/importe la clé DKIM et affiche le TXT DNS
+- `mail-dkim-key` : Pré-génère la clé DKIM avant l'installation de mailcow
+- `mail-mailboxes` : Crée les boîtes de base (admin, contact, root, ...)
 - `mail-up` / `mail-down` : Gestion de Mailcow
 - `mail-logs` : Logs de Mailcow
 

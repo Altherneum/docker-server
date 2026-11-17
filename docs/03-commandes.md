@@ -48,7 +48,14 @@ sudo make services      # liste les noms de services
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions` | Démarre la CI des dépôts déjà présents, sans les réimporter |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=depot` | Réimporte un dépôt après suppression (destructif) |
 | `sudo make php-site-src` | Met à jour le dépôt du site PHP |
-| `sudo make mail-up` | Démarre mailcow |
+| `sudo make mail-install` | Clone et configure Mailcow si absent |
+| `sudo make mail-setup` | Installe, démarre et configure Mailcow en une commande |
+| `sudo make mail-integrate` | Prépare l'override Traefik, le réseau et la clé API de mailcow |
+| `sudo make mail-check` | Vérifie que mailcow peut démarrer (réseau, ports, override) |
+| `sudo make mail-up` | Installe si besoin et démarre mailcow |
+| `sudo make mail-dkim` | Crée/importe la clé DKIM et affiche le TXT DNS |
+| `sudo make mail-dkim-key` | Pré-génère la clé DKIM avant l'installation de mailcow |
+| `sudo make mail-mailboxes` | Crée les boîtes de base (admin, contact, root, ...) |
 | `sudo make mail-down` | Arrête mailcow |
 | `sudo make mail-logs` | Suit les logs de mailcow |
 | `sudo CONFIRM=yes make azuriom-seed` | Réapplique les données de démonstration Azuriom |

@@ -6,8 +6,8 @@ FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks ensure-auth ensure-traefik build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
-        stop restart-service logs-service up-service rebuild-service down-service \
+        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-check mail-dkim mail-dkim-key mail-mailboxes mail-install mail-setup mail-up mail-down mail-logs clean clean-service down-clean down-clean-service \
+        stop restart-service logs-service up-service up-service-generic rebuild-service down-service \
         ps-service services azuriom-seed
 
 help: ## Affiche cette aide
@@ -127,17 +127,35 @@ azuriom-seed: ## Réapplique les données de démonstration Azuriom (paramètres
 		|| (echo "Le conteneur azuriom n'est pas démarré."; exit 1)
 	docker exec azuriom /usr/local/bin/azuriom-seed
 
-mail-integrate: ## Installe l'override Traefik dans MAILCOW_DIR
+mail-integrate: ## Installe l'override Traefik et prépare mailcow
 	./scripts/mail-integrate.sh
 
-mail-up: ## Démarre mailcow avec l'intégration Traefik
+mail-check: ## Vérifie que mailcow peut démarrer (réseau, ports, override)
+	./scripts/mail-check.sh
+
+mail-dkim: ## Crée/importe la clé DKIM et affiche le TXT DNS
+	./scripts/mail-dkim.sh
+
+mail-dkim-key: ## Pré-génère la clé DKIM avant l'installation de mailcow
+	./scripts/mail-dkim-key.sh
+
+mail-mailboxes: ## Crée les boîtes mail de base (admin, contact, root, ...)
+	./scripts/mail-mailboxes.sh
+
+mail-install: ## Installe mailcow (clone + configuration) si absent
+	./scripts/mail-install.sh
+
+mail-setup: ensure-networks ensure-traefik ## Installe, démarre et configure mailcow en une commande
+	./scripts/mail-setup.sh
+
+mail-up: ensure-networks mail-install mail-integrate ## Installe si besoin et démarre mailcow
 	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
 
 mail-down: ## Arrête mailcow
-	cd "$(MAILCOW_DIR)" && docker compose down
+	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml down
 
 mail-logs: ## Suit les logs de mailcow
-	cd "$(MAILCOW_DIR)" && docker compose logs -f --tail=200
+	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml logs -f --tail=200
 
 clean: ## Supprime tous les conteneurs ET les volumes (DESTRUCTIF)
 	@printf "Cette commande supprime toutes les données Docker. Confirmer avec CONFIRM=yes\n"
@@ -182,6 +200,14 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 	@test -n "$(SERVICE)" || (echo "Usage: make up-service SERVICE=nom"; exit 1)
 	@./scripts/ensure-auth.sh
 	@./scripts/ensure-networks.sh
+	@if [ "$(SERVICE)" = "mailcow" ]; then \
+		$(MAKE) --no-print-directory mail-setup ; \
+	else \
+		$(MAKE) --no-print-directory up-service-generic SERVICE="$(SERVICE)" ; \
+	fi
+
+# Interne : démarre un service de compose.yaml (mailcow est une stack séparée).
+up-service-generic:
 	@if [ "$(SERVICE)" != "traefik" ]; then \
 		$(MAKE) --no-print-directory ensure-traefik ; \
 	fi

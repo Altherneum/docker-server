@@ -14,12 +14,12 @@ services:
       traefik.docker.network: "@@PROXY_NETWORK@@"
 
       # Interface d'administration : mail.<domaine>
-      traefik.http.routers.mailcow.rule: "Host(`mail.@@DOMAIN@@`)"
+      traefik.http.routers.mailcow.rule: "Host(`@@MAILCOW_HOSTNAME@@`)"
       traefik.http.routers.mailcow.entrypoints: "websecure"
       traefik.http.routers.mailcow.tls.certResolver: "letsencrypt"
       traefik.http.routers.mailcow.middlewares: "secure-headers@file"
       traefik.http.routers.mailcow.service: "mailcow"
-      traefik.http.services.mailcow.loadbalancer.server.port: "443"
+      traefik.http.services.mailcow.loadbalancer.server.port: "@@MAILCOW_HTTPS_PORT@@"
       traefik.http.services.mailcow.loadbalancer.server.scheme: "https"
       traefik.http.services.mailcow.loadbalancer.serversTransport: "mailcow@docker"
       traefik.http.serversTransports.mailcow.insecureSkipVerify: "true"
@@ -31,7 +31,7 @@ services:
       traefik.http.routers.mailcow-webmail.middlewares: "mailcow-webmail,secure-headers@file"
       traefik.http.routers.mailcow-webmail.service: "mailcow"
       traefik.http.middlewares.mailcow-webmail.redirectRegex.regex: "^https://(webmail|mails)[.]@@DOMAIN_REGEX@@/(.*)$"
-      traefik.http.middlewares.mailcow-webmail.redirectRegex.replacement: "https://mail.@@DOMAIN@@/SOGo/$${1}"
+      traefik.http.middlewares.mailcow-webmail.redirectRegex.replacement: "https://@@MAILCOW_HOSTNAME@@/SOGo/$${1}"
       traefik.http.middlewares.mailcow-webmail.redirectRegex.permanent: "true"
 
 networks:

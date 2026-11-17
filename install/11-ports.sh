@@ -9,6 +9,9 @@
 #   - MINECRAFT_PORT/tcp pour Minecraft Java ;
 #   - 19132/tcp + udp et 19133/udp pour Minecraft Bedrock.
 #
+# Si MAIL_ENABLED=true, ajoute les ports mailcow :
+#   25, 110, 143, 465, 587, 993, 995 et 4190/tcp.
+#
 # Les ports supplémentaires viennent de HARDEN_EXTRA_TCP et HARDEN_EXTRA_UDP.
 # =============================================================================
 
@@ -71,7 +74,15 @@ normalize_ports() {
 
 # Construit les listes de ports TCP et UDP à ouvrir dans UFW.
 build_ports() {
-    TCP_PORTS="$SSH_PORT 80 443 19132 $MINECRAFT_PORT $EXTRA_TCP"
+    MAIL_PORTS=""
+    case "$(printf '%s' "${MAIL_ENABLED:-false}" | tr '[:upper:]' '[:lower:]')" in
+        true|yes|1|on)
+            # SMTP, POP3, IMAP, soumission, IMAPS, POP3S, ManageSieve.
+            MAIL_PORTS="25 110 143 465 587 993 995 4190"
+            ;;
+    esac
+
+    TCP_PORTS="$SSH_PORT 80 443 19132 $MINECRAFT_PORT $EXTRA_TCP $MAIL_PORTS"
     UDP_PORTS="19132 19133 $EXTRA_UDP"
 
     TCP_PORTS=$(normalize_ports "$TCP_PORTS")

@@ -20,3 +20,6 @@ backups/*
 # Logs et divers
 *.log
 .DS_Store
+
+# Secrets DNS-01 mailcow
+stacks/mail/acme-dns.conf

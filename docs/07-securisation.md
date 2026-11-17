@@ -247,6 +247,11 @@ HTTP passe par `80` et `443` via Traefik. RCON et les services internes
 (MariaDB, phpMyAdmin, code-server, Dockhand, Uptime Kuma et son proxy Docker)
 n'ont pas besoin d'être publiés.
 
+Mailcow publie ses ports mail (`25`, `110`, `143`, `465`, `587`, `993`, `995`,
+`4190`) dans son propre `docker-compose.yml`. `MAIL_ENABLED=true` ajoute les
+règles UFW correspondantes, mais comme Docker contourne UFW, vérifiez surtout le
+pare-feu de l'hébergeur et n'ouvrez que les ports réellement nécessaires.
+
 Uptime Kuma n'a pas de HTTP Basic : son dashboard est protégé par son compte
 admin, créé automatiquement depuis `.env`. Son proxy Docker
 (`uptime-kuma-docker-proxy`) est limité aux lectures et n'est joignable que sur

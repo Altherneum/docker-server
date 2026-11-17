@@ -139,14 +139,49 @@ Traefik, mais SMTP/IMAP doivent joindre directement le serveur.
 | `A` | `mail` | IP du serveur | nom d'hôte Mailcow, sans proxy |
 | `MX` | `@` | `mail.altherneum.fr.` (priorité `10`) | réception des e-mails |
 | `TXT` | `@` | `v=spf1 mx ~all` | SPF |
-| `TXT` | `dkim._domainkey` | valeur fournie par Mailcow | DKIM |
+| `TXT` | `<selecteur>._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ou `mail-dkim`) | DKIM |
 | `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | DMARC |
 | `CNAME` | `autodiscover` | `mail.altherneum.fr.` | configuration Outlook |
 | `CNAME` | `autoconfig` | `mail.altherneum.fr.` | configuration Thunderbird |
 | `PTR` | IP du serveur | `mail.altherneum.fr.` | reverse DNS, chez l'hébergeur |
 
-Ouvrez aussi les ports mail (`25`, `465`, `587`, `143`, `993`) et configurez le
-reverse DNS chez l'hébergeur : ce n'est pas un enregistrement de la zone DNS.
+> Le `CNAME *` déjà présent suffit pour le web, mais **pas pour le MX** :
+> ajoutez un `A` (et éventuellement `AAAA`) sur `mail`. Une cible de MX ne doit
+> pas être un CNAME. Mailcow ne gère qu'un seul domaine ; une seule clé DKIM
+> couvre toutes les adresses (`contact@`, `admin@`, ...).
+
+Ordre simple :
+
+1. `sudo make mail-dkim-key` (génère la clé et affiche le TXT DKIM) ;
+2. ajoutez `A mail`, `MX`, `SPF`, `DKIM`, `DMARC`, `autodiscover` et
+   `autoconfig` dans la zone DNS ;
+3. `sudo make mail-setup` (installe Mailcow, importe la clé et crée les boîtes
+   `admin@`, `contact@`, etc.) ;
+4. configurez le `PTR` chez l'hébergeur, puis vérifiez la propagation.
+
+Si une clé DKIM existe déjà sur l'ancien serveur, importez-la avec
+`MAIL_CREATE_KEYS=no` et `MAIL_DKIM_PRIVATE_KEY_FILE` au lieu de l'étape 1 :
+le TXT DNS reste inchangé.
+
+Le sélecteur DKIM est `dkim` par défaut (`MAIL_DKIM_SELECTOR`). Le TXT est
+affiché prêt à coller, avec découpage en chaînes de 255 caractères si le panneau
+DNS l'exige :
+
+```sh
+sudo make mail-dkim
+```
+
+- `MAIL_CREATE_KEYS=yes` régénère la clé : remplacez alors le TXT dans le DNS.
+- `MAIL_CREATE_KEYS=no` importe la clé privée existante (ou celle générée par
+  `mail-dkim-key`) : le TXT ne change pas.
+- `make mail-setup` génère automatiquement une clé si aucune n'est disponible.
+- Les fichiers sont dans `backups/mail-dkim-<date>/` (le fichier privé est en
+  `600`).
+
+Ouvrez aussi les ports mail (`25`, `465`, `587`, `143`, `993`, et si besoin
+`110`, `995`, `4190`) et configurez le reverse DNS chez l'hébergeur : ce n'est
+pas un enregistrement de la zone DNS. `MAIL_ENABLED=true` dans `.env` les ouvre
+dans UFW lors d'une installation.
 
 ## Si vous ne pouvez pas utiliser de wildcard
 

@@ -123,6 +123,25 @@ set_env VELOCITY_SECRET           "$(gen_hex 32)"
 set_env MINECRAFT_RCON_PASSWORD   "$(gen_hex 24)"
 set_env HARDEN_ADMIN_PASSWORD     "$(gen_hex 24)"
 
+# --- Mailcow / DKIM ---------------------------------------------------------
+set_env MAIL_ENABLED               "false"
+set_env MAIL_CREATE_KEYS           "no"
+set_env MAIL_DKIM_SELECTOR         "dkim"
+set_env MAIL_DKIM_PRIVATE_KEY_FILE ""
+set_env MAIL_DKIM_PRIVATE_KEY      ""
+set_env MAILCOW_API_KEY            "$(gen_hex 16)"
+set_env MAIL_ACME_DNS_CHALLENGE    "false"
+set_env MAIL_ACME_DNS_PROVIDER     "dns_xxx"
+set_env MAIL_ACME_ACCOUNT_EMAIL    ""
+set_env MAIL_ACME_DNS_CONFIG_FILE  ""
+set_env MAIL_MAILBOXES             "admin,contact,root,postmaster,abuse"
+set_env MAILBOX_ADMIN_PASSWORD     "$(gen_hex 20)"
+set_env MAILBOX_CONTACT_PASSWORD   "$(gen_hex 20)"
+set_env MAILBOX_ROOT_PASSWORD      "$(gen_hex 20)"
+set_env MAILBOX_POSTMASTER_PASSWORD  "$(gen_hex 20)"
+set_env MAILBOX_ABUSE_PASSWORD     "$(gen_hex 20)"
+set_env MAILCOW_IPV4_NETWORK       ""
+
 # --- GID du socket Docker (runner Forgejo Actions) --------------------------
 # Le runner tourne avec l'UID 1000 et doit pouvoir accéder au socket Docker.
 if [ -S /var/run/docker.sock ]; then

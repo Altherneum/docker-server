@@ -18,7 +18,14 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `uptime-kuma-docker-sync.sh` | `make uptime-kuma-docker-sync` | Ajoute l'hôte Docker, les moniteurs de conteneurs manquants et la notification Discord via Socket.IO (appelé automatiquement par `up` / `up-service` si Uptime Kuma tourne) |
 | `dockhand-local-env.sh` | `make dockhand-local-env` | Enregistre l'environnement Docker local `/var/run/docker.sock` dans Dockhand (appelé automatiquement par `up` / `up-service` si `DOCKHAND_AUTO_LOCAL_ENV=true`) |
 | `dockhand-notifications.sh` | `make dockhand-notifications` | Crée ou met à jour le canal de notifications, active tous les événements et l'attache à l'environnement local (appelé automatiquement par `up` / `up-service` si `DOCKHAND_AUTO_NOTIFICATIONS=true`) |
-| `mail-integrate.sh` | `make mail-integrate` | Prépare l'intégration Mailcow (voir la fiche Mailcow) |
+| `mail-install.sh` | `make mail-install` | Clone et configure Mailcow si absent |
+| `mail-setup.sh` | `make mail-setup` | Installe, démarre et configure Mailcow en une commande |
+| `mail-integrate.sh` | `make mail-integrate` | Prépare l'override Traefik, le réseau et la clé API de Mailcow |
+| `mail-check.sh` | `make mail-check` | Vérifie Docker, le réseau, les ports et l'override Mailcow |
+| `mail-dkim.sh` | `make mail-dkim` | Crée ou importe la clé DKIM du domaine et affiche le TXT DNS |
+| `mail-dkim-key.sh` | `make mail-dkim-key` | Pré-génère la clé DKIM avant l'installation de Mailcow |
+| `mail-mailboxes.sh` | `make mail-mailboxes` | Crée les boîtes mail de base via l'API Mailcow |
+| `mail-lib.sh` | *(interne)* | Fonctions communes aux scripts Mailcow |
 | `backup.sh` | `make backup` | Sauvegarde les bases et les volumes |
 | `restore.sh` | `make restore` | Restaure une sauvegarde |
 | `clean-service.sh` | `make clean-service` | Supprime un service et ses volumes exclusifs |

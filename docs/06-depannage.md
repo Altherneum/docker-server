@@ -362,15 +362,21 @@ docker image prune
 
 ## Points connus dans la version actuelle
 
-Certains scripts du dépôt sont incomplets. Vérifiez-les avant de compter sur les
-services concernés :
-
 | Service | Symptôme | Cause probable |
 |---|---|---|
-| Mailcow | `make mail-integrate` ne copie pas l'override | Le script génère un fichier local au lieu de l'installer dans `MAILCOW_DIR` |
+| Mailcow | `make mail-check` signale un sous-réseau occupé | `172.22.1.0/24` est déjà utilisé par Docker ; `make mail-integrate` choisit un autre /24, sinon renseignez `MAILCOW_IPV4_NETWORK` |
+| Mailcow | Certificat invalide dans un client IMAP/SMTP | Certificat interne par défaut ; active `MAIL_ACME_DNS_CHALLENGE=true` + DNS-01 (voir fiche Mailcow) ou accepte le certificat |
+| Mailcow | DKIM en échec après `MAIL_CREATE_KEYS=yes` | Le TXT DNS n'a pas encore été remplacé ; comparez avec `backups/mail-dkim-*/dns-records.txt` |
+| Mailcow | Les e-mails entrants n'arrivent pas | Vérifiez le `MX`, l'`A mail` (pas un CNAME), le port `25` chez l'hébergeur et le PTR |
+| Mailcow | Les boîtes `contact@`, `admin@`, etc. n'existent pas | Lancez `sudo make mail-mailboxes` ou créez-les dans l'interface ; une clé DKIM couvre toutes les adresses |
+| Mailcow | Les e-mails sortants sont en spam | Vérifiez SPF, DKIM, DMARC, le PTR et l'alignement du domaine ; testez avec mail-tester.com |
+| Mailcow | `mail.<domaine>` résout mais le HTTPS échoue | Vérifiez le port `80`, l'`A mail` et `sudo make mail-check` |
 
-En attendant une correction, consultez les fichiers concernés et adaptez-les, ou
-utilisez la configuration manuelle décrite dans la fiche du service.
+Pour Mailcow, commencez par :
+
+```sh
+sudo make mail-check
+```
 
 ## Repartir de zéro
 

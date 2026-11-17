@@ -32,6 +32,10 @@ suffisent et sont plus fiables.
 - `.env` et les fichiers `.htpasswd` (à copier manuellement dans un endroit
   sûr) ;
 - mailcow (il a sa propre procédure de sauvegarde) ;
+- la clé DKIM privée de mailcow : elle est dans Redis, incluse par
+  `backup_and_restore.sh` de mailcow mais pas dans une copie brute des volumes.
+  Exportez-la aussi avec `make mail-dkim` (mode `MAIL_CREATE_KEYS=no`) ou la
+  sauvegarde officielle mailcow ;
 - les logs, les certificats et les données temporaires ;
 - le cache et les sessions Redis de Nextcloud ;
 - les plugins Minecraft téléchargés (ils peuvent être retéléchargés).

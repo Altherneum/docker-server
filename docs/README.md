@@ -29,6 +29,10 @@ sudo ./install.sh --pubkey-file /tmp/id_ed25519.pub
 sudo make check-env
 sudo make up
 sudo make ps
+
+# 7. Mailcow (optionnel) : make mail-dkim-key, configurer le DNS,
+#    puis make mail-setup
+#    Voir README > Configurer Mailcow et son DNS (optionnel)
 ```
 
 > La clé SSH est obligatoire. Ne fermez pas la fenêtre d'installation avant

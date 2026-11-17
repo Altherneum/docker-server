@@ -112,6 +112,22 @@ Le conteneur `fail2ban` lit les logs SSH de l'hôte. Sur Debian/Ubuntu, vérifie
 que `/var/log/auth.log` existe ; sinon, consultez la
 [fiche fail2ban](services/fail2ban.md).
 
+### 7. Mailcow (optionnel)
+
+Mailcow n'est **pas** lancé par `make up` : c'est une stack séparée, mais son
+installation et sa configuration sont automatisées :
+
+```sh
+sudo make mail-dkim-key   # optionnel : prépare le TXT DKIM avant le DNS
+sudo make mail-setup
+```
+
+Cette commande unique clone Mailcow dans `MAILCOW_DIR`, génère sa configuration,
+installe l'override Traefik, démarre la stack, importe la clé DKIM et crée les
+boîtes de base. Préparez d'abord le DNS (voir le
+[README](../README.md#configurer-mailcow-et-son-dns-optionnel) et la
+[fiche Mailcow](services/mailcow.md)) : `A mail`, MX, SPF, DKIM, DMARC et PTR.
+
 ## Conteneurs disponibles
 
 Chaque service peut être lancé seul avec :
@@ -207,7 +223,14 @@ Toutes les commandes se lancent depuis la racine du dépôt.
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo depuis `.env` |
 | `sudo make uptime-kuma-docker-sync` | Ajoute les moniteurs Docker manquants et configure la notification Discord |
 | `sudo CONFIRM=yes make azuriom-seed` | Réapplique les données de démonstration Azuriom |
-| `sudo make mail-up` | Démarre mailcow |
+| `sudo make mail-install` | Clone et configure Mailcow si absent |
+| `sudo make mail-setup` | Installe, démarre et configure Mailcow en une commande |
+| `sudo make mail-integrate` | Prépare l'override Traefik et la clé API mailcow |
+| `sudo make mail-check` | Vérifie que mailcow peut démarrer |
+| `sudo make mail-up` | Installe si besoin et démarre mailcow |
+| `sudo make mail-dkim` | Crée/importe la clé DKIM et affiche le TXT DNS |
+| `sudo make mail-dkim-key` | Pré-génère la clé DKIM avant l'installation de mailcow |
+| `sudo make mail-mailboxes` | Crée les boîtes de base (admin, contact, root, ...) |
 | `sudo make mail-down` | Arrête mailcow |
 | `sudo make mail-logs` | Suit les logs de mailcow |
 | `sudo make php-site-src` | Met à jour le dépôt du site PHP |
@@ -291,7 +314,7 @@ Voici ce que `install.sh` fait automatiquement :
 - applique le port `HARDEN_SSH_PORT` dans sshd et UFW, désactive
   `ssh.socket` sur Debian 13 / Ubuntu récents, et transmet le port à fail2ban ;
 - configure UFW : refus des connexions entrantes, SSH limité, ports
-  `80`, `443` et Minecraft ;
+  `80`, `443`, Minecraft et, si `MAIL_ENABLED=true`, ports mail ;
 - le conteneur fail2ban lit les logs SSH de l'hôte et bannit les tentatives ;
 - active les mises à jour automatiques Linux ;
 - définit le nom d'hôte avec `DOMAIN` et installe le prompt
@@ -350,8 +373,18 @@ wildcard, créez un enregistrement pour chaque sous-domaine utilisé.
 | `MINECRAFT_PORT` (`25565`) | TCP | Minecraft Java |
 | `19132` | TCP + UDP | Minecraft Bedrock (Geyser) |
 | `19133` | UDP | Minecraft Bedrock récent (NetherNet) |
+| `25` | TCP | SMTP entrant (si `MAIL_ENABLED=true`) |
+| `110` | TCP | POP3 (si `MAIL_ENABLED=true`) |
+| `143` | TCP | IMAP (si `MAIL_ENABLED=true`) |
+| `465` | TCP | SMTP sécurisé (si `MAIL_ENABLED=true`) |
+| `587` | TCP | Soumission SMTP (si `MAIL_ENABLED=true`) |
+| `993` | TCP | IMAPS (si `MAIL_ENABLED=true`) |
+| `995` | TCP | POP3S (si `MAIL_ENABLED=true`) |
+| `4190` | TCP | ManageSieve (si `MAIL_ENABLED=true`) |
 
 Sans les ports `80` et `443`, les certificats HTTPS ne peuvent pas être créés.
+Les ports mail ne sont ouverts par `install.sh` que si `MAIL_ENABLED=true`
+dans `.env`.
 
 > `MINECRAFT_RCON_PORT` n'est pas ouvert dans UFW et Docker ne le publie pas
 > sur l'hôte : il reste utilisé sur le réseau interne. Le port `8080`

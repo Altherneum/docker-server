@@ -35,6 +35,7 @@ DOMAIN_NAME=""
 TLD=""
 DOMAIN=""
 BACKUP_DIR=""
+MAIL_ENABLED=""
 
 # Variables remplies pendant l'exécution.
 OS_ID=""
@@ -68,6 +69,10 @@ load_security_config() {
     MINECRAFT_PORT=$(read_env MINECRAFT_PORT)
     EXTRA_TCP=$(read_env HARDEN_EXTRA_TCP)
     EXTRA_UDP=$(read_env HARDEN_EXTRA_UDP)
+
+    # Mailcow : ouvrir les ports mail dans UFW si demandé.
+    MAIL_ENABLED=$(read_env MAIL_ENABLED)
+    MAIL_ENABLED=${MAIL_ENABLED:-false}
 
     # Notifications Discord.
     DISCORD_WEBHOOK_SSH=$(read_env DISCORD_WEBHOOK_SSH)

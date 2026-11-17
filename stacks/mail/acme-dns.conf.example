@@ -1,0 +1,28 @@
+# =============================================================================
+# Secrets DNS-01 pour acme.sh / mailcow
+#
+# Copiez ce fichier hors du dépôt, par exemple :
+#   sudo cp stacks/mail/acme-dns.conf.example /root/mailcow-dns-01.conf
+#   sudo chmod 600 /root/mailcow-dns-01.conf
+#   sudo nano /root/mailcow-dns-01.conf
+#
+# Puis dans .env :
+#   MAIL_ACME_DNS_CHALLENGE=true
+#   MAIL_ACME_DNS_PROVIDER=dns_cf
+#   MAIL_ACME_DNS_CONFIG_FILE=/root/mailcow-dns-01.conf
+#
+# Documentation des variables : https://github.com/acmesh-official/acme.sh/wiki/dnsapi
+# =============================================================================
+
+# --- Cloudflare (MAIL_ACME_DNS_PROVIDER=dns_cf) -----------------------------
+CF_Token=
+#CF_Account_ID=
+#CF_Zone_ID=
+
+# --- OVH (MAIL_ACME_DNS_PROVIDER=dns_ovh) -----------------------------------
+#OVH_AK=
+#OVH_AS=
+#OVH_CK=
+
+# --- Gandi (MAIL_ACME_DNS_PROVIDER=dns_gandi_livedns) -----------------------
+#GANDI_LIVE_API_KEY=
