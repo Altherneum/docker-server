@@ -273,6 +273,66 @@ sudo make up-service SERVICE=mc-plugins
 sudo make up
 ```
 
+## Performances
+
+La configuration Paper livrée est réglée pour un VPS de **6 vCPU** avec 3 à 4
+serveurs Paper en parallèle (velocity + hub, puis skyblock et survie).
+
+| Réglage | Valeur | Pourquoi |
+|---|---|---|
+| `chunk-system.worker-threads` | `2` | 2 threads de génération par serveur : avec 3 serveurs actifs, les threads de chunks ne prennent pas toute la machine et les threads principaux restent réactifs |
+| `chunk-system.io-threads` | `2` | lecture/écriture des chunks, largement suffisant sur disque local |
+| `chunk-loading-basic.player-max-chunk-generate-rate` | `25.0` | une création d'île ou une arrivée ne peut pas monopoliser la génération de chunks au détriment des autres joueurs |
+
+À éviter : augmenter `worker-threads` pour « aller plus vite ». Les threads de
+chunks sont gourmands en CPU ; au-delà de 2 par serveur sur ce VPS, les threads
+principaux sont affamés et le serveur paraît bloqué (tick spikes, watchdog).
+
+Côté mémoire, avec ~8 Go disponibles pour Minecraft, `MINECRAFT_MEMORY_HUB=1G`
+suffit, et `MINECRAFT_MEMORY_SKYBLOCK` / `MINECRAFT_MEMORY_SURVIE` peuvent être
+montés à `2G` pour limiter les pauses GC quand beaucoup d'îles sont chargées.
+
+> `paper-global.yml` n'est copié dans `/data/config/` qu'au **premier**
+> démarrage d'un serveur. Sur une installation existante, reporter les valeurs
+> dans `/data/config/paper-global.yml` (ou supprimer ce fichier puis redémarrer
+> pour repartir de la version de l'image).
+
+## Tester le plugin en local
+
+Le dépôt du plugin fournit un script qui compile le plugin et lance un serveur
+Paper hors-ligne dans Docker, sans toucher à la production :
+
+- Script : <https://github.com/Altherneum/plugin/blob/main/scripts/test-local.sh>
+- Dépôt : <https://github.com/Altherneum/plugin>
+
+```sh
+git clone https://github.com/Altherneum/plugin
+cd plugin
+./scripts/test-local.sh
+```
+
+Le script réutilise la configuration et les cartes de ce dépôt
+(`stacks/minecraft/paper/config/paper-global.yml` et
+`maps/<Carte>/Spawn.zip`) s'il les trouve dans `~/repo/docker-server` ; sinon il
+démarre avec la configuration Paper par défaut et un monde superflat
+(`DOCKER_SERVER_DIR=/chemin/vers/docker-server` pour forcer le chemin).
+
+Le type de serveur se choisit avec `--server` (`hub`, `skyblock`, `survie`,
+`creatif`, `anarchie`, `rpg`, `opprison`, `test`) :
+
+```sh
+./scripts/test-local.sh --server hub
+./scripts/test-local.sh --server survie --port 25566
+```
+
+Le script installe la carte et les structures correspondantes (spawn_SB,
+spawn_Survie, spawn_OPPrison, mine, Island) depuis ce dépôt et
+`~/repo/server/Serveurs/DataFolder`. Le type est transmis au plugin par
+`SERVER_NAME` : le port ne sert qu'à se connecter.
+
+Prérequis sur la machine de dev : Docker, Maven + JDK 21, Python 3, curl,
+unzip. Détails, options et déroulé du test : voir le README du dépôt plugin.
+
 ## Sauvegarde
 
 `make backup` archive les mondes des serveurs Paper, les données partagées du
