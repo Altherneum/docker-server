@@ -166,10 +166,10 @@ Créez les autres enregistrements dans la zone DNS du domaine :
 | Type | Nom | Valeur | Contexte (Ancien / actuel) |
 |---|---|---|---|
 | `A` | `mail` | `<IP du VPS>` | `164.68.104.65` |
-| `MX` | `@` | `mail.altherneum.fr.` priorité `10` | `mail.altherneum.fr.` |
-| `TXT` | `@` | `v=spf1 mx ~all` | `?CheckEnCours?`/`v=spf1 a mx ip4:45.159.229.139 include:contabo.com ~all` |
-| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ci-dessous) | `à faire` |
-| `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | `v=DMARC1; p=none; rua=mailto:postmaster@altherneum.fr; adkim=r; aspf=r` |
+| `MX` | `@` | `10 mail.altherneum.fr.` | `10 mail.altherneum.fr.` |
+| `TXT` | `@` | `v=spf1 mx ~all` | `v=spf1 a mx ip4:45.159.229.139 include:contabo.com ~all` (à remplacer après check full OK (ToDo)) |
+| `TXT` | `dkim._domainkey` | valeur affichée par : `sudo make mail-dkim-key` | `v=DKIM1; k=rsa; t=s; s=email; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyPL8bclvt81eXd/ss0TbHtpjgby7CKYJmw41JCA+yz8R7pnCbWo1X3wqTnZ0RghY6Nhs5Pzwsx6pcBzxBmz07E4FSlxr1uL7YOmmGwJfP7+fSX0Uw4z6+uGv/gE4D7z6ShoSotoKsMJANRt5NegWxTm9CrWvm/JAs/8wgF2TZRGZUCvFrlU7po2i0mcE1VWZPr1x3gGAfWPqcmjrZAnfEeqkjKHub7riGLZfBIFaXrdhAMMR9YXk0ptUlatkRfJDNM9vfSMG9q7qNK6hf9NFudwjxYbJ+spdQFGbwsZ+b384yyegQqMZ8WndSkUXaefa7y0G4Bm5vMphueQ92dy5hwIDAQAB` |
+| `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr; adkim=r; aspf=r` | `v=DMARC1; p=none; rua=mailto:postmaster@altherneum.fr; adkim=r; aspf=r` |
 
 > Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
 > `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
