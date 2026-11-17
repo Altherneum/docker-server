@@ -61,10 +61,13 @@ sudo git clone https://github.com/Altherneum/docker-server.git /opt/docker-serve
 
 Exemple minimal d'enregistrements DNS :
 
-| Type | Nom | Valeur |
-|---|---|---|
-| `A` | `@` | `<IP du VPS>` |
-| `CNAME` | `*` | `<DOMAIN_NAME><TLD>.` |
+| Type | Nom | Valeur | Contexte (Ancien / actuel) |
+|---|---|---|---|
+| `A` | `@` | `<IPv4 du VPS>` | `164.68.104.65` |
+| `AAAA` | `@` | `<IPv6 du VPS>` | `2a02:c207:2371:8155:0000:0000:0000:0001` |
+| `CNAME` | `*` | `<DOMAIN_NAME><TLD>.` | `altherneum.fr.` |
+| `CNAME` | `www` | `<DOMAIN_NAME><TLD>.` | `altherneum.fr.` |
+| `CAA` | `@` | `0 issue "letsencrypt.org"` | Cela permet de renforcer la sécurité en limitant le risque d'émission de certificats frauduleux ou non autorisés par d'autres fournisseurs. |
 
 #### Utilisez votre copie d'un .env
 
@@ -160,13 +163,13 @@ le réutilise automatiquement pour SMTP/IMAP.
 
 Créez les autres enregistrements dans la zone DNS du domaine :
 
-| Type | Nom | Valeur |
-|---|---|---|
-| `A` | `mail` | `<IP du VPS>` |
-| `MX` | `@` | `mail.altherneum.fr.` priorité `10` |
-| `TXT` | `@` | `v=spf1 mx ~all` |
-| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ci-dessous) |
-| `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` |
+| Type | Nom | Valeur | Contexte (Ancien / actuel) |
+|---|---|---|---|
+| `A` | `mail` | `<IP du VPS>` | `164.68.104.65` |
+| `MX` | `@` | `mail.altherneum.fr.` priorité `10` | `mail.altherneum.fr.` |
+| `TXT` | `@` | `v=spf1 mx ~all` | `?CheckEnCours?`/`v=spf1 a mx ip4:45.159.229.139 include:contabo.com ~all` |
+| `TXT` | `dkim._domainkey` | valeur affichée par `sudo make mail-dkim-key` (ci-dessous) | `à faire` |
+| `TXT` | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@altherneum.fr` | `v=DMARC1; p=none; rua=mailto:postmaster@altherneum.fr; adkim=r; aspf=r` |
 
 > Optionnel : `CNAME autodiscover` et `CNAME autoconfig` vers
 > `mail.altherneum.fr.` aident Outlook et Thunderbird à trouver les réglages
