@@ -32,7 +32,7 @@ sous-domaines arrivent sur Traefik.
 | `CNAME` | `*` | `altherneum.fr.` | **obligatoire** | tous les sous-domaines |
 | `CNAME` | `www` | `altherneum.fr.` | recommandé | rend `www` explicite |
 | `CNAME` | `git.arch` | `altherneum.fr.` | recommandé | nom à deux niveaux |
-| `CAA` | `@` | `0 issue "letsencrypt.org"` | recommandé | autorise Let's Encrypt |
+| `CAA` | `@` | `0 issue letsencrypt.org` | recommandé | autorise Let's Encrypt |
 
 Remarques :
 

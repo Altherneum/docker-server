@@ -67,7 +67,7 @@ Exemple minimal d'enregistrements DNS :
 | `AAAA` | `@` | `<IPv6 du VPS>` | `2a02:c207:2371:8155:0000:0000:0000:0001` |
 | `CNAME` | `*` | `<DOMAIN_NAME><TLD>.` | `altherneum.fr.` |
 | `CNAME` | `www` | `<DOMAIN_NAME><TLD>.` | `altherneum.fr.` |
-| `CAA` | `@` | `0 issue "letsencrypt.org"` | Cela permet de renforcer la sécurité en limitant le risque d'émission de certificats frauduleux ou non autorisés par d'autres fournisseurs. |
+| `CAA` | `@` | `0 issue letsencrypt.org` | Cela permet de renforcer la sécurité en limitant le risque d'émission de certificats frauduleux ou non autorisés par d'autres fournisseurs. |
 
 #### Utilisez votre copie d'un .env
 
