@@ -73,6 +73,8 @@ services:
       FLOODGATE_VERSION: ${FLOODGATE_VERSION}
     volumes:
       - mc-plugins:/plugins
+      # Structures du plugin (données communes), déposées une seule fois
+      - mc-plugin-data:/plugin/DataFolder
     networks:
       - proxy # accès Internet pour les téléchargements
 

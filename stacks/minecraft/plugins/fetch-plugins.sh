@@ -44,6 +44,26 @@ fetch_if_needed \
     "https://github.com/Altherneum/plugin/releases/download/v.${PLUGIN_VERSION}/plugin-1.0-fat.jar" \
     "$PAPER_DIR/Plugin-${PLUGIN_VERSION}.jar"
 
+# Structures du plugin maison (îles, spawns, mines) : ce sont des données, pas
+# des plugins. Elles vivent dans le volume partagé mc-plugin-data (monté ici sur
+# /plugin/DataFolder) et ne sont téléchargées que si elles sont absentes, pour
+# ne jamais écraser une structure retouchée en jeu. Même source que l'ancien
+# update.sh du dépôt server.
+STRUCTURES_DIR=/plugin/DataFolder/structures
+STRUCTURES_URL=https://raw.githubusercontent.com/Altherneum/server/main/Serveurs/DataFolder/structures
+mkdir -p "$STRUCTURES_DIR"
+for structure in spawn spawn_SB spawn_Survie spawn_OPPrison Island mine; do
+    if [ -f "$STRUCTURES_DIR/$structure.yml" ]; then
+        echo "✓ $structure.yml (déjà présent)"
+        continue
+    fi
+    echo "→ Téléchargement de $structure.yml"
+    curl -fsSL --retry 5 --retry-delay 2 \
+        -o "$STRUCTURES_DIR/$structure.yml.tmp" \
+        "$STRUCTURES_URL/$structure.yml"
+    mv "$STRUCTURES_DIR/$structure.yml.tmp" "$STRUCTURES_DIR/$structure.yml"
+done
+
 # ViaVersion
 fetch_if_needed \
     "https://github.com/ViaVersion/ViaVersion/releases/download/${VIAVERSION_VERSION}/ViaVersion-${VIAVERSION_VERSION}.jar" \
