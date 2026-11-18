@@ -154,7 +154,7 @@ mail-install: ## Installe mailcow (clone + configuration) si absent
 mail-setup: ensure-networks ensure-traefik ## Installe, démarre et configure mailcow en une commande
 	./scripts/mail-setup.sh
 
-mail-up: ensure-networks mail-install mail-integrate ## Démarre mailcow, certificat et vérification
+mail-up: ensure-networks ensure-traefik mail-install mail-integrate ## Démarre mailcow, certificat et vérification
 	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
 	@if [ "$$(id -u)" -eq 0 ]; then \
 		./scripts/mail-cert-timer.sh || echo "  timer certificat non installé (voir make mail-cert-timer)" >&2; \
