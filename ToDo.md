@@ -35,3 +35,31 @@
 | `mailcow` | ------------ | ------------------------------------ | à faire |
 | `mailcow` #1 | SPF & DKIM auto gen | Faire en sorte que les clées DKIM, SPF, etc soit check via dig, et si non existantes / mal configurés, créer via un script la clée et demander à l'admin d'ajouter ce qu'il faut sur le DNS pour correspondre | OK |
 | `mailcow` #1 | retry setup from scratch | Supprimer tout les volumes, images, et container mailcow, puis recloner / lancer le tout pour vérifier que l'install à blanc marche bien | à faire |
+
+# Mailcow test delete & re install
+```
+# 1. Sauvegarder .env et la clé DKIM
+cd /opt/docker-server
+git pull --rebase
+
+sudo cp .env /root/docker-server.env.bak
+sudo cp backups/dkim/altherneum.fr.pem /root/dkim-altherneum.fr.pem
+
+# 2. Supprimer mailcow et ses données
+cd /opt/mailcow-dockerized
+sudo docker compose down -v
+cd /
+sudo rm -rf /opt/mailcow-dockerized
+
+# 3. Remettre la clé DKIM
+cd /opt/docker-server
+sudo mkdir -p backups/dkim
+sudo cp /root/dkim-altherneum.fr.pem backups/dkim/altherneum.fr.pem
+sudo chmod 600 backups/dkim/altherneum.fr.pem
+
+# 4. Vérifier .env
+grep -E '^(DOMAIN_NAME|TLD|MAIL_ENABLED|MAIL_CREATE_KEYS|MAIL_DKIM_SELECTOR|MAIL_DKIM_PRIVATE_KEY_FILE|MAILCOW_DIR)=' .env
+
+# 5. Réinstaller
+sudo make mail-setup
+```
