@@ -10,7 +10,7 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `check-env.sh` | `make check-env` | Vérifie que `.env` contient les variables de base |
 | `ensure-networks.sh` | `make ensure-networks` | Crée les réseaux Docker externes manquants |
 | `ensure-auth.sh` | `make ensure-auth` | Génère les htpasswd manquants (appelé automatiquement par `up` / `up-service`) |
-| `php-site-src.sh` | `make php-site-src` / `php-site-env` | Clone le site PHP et génère son `.env` |
+| `php-site-src.sh` | `make php-site-src` / `php-site-env` | Clone ou met à jour le site PHP et génère son `.env` |
 | `forgejo-admin.sh` | `make forgejo-admin` | Crée le compte admin Forgejo (appelé automatiquement par `up` / `up-service`) |
 | `forgejo-runner.sh` | `make forgejo-runner` | Vérifie que le runner Forgejo Actions est enregistré et en ligne (appelé automatiquement par `up` / `up-service`) |
 | `forgejo-github-mirror.sh` | `make forgejo-mirror` | Importe les dépôts GitHub dans Forgejo, configure le miroir push et démarre la CI des dépôts importés (appelé automatiquement par `up` / `up-service`) ; sans `GITHUB_TOKEN`, code Git seul pour éviter le quota GitHub |

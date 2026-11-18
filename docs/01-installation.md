@@ -233,7 +233,7 @@ Toutes les commandes se lancent depuis la racine du dépôt.
 | `sudo make mail-mailboxes` | Crée les boîtes de base (admin, contact, root, ...) |
 | `sudo make mail-down` | Arrête mailcow |
 | `sudo make mail-logs` | Suit les logs de mailcow |
-| `sudo make php-site-src` | Met à jour le dépôt du site PHP |
+| `sudo make php-site-src` | Clone ou met à jour le dépôt du site PHP |
 
 La liste complète est disponible dans [Commandes](03-commandes.md).
 

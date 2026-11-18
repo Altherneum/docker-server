@@ -55,6 +55,25 @@ Après une reconstruction, redémarrez les services concernés :
 sudo make up
 ```
 
+## Mettre à jour les images de base
+
+Les targets `php-base`, `mariadb-base`, `postgres-base` et `paper-base`
+utilisent `docker build --pull` : `make base` récupère donc la dernière version
+des images officielles (Alpine, MariaDB, PostgreSQL, Temurin) avant de
+reconstruire.
+
+```sh
+sudo make backup
+sudo make base
+sudo make rebuild-service SERVICE=db-php
+```
+
+Un conteneur déjà créé garde l'ancienne image : recréez chaque service qui
+utilise l'image de base (`php-site`, `azuriom`, `db-php`, `db-azuriom`,
+`db-nextcloud`, `db-forgejo`, `mc-*`). Une mise à jour de version majeure
+(MariaDB, PostgreSQL) demande en plus une migration des données : sauvegardez
+avant.
+
 ## Bon à savoir
 
 - Les services utilisent `ensure-base` : si une image de base manque, elle est

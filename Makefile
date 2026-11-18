@@ -36,7 +36,7 @@ traefik-reload: ## Redémarre Traefik pour recharger les htpasswd (sans rebuild)
 build: base ## Construit les images de base puis celles des stacks
 	$(COMPOSE) build
 
-php-site-src: ## Clone le dépôt website dans stacks/web/php-site/src
+php-site-src: ## Clone ou met à jour le dépôt website dans stacks/web/php-site/src
 	./scripts/php-site-src.sh
 
 php-site-env: ## Régénère stacks/web/php-site/src/.env depuis .env
@@ -46,13 +46,13 @@ php-base: ## Construit uniquement l'image de base PHP/Apache
 	docker build --pull --no-cache -t php-apache:latest images/php-apache
 
 mariadb-base: ## Construit uniquement l'image de base MariaDB
-	docker build -t mariadb:11.8 images/mariadb
+	docker build --pull -t mariadb:11.8 images/mariadb
 
 postgres-base: ## Construit uniquement l'image de base PostgreSQL
-	docker build -t postgres:18 images/postgres
+	docker build --pull -t postgres:18 images/postgres
 
 paper-base: ## Construit l'image commune des serveurs Paper
-	docker build -t paper:1.21.11 stacks/minecraft/paper
+	docker build --pull -t paper:1.21.11 stacks/minecraft/paper
 
 base: php-base mariadb-base postgres-base paper-base ## Construit toutes les images de base
 

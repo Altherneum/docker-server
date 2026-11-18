@@ -1,6 +1,8 @@
 #!/bin/sh
-# Clone le dépôt du site PHP dans stacks/web/php-site/src et génère son .env.
-# Idempotent : un clone existant et un .env existant sont conservés.
+# Clone ou met à jour le dépôt du site PHP dans stacks/web/php-site/src,
+# puis génère son .env.
+# Idempotent : un clone existant est mis à jour (git pull --rebase) et un
+# .env existant est conservé.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -21,8 +23,30 @@ REPO_URL=${REPO_URL:-https://github.com/Altherneum/website.git}
 REPO_REF=$(get_env PHP_SITE_REPO_REF)
 REPO_REF=${REPO_REF:-main}
 
+# Met à jour un clone existant. Un dépôt modifié localement, une coupure
+# réseau ou un conflit n'empêchent pas le démarrage : un avertissement est
+# affiché et le code déjà présent reste utilisé.
+update_src() {
+    if [ -n "$(git -C "$SRC" status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+        echo "! modifications locales dans $SRC : mise à jour ignorée" >&2
+        echo "  committez ou annulez-les, puis relancez make php-site-src" >&2
+        return 0
+    fi
+
+    echo "→ mise à jour de $SRC ($REPO_REF)"
+    if git -C "$SRC" pull --rebase --quiet; then
+        echo "  ✓ $(git -C "$SRC" log -1 --format='%h %s')"
+    else
+        # Un conflit de rebase laisserait le dépôt dans un état bloquant.
+        git -C "$SRC" rebase --abort >/dev/null 2>&1 || true
+        echo "! git pull --rebase a échoué : le code existant est conservé" >&2
+        echo "  vérifiez l'accès réseau à $REPO_URL, puis relancez make php-site-src" >&2
+    fi
+}
+
 if [ -d "$SRC/.git" ]; then
     echo "→ site PHP déjà cloné : $SRC"
+    update_src
 else
     if [ -d "$SRC" ] && [ -n "$(find "$SRC" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
         echo "Erreur : $SRC existe mais n'est pas un dépôt Git." >&2

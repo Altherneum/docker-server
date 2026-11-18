@@ -61,10 +61,11 @@ sudo make stop SERVICE=db-php
 
 ## Code source
 
-Le site est cloné dans `stacks/web/php-site/src` :
+Le site est cloné dans `stacks/web/php-site/src` et mis à jour par la même
+commande :
 
 ```sh
-sudo make php-site-src      # clone si absent
+sudo make php-site-src      # clone si absent, sinon git pull --rebase
 sudo make php-site-env      # régénère src/.env depuis .env
 ```
 
@@ -74,9 +75,17 @@ l'archive pas : sauvegardez-le séparément ou poussez vos modifications dans Gi
 Pour mettre à jour le site, utilisez `/api/deploy` ou :
 
 ```sh
-cd stacks/web/php-site/src
-git pull
+cd /opt/docker-server
+sudo make php-site-src
 ```
+
+Le code est monté dans le conteneur (`./src:/var/www/html`) et lu à chaque
+requête : aucun rebuild ni redémarrage n'est nécessaire.
+
+Le pull est aussi lancé par `make up` et `make up-service SERVICE=php-site`. Il
+est ignoré, avec un avertissement, si le clone contient des modifications
+locales : committez ou annulez-les avant de relancer. En cas d'échec réseau, le
+code déjà présent reste utilisé et le démarrage n'est pas bloqué.
 
 ## Nettoyer
 

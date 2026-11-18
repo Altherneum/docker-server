@@ -48,7 +48,7 @@ sudo make services      # liste les noms de services
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--reset-stuck` | Supprime les dépôts bloqués en migration |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--run-actions` | Démarre la CI des dépôts déjà présents, sans les réimporter |
 | `sudo make forgejo-mirror FORGEJO_MIRROR_ARGS=--force=depot` | Réimporte un dépôt après suppression (destructif) |
-| `sudo make php-site-src` | Met à jour le dépôt du site PHP |
+| `sudo make php-site-src` | Clone ou met à jour le dépôt du site PHP (`git pull --rebase`) |
 | `sudo make mail-install` | Clone et configure Mailcow si absent |
 | `sudo make mail-setup` | Installe, démarre et configure Mailcow en une commande |
 | `sudo make mail-integrate` | Prépare l'override Traefik, le réseau et la clé API de mailcow, vérifie le flux webmail |
@@ -139,12 +139,16 @@ Un volume partagé avec un autre service est conservé automatiquement.
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |
 | `Dockerfile` ou code embarqué dans l'image | `sudo make up-service SERVICE=nom` |
 | Image récalcitrante / cache Docker | `sudo make rebuild-service SERVICE=nom` |
-| Code du site PHP | `/api/deploy` ou `sudo make php-site-src` |
+| Code du site PHP | `git -C stacks/web/php-site/src pull --rebase` (ou `/api/deploy`) |
 
 `make restart-service` ne fait que redémarrer le conteneur existant : il ne
 reconstruit pas l'image et ne réapplique pas les variables de `.env`.
 Utiliser `up-service` par défaut, et `rebuild-service` uniquement si Docker
 semble réutiliser une image ou un cache obsolète.
+
+Pour la procédure complète après un `git pull --rebase` (images de base,
+registres, Minecraft, Mailcow, ordre de redémarrage), voir
+[Mise à jour](../README.md#mise-à-jour).
 
 ## Traefik et basic auth
 
