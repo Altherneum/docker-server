@@ -29,9 +29,9 @@ services:
       traefik.http.routers.mailcow-webmail.tls.certResolver: "letsencrypt"
       traefik.http.routers.mailcow-webmail.middlewares: "mailcow-webmail,secure-headers@file"
       traefik.http.routers.mailcow-webmail.service: "mailcow"
-      traefik.http.middlewares.mailcow-webmail.redirectRegex.regex: "^https://(webmail|mails)[.]@@DOMAIN_REGEX@@/(.*)$"
-      traefik.http.middlewares.mailcow-webmail.redirectRegex.replacement: "https://@@MAILCOW_HOSTNAME@@/SOGo/$${1}"
-      traefik.http.middlewares.mailcow-webmail.redirectRegex.permanent: "true"
+      traefik.http.middlewares.mailcow-webmail.redirectRegex.regex: "^https://(webmail|mails)[.]@@DOMAIN_REGEX@@/.*$"
+      traefik.http.middlewares.mailcow-webmail.redirectRegex.replacement: "https://@@MAILCOW_HOSTNAME@@/SOGo/"
+      traefik.http.middlewares.mailcow-webmail.redirectRegex.permanent: "false"
 
 networks:
   proxy:
