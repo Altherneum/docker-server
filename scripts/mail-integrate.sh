@@ -190,6 +190,11 @@ sed \
 
 mail_info "override écrit dans $MAILCOW_DIR/docker-compose.override.yml"
 
+# Le bouton Webmail de mailcow pointe sur /SOGo/so (SSO faillible, 401 + ban
+# fail2ban) : on le remplace par /SOGo/.
+mail_info "URL du webmail"
+"$SCRIPT_DIR/mail-webmail-url.sh"
+
 # Valide le merge Compose avant de laisser l'utilisateur démarrer mailcow.
 if ! config_err=$( cd "$MAILCOW_DIR" && docker compose -f docker-compose.yml -f docker-compose.override.yml config 2>&1 >/dev/null ); then
     printf '%s\n' "$config_err" >&2

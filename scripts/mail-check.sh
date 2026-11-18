@@ -269,6 +269,13 @@ if [ -f "$MAILCOW_CONF" ]; then
     else
         fail "override ne route pas MAILCOW_HOSTNAME=$hostname (relancez make mail-integrate)"
     fi
+    if [ -f "$MAILCOW_DIR/data/web/inc/vars.inc.php" ]; then
+        if grep -Fq "'/SOGo/so'" "$MAILCOW_DIR/data/web/inc/vars.inc.php"; then
+            warn "lien Webmail mailcow non corrigé (relancez make mail-integrate)"
+        else
+            ok "lien Webmail mailcow : /SOGo/"
+        fi
+    fi
     if command -v getent >/dev/null 2>&1; then
         if getent ahostsv4 "$hostname" >/dev/null 2>&1; then
             ok "DNS : $hostname résout"

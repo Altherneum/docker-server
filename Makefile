@@ -6,7 +6,7 @@ FORGEJO_MIRROR_ARGS ?=
 
 .PHONY: help init check-env ensure-networks ensure-auth ensure-traefik build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
-        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-check mail-dkim mail-dkim-key mail-mailboxes mail-install mail-setup mail-up mail-down mail-logs mail-cert-sync mail-cert-timer clean clean-service down-clean down-clean-service \
+        forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-check mail-dkim mail-dkim-key mail-mailboxes mail-install mail-setup mail-up mail-down mail-logs mail-cert-sync mail-cert-timer mail-webmail-url clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service up-service-generic rebuild-service down-service \
         ps-service services azuriom-seed
 
@@ -138,6 +138,9 @@ mail-cert-sync: ## Copie le certificat Traefik vers mailcow (SMTP/IMAP)
 
 mail-cert-timer: ## Installe le timer systemd de synchro du certificat
 	./scripts/mail-cert-timer.sh
+
+mail-webmail-url: ## Corrige le lien Webmail de mailcow (/SOGo/)
+	./scripts/mail-webmail-url.sh
 
 mail-dkim: ## Crée/importe la clé DKIM et affiche le TXT DNS
 	./scripts/mail-dkim.sh

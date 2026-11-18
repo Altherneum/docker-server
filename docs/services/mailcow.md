@@ -9,6 +9,11 @@
 **Webmail :** `https://webmail.<domaine>` ou `https://mails.<domaine>`  
 **Exemple :** `https://mail.altherneum.fr`
 
+> Le bouton « Webmail » de l'interface mailcow pointe par défaut vers
+> `/SOGo/so` (SSO). `make mail-integrate` le remplace par `/SOGo/` pour éviter
+> les 401 et les bans fail2ban. Après une mise à jour de mailcow, relancez
+> `sudo make mail-integrate` (ou `sudo make mail-webmail-url`).
+
 ## En bref
 
 1. `.env` : `DOMAIN_NAME`, `TLD`, `MAIL_ENABLED=true`.
