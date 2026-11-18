@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
       args:
         FORGEJO_VERSION: ${FORGEJO_VERSION}
+        # Miroir officiel par défaut : codeberg.org est souvent injoignable.
+        FORGEJO_REGISTRY: ${FORGEJO_REGISTRY:-data.forgejo.org}
     image: forgejo:${FORGEJO_VERSION}
     container_name: forgejo
     restart: unless-stopped

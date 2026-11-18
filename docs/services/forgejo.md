@@ -48,6 +48,7 @@ utilisez un autre nom, par exemple `monprojet`.
 | Variable | Rôle |
 |---|---|
 | `FORGEJO_VERSION` | Version de Forgejo |
+| `FORGEJO_REGISTRY` | Registre de l'image : `data.forgejo.org` (défaut, miroir officiel) ou `codeberg.org` |
 | `FORGEJO_DB_NAME` | Nom de la base |
 | `FORGEJO_DB_USER` | Utilisateur de la base |
 | `FORGEJO_DB_PASSWORD` | Mot de passe de la base |
@@ -71,6 +72,11 @@ redémarrez :
 ```sh
 sudo make up-service SERVICE=forgejo
 ```
+
+Le registre de l'image est configurable avec `FORGEJO_REGISTRY`. Le défaut
+`data.forgejo.org` évite les erreurs `tls: handshake failure` du registre
+`codeberg.org` (voir
+[Codeberg et make build](../06-depannage.md#codeberg-et-make-build)).
 
 ## Démarrer / arrêter
 

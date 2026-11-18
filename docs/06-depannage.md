@@ -69,6 +69,51 @@ sudo make logs-service SERVICE=traefik
 Let's Encrypt limite le nombre de certificats. En cas de tests répétés, utilisez
 le serveur de test Let's Encrypt via `TRAEFIK_ACME_CA_SERVER` dans `.env`.
 
+## Codeberg et make build
+
+Symptôme : `make build` s'arrête sur Forgejo avec une erreur TLS.
+
+```text
+target forgejo: failed to solve: codeberg.org/forgejo/forgejo:16.0.6:
+failed to resolve source metadata ...: remote error: tls: handshake failure
+```
+
+La version demandée n'est pas en cause : le registre `codeberg.org` est
+injoignable ou sature (l'erreur vient de Codeberg, pas de votre configuration).
+
+Le dépôt utilise par défaut le miroir officiel de Forgejo. Vérifiez la variable
+dans `.env` :
+
+```dotenv
+FORGEJO_REGISTRY=data.forgejo.org
+```
+
+- `data.forgejo.org` : miroir officiel (défaut) ;
+- `code.forgejo.org` : autre nom du même miroir ;
+- `codeberg.org` : registre principal, à réserver aux moments où il répond.
+
+Après modification de `.env` :
+
+```sh
+sudo make up-service SERVICE=forgejo
+```
+
+Pour éviter de reconstruire toutes les images quand un seul registre est
+indisponible, utilisez `make up-service SERVICE=nom` : seul le service demandé
+est construit.
+
+Diagnostic :
+
+```sh
+curl -I https://codeberg.org/v2/
+docker pull data.forgejo.org/forgejo/forgejo:16.0.6
+```
+
+> Mettre à jour le site PHP ne nécessite aucun `make build` : `sudo make
+> php-site-src` clone ou met à jour le code monté depuis
+> `stacks/web/php-site/src`. Voir
+> [Mettre à jour le site PHP](../README.md#mettre-à-jour-le-site-php).
+
 ## `port is already allocated`
 
 Un autre programme utilise déjà le port `80`, `443` ou `25565`.
