@@ -227,7 +227,7 @@ Toutes les commandes se lancent depuis la racine du dépôt.
 | `sudo make mail-setup` | Installe, démarre et configure Mailcow en une commande |
 | `sudo make mail-integrate` | Prépare l'override Traefik et la clé API mailcow |
 | `sudo make mail-check` | Vérifie que mailcow peut démarrer |
-| `sudo make mail-up` | Installe si besoin et démarre mailcow |
+| `sudo make mail-up` | Démarre mailcow, installe le timer, synchronise le certificat et vérifie |
 | `sudo make mail-dkim` | Crée/importe la clé DKIM et affiche le TXT DNS |
 | `sudo make mail-dkim-key` | Pré-génère la clé DKIM avant l'installation de mailcow |
 | `sudo make mail-mailboxes` | Crée les boîtes de base (admin, contact, root, ...) |

@@ -49,7 +49,8 @@ Cette commande unique :
 - crée les boîtes de base et lance `mail-check`.
 
 `sudo make up-service SERVICE=mailcow` fait la même chose. `sudo make mail-up`
-installe si besoin et démarre, sans recréer les boîtes ni la clé DKIM.
+installe si besoin, démarre, installe le timer du certificat, synchronise le
+certificat et lance la vérification, sans recréer les boîtes ni la clé DKIM.
 `sudo make mail-install` exécute seulement le clone et la configuration, sans
 démarrer.
 
@@ -329,15 +330,16 @@ openssl s_client -connect mail.<domaine>:993 -servername mail.<domaine> </dev/nu
 ```sh
 sudo make mail-setup                   # installation + DKIM + boîtes
 sudo make up-service SERVICE=mailcow   # alias de mail-setup
-sudo make mail-up                      # démarrage / redémarrage seul
+sudo make mail-up                      # démarre + timer + certificat + vérification
 sudo make mail-logs
 sudo make mail-down
 ```
 
 `make mail-setup` installe Mailcow si nécessaire, prépare l'override Traefik,
 démarre la stack, importe la clé DKIM sans la régénérer et crée les boîtes de
-base. `make mail-up` installe si besoin et démarre uniquement la stack, sans
-toucher aux clés ni aux boîtes.
+base. `make mail-up` installe si besoin, démarre la stack, installe le timer du
+certificat, synchronise le certificat et lance la vérification, sans toucher aux
+clés ni aux boîtes.
 
 ## Configurer Azuriom, Forgejo et Nextcloud
 

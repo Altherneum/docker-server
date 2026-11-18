@@ -428,7 +428,7 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__mail-check__** : Vérifie que mailcow peut démarrer (réseau, ports, override)
 - **__mail-cert-sync__** : Copie le certificat Traefik vers mailcow (SMTP/IMAP)
 - **__mail-cert-timer__** : Installe le timer systemd de synchro du certificat
-- **__mail-up__** : Installe si besoin et démarre mailcow avec l'intégration Traefik
+- **__mail-up__** : Démarre mailcow, installe le timer, synchronise le certificat et vérifie
 - **__mail-dkim__** : Crée/importe la clé DKIM et affiche le TXT DNS
 - **__mail-dkim-key__** : Pré-génère la clé DKIM avant l'installation de mailcow
 - **__mail-mailboxes__** : Crée les boîtes de base (admin, contact, root, ...)
