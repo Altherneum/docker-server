@@ -273,6 +273,19 @@ sudo make up-service SERVICE=mc-plugins
 sudo make up
 ```
 
+Le tab en jeu affiche `Plugin : <version> (<date de compilation>)` : si la date
+ne correspond pas à la release, le jar n'a pas été remplacé.
+
+Les structures posées par le plugin (`Island.yml`, `spawn_*.yml`, `mine.yml`)
+doivent être présentes dans le volume `mc-plugin-data`, sous `structures/` :
+
+```sh
+docker exec mc-skyblock ls -la /DataFolder/structures/
+```
+
+Si un fichier manque, le plugin l'indique dans la console au moment de la
+construction (`Structure Island introuvable : /DataFolder/structures/Island.yml`).
+
 ## Performances
 
 La configuration Paper livrée est réglée pour un VPS de **6 vCPU** avec 3 à 4
