@@ -114,7 +114,8 @@ if [ ! -f "$MAILCOW_DIR/data/assets/ssl/cert.pem" ] || [ ! -f "$MAILCOW_DIR/data
     if [ -f "$MAILCOW_DIR/data/assets/ssl-example/cert.pem" ] && [ -f "$MAILCOW_DIR/data/assets/ssl-example/key.pem" ]; then
         for pem in "$MAILCOW_DIR/data/assets/ssl-example/"*.pem; do
             [ -f "$pem" ] || continue
-            cp -n "$pem" "$MAILCOW_DIR/data/assets/ssl/"
+            dest="$MAILCOW_DIR/data/assets/ssl/$(basename "$pem")"
+            [ -e "$dest" ] || cp "$pem" "$dest"
         done
     else
         openssl req -x509 -newkey rsa:4096 -sha256 -nodes -days 365 \

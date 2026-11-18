@@ -144,13 +144,29 @@ if command -v ufw >/dev/null 2>&1; then
     ufw_status=$(ufw status 2>/dev/null || true)
     case "$ufw_status" in
         *"Status: active"*)
+            allowed_ufw=""
+            while IFS= read -r line; do
+                case "$line" in
+                    *ALLOW*) ;;
+                    *) continue ;;
+                esac
+                to=$(printf '%s\n' "$line" | awk '{print $1}')
+                for item in $(printf '%s' "$to" | tr ',' ' '); do
+                    port_item=${item%%/*}
+                    case "$port_item" in
+                        ''|*[!0-9]*) continue ;;
+                    esac
+                    allowed_ufw="$allowed_ufw $port_item"
+                done
+            done <<EOF
+$ufw_status
+EOF
             missing_ufw=""
             for port in 80 443 25 110 143 465 587 993 995 4190; do
-                if printf '%s\n' "$ufw_status" | grep -qE "(^|[[:space:]])${port}/tcp([[:space:]]|$).*ALLOW"; then
-                    :
-                else
-                    missing_ufw="$missing_ufw $port"
-                fi
+                case " $allowed_ufw " in
+                    *" $port "*) ;;
+                    *) missing_ufw="$missing_ufw $port" ;;
+                esac
             done
             if [ -z "$missing_ufw" ]; then
                 ok "règles UFW présentes pour les ports web/mail"

@@ -54,6 +54,22 @@ mail_info "installation de Mailcow"
 mail_info "intégration Traefik"
 "$SCRIPT_DIR/mail-integrate.sh"
 
+mail_info "téléchargement des images Mailcow"
+pull_tries=3
+pull_ok=0
+while [ "$pull_tries" -gt 0 ]; do
+    if ( cd "$MAILCOW_DIR" && docker compose -f docker-compose.yml -f docker-compose.override.yml pull ); then
+        pull_ok=1
+        break
+    fi
+    pull_tries=$((pull_tries - 1))
+    if [ "$pull_tries" -gt 0 ]; then
+        mail_warn "téléchargement interrompu (réseau ?), nouvelle tentative..."
+        sleep 5
+    fi
+done
+[ "$pull_ok" -eq 1 ] || mail_die "téléchargement des images Mailcow impossible après 3 tentatives. Vérifiez la connexion (IPv4/IPv6) puis relancez sudo make mail-setup."
+
 mail_info "démarrage de Mailcow"
 (
     cd "$MAILCOW_DIR"
