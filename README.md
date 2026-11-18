@@ -13,6 +13,7 @@ La documentation complète pour débutants est dans [`docs/`](docs/README.md).
 | [Sécurisation de l'hôte](docs/07-securisation.md) | Compte admin, SSH, UFW, fail2ban, mises à jour |
 | [Configuration `.env`](docs/02-configuration-env.md) | Variables et mots de passe |
 | [Commandes](docs/03-commandes.md) | Démarrer, arrêter, nettoyer |
+| [Mise à jour](#mise-à-jour) | `git pull --rebase`, rebuild et relance par type de service |
 | [Accès et URL](docs/04-acces-et-urls.md) | Toutes les adresses |
 | [DNS](docs/08-dns.md) | Domaine, sous-domaines et certificats HTTPS |
 | [Sauvegarde](docs/05-backup-restore.md) | `make backup` / `make restore` |
@@ -389,7 +390,7 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - `sudo make up-service SERVICE=azuriom` : démarre un service ;
 - `sudo make rebuild-service SERVICE=bot` : reconstruit l'image sans cache puis recrée le service ;
 - `sudo make restart-service SERVICE=azuriom` : redémarre un service ;
-- `sudo CONFIRM=yes make clean-service SERVICE=azuriom` : supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**).
+- `sudo CONFIRM=yes make clean-service SERVICE=azuriom` : supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**) ; pour `php-site`, supprime aussi le code monté (`stacks/web/php-site/src`).
 
 ### Liste complète
 
@@ -401,7 +402,7 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__ensure-traefik__** : Reconstruit et recrée Traefik (manuel, après modification des templates)
 - **__traefik-reload__** : Redémarre Traefik pour recharger les htpasswd (sans rebuild)
 - **__build__** : Construit les images de base puis celles des stacks
-- **__php-site-src__** : Clone le dépôt website dans stacks/web/php-site/src
+- **__php-site-src__** : Clone ou met à jour le dépôt website dans stacks/web/php-site/src
 - **__php-site-env__** : Régénère stacks/web/php-site/src/.env depuis .env
 - **__php-base__** : Construit uniquement l'image de base PHP/Apache
 - **__mariadb-base__** : Construit uniquement l'image de base MariaDB
@@ -436,9 +437,9 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__mail-down__** : Arrête mailcow
 - **__mail-logs__** : Suit les logs de mailcow
 - **__clean__** : Supprime tous les conteneurs ET les volumes (**__DESTRUCTIF__**, `CONFIRM=yes`)
-- **__clean-service__** : Supprime un service ciblé, ses conteneurs et ses volumes exclusifs (**__DESTRUCTIF__**, `CONFIRM=yes`)
+- **__clean-service__** : Supprime un service ciblé, ses conteneurs et ses volumes exclusifs, ainsi que son code monté pour `php-site` (**__DESTRUCTIF__**, `CONFIRM=yes`)
 - **__down-clean__** : Arrête puis supprime tous les conteneurs ET les volumes (**__DESTRUCTIF__**, `CONFIRM=yes`)
-- **__down-clean-service__** : Arrête puis supprime un service ciblé et ses volumes exclusifs (**__DESTRUCTIF__**, `CONFIRM=yes`)
+- **__down-clean-service__** : Arrête puis supprime un service ciblé, ses volumes exclusifs et son code monté pour `php-site` (**__DESTRUCTIF__**, `CONFIRM=yes`)
 - **__stop__** : Arrête un service (ex: make stop `SERVICE=azuriom`)
 - **__rebuild-service__** : Reconstruit sans cache une image puis recrée un service (ex: make rebuild-service `SERVICE=bot`)
 - **__restart-service__** : Redémarre un service (ex: make restart-service `SERVICE=azuriom`)
@@ -447,6 +448,206 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__down-service__** : Arrête un service sans supprimer son conteneur (ex: `make down-service SERVICE=azuriom`)
 - **__ps-service__** : État d'un service (ex: make ps-service `SERVICE=azuriom`)
 - **__services__** : Liste tous les noms de services
+
+## Mise à jour
+
+Mettre à jour le dépôt ne met à jour ni les images ni les conteneurs : il faut
+choisir la bonne commande selon le type de service.
+
+| Commande | Effet réel |
+|---|---|
+| `cd /opt/docker-server/` ; `git pull --rebase` | Met à jour les fichiers du dépôt, rien d'autre |
+| `make up` | Démarre les conteneurs, **sans reconstruire** les images |
+| `make up-service SERVICE=nom` | Reconstruit l'image si besoin puis recrée le conteneur |
+| `make restart-service SERVICE=nom` | Redémarre le conteneur existant (ni rebuild, ni `.env`) |
+| `make rebuild-service SERVICE=nom` | Reconstruit sans cache puis recrée (images récalcitrantes) |
+| `make base` | Reconstruit les images de base (`php-apache`, `mariadb`, `postgres`, `paper`) |
+
+### 1. Récupérer la nouvelle version du dépôt
+
+```sh
+cd /opt/docker-server
+sudo git pull --rebase
+```
+
+`.env` n'est pas suivi par Git : `git pull` ne l'écrase jamais. Si le dépôt
+ajoute des variables, repérez-les puis recopiez-les à la main :
+
+```sh
+# variables présentes dans .env.example mais absentes de .env
+comm -23 <(grep -o '^[A-Z0-9_]*=' .env.example | sort -u) \
+         <(grep -o '^[A-Z0-9_]*=' .env | sort -u)
+```
+
+### 2. Sauvegarder avant les migrations
+
+```sh
+sudo make backup
+```
+
+Forgejo, Nextcloud, Azuriom et les bases de données appliquent des migrations
+de schéma au démarrage : une sauvegarde permet de revenir en arrière.
+
+### 3. Choisir la commande selon le type de service
+
+| Type de service | Exemples | Procédure |
+|---|---|---|
+| Code monté depuis l'hôte | `php-site` | `git pull --rebase` dans `stacks/web/php-site/src` (aucun rebuild) |
+| Image construite depuis un `Dockerfile` | `traefik`, `forgejo`, `forgejo-runner`, `azuriom`, `keeweb`, `meme`, `code-server`, `bot`, `fail2ban`, `velocity`, `mc-*` | `sudo make up-service SERVICE=nom` |
+| Image officielle tirée d'un registre | `nextcloud`, `nextcloud-cron`, `nextcloud-redis`, `phpmyadmin`, `dockhand`, `uptime-kuma`, `uptime-kuma-docker-proxy` | `docker compose --env-file .env pull SERVICE` puis `sudo make up-service SERVICE=nom` |
+| Image de base locale | `php-apache:latest`, `mariadb:11.8`, `postgres:18` | `sudo make base` puis recréer les services qui l'utilisent |
+| Conteneur d'initialisation unique | `mc-plugins` | `sudo make up-service SERVICE=mc-plugins` puis redémarrer les serveurs Paper |
+| Stack séparée | Mailcow | `sudo ./update.sh` dans `$MAILCOW_DIR` |
+| Fichiers de Traefik | templates, `.htpasswd` | `sudo make ensure-traefik` ou `sudo make traefik-reload` |
+
+### Mise à jour complète
+
+```sh
+cd /opt/docker-server
+sudo git pull --rebase
+sudo make backup
+sudo make base        # images de base (PHP, MariaDB, PostgreSQL)
+sudo make build       # images des stacks
+sudo make up          # recrée les conteneurs modifiés
+sudo make ps          # vérifie l'état
+```
+
+`make up` ne reconstruit rien : les services dont le `Dockerfile` a changé
+doivent passer par `make build`, et les serveurs Minecraft par
+`make up-service` (voir ci-dessous).
+
+`make build` construit toutes les images d'un coup : il échoue si un registre
+externe est indisponible (voir
+[Codeberg et make build](docs/06-depannage.md#codeberg-et-make-build)).
+Dans ce cas, utilisez `make up-service SERVICE=nom` service par service.
+
+### Mettre à jour le site PHP
+
+Le site PHP n'a pas besoin de rebuild : son code est un dossier monté
+(`stacks/web/php-site/src`), lu à chaque requête.
+
+```sh
+cd /opt/docker-server
+sudo git pull --rebase
+sudo make php-site-src      # git pull --rebase dans stacks/web/php-site/src
+```
+
+`make php-site-src` clone le dépôt s'il est absent, puis le met à jour
+(`git pull --rebase`). Il est aussi lancé automatiquement par `make up` et
+`make up-service SERVICE=php-site`. `/api/deploy` fait le même `git pull` (voir
+`WEBSITE_GIT_DEPLOY`).
+
+Le rebuild n'est utile que si l'image elle-même change (`Dockerfile`,
+`entrypoint.sh`, `apache.conf`) :
+
+```sh
+sudo make up-service SERVICE=php-site
+```
+
+À savoir :
+
+- un clone modifié localement n'est jamais écrasé : le script affiche un
+  avertissement et conserve le code en place (committez ou annulez les
+  modifications, puis relancez) ;
+- si GitHub est injoignable, le pull échoue sans bloquer le démarrage : le code
+  existant reste utilisé ;
+- après l'ajout de variables dans `.env`, `make php-site-env` régénère
+  `stacks/web/php-site/src/.env`.
+
+### Mettre à jour les serveurs Minecraft
+
+Les serveurs Paper recopient les JAR depuis le volume partagé `mc-plugins` à
+chaque démarrage : il faut donc deux étapes, dans cet ordre.
+
+```sh
+# 1. télécharge les nouveaux plugins dans le volume partagé
+sudo make up-service SERVICE=mc-plugins
+
+# 2. redémarre les serveurs pour qu'ils recopient les JAR
+sudo make restart-service SERVICE=mc-hub
+```
+
+`mc-plugins` est un conteneur d'initialisation (`restart: "no"`) : il s'arrête
+après le téléchargement, c'est normal. Pour tous les serveurs :
+
+```sh
+for s in mc-hub mc-survie mc-creatif mc-anarchie mc-rpg mc-skyblock mc-opprison mc-test; do
+    sudo make restart-service SERVICE=$s
+done
+```
+
+Après un changement de version dans `.env` (`PLUGIN_VERSION`,
+`VIAVERSION_VERSION`, `MEMORY`…), utilisez `up-service` à la place de
+`restart-service` pour recréer le conteneur avec les nouvelles variables.
+
+Pour Paper, Velocity ou les cartes de départ, l'image est reconstruite par
+`up-service` (la version Paper est fixée par les `ARG` de
+`stacks/minecraft/paper/Dockerfile`) :
+
+```sh
+sudo make up-service SERVICE=velocity
+sudo make up-service SERVICE=mc-hub
+```
+
+Les mondes sont conservés dans les volumes `mc-*-data`.
+
+### Mettre à jour les images de base et les bases de données
+
+```sh
+sudo make backup
+sudo make base
+sudo make rebuild-service SERVICE=db-php
+```
+
+Les services qui utilisent une image de base doivent être recréés un par un
+(`db-php`, `db-azuriom`, `db-nextcloud`, `php-site`, `azuriom`) : un conteneur
+déjà créé continue d'utiliser l'ancienne image.
+
+Ne montez jamais une base de données d'une version majeure à l'autre sans
+migration (par exemple MariaDB 11.8 → 12) : sauvegardez et suivez la
+documentation de l'éditeur.
+
+### Mettre à jour Forgejo
+
+```sh
+sudo make backup
+sudo make up-service SERVICE=forgejo
+```
+
+L'image applique les migrations de base de données au démarrage. Le runner et
+le miroir GitHub sont revérifiés automatiquement par la commande.
+
+### Mettre à jour Nextcloud
+
+Nextcloud ne peut monter que d'une version majeure à la fois (34 → 35, jamais
+33 → 35). Voir [Nextcloud](docs/services/nextcloud.md#mettre-à-jour-nextcloud).
+
+### Mettre à jour Mailcow
+
+Mailcow est une stack séparée avec son propre script de mise à jour (qui
+sauvegarde avant de tirer les nouvelles images) :
+
+```sh
+cd "$(sed -n 's/^MAILCOW_DIR=//p' /opt/docker-server/.env | tail -n1)"
+sudo ./update.sh
+```
+
+Puis vérifiez :
+
+```sh
+cd /opt/docker-server
+sudo make mail-check
+```
+
+### Vérifier après une mise à jour
+
+```sh
+sudo make ps
+sudo make logs-service SERVICE=nom
+```
+
+Les fiches de [docs/services/](docs/services/README.md) détaillent les
+particularités de chaque service (Nextcloud, Forgejo, Azuriom, Minecraft…).
 
 ## Services
 ### Bases
@@ -519,8 +720,8 @@ Les services communiquent via :
 - `sudo make down-service SERVICE=azuriom` - Arrêt d'un service sans supprimer son conteneur
 - `sudo make services` - Liste complète des services disponibles
 - `sudo CONFIRM=yes make clean` - Suppression complète des conteneurs et volumes
-- `sudo CONFIRM=yes make clean-service SERVICE=azuriom` - Suppression d'un service et de ses volumes
-- `sudo CONFIRM=yes make down-clean-service SERVICE=azuriom` - Arrêt puis suppression d'un service et de ses volumes
+- `sudo CONFIRM=yes make clean-service SERVICE=azuriom` - Suppression d'un service, de ses volumes et de son code monté (`php-site`)
+- `sudo CONFIRM=yes make down-clean-service SERVICE=azuriom` - Arrêt puis suppression d'un service, de ses volumes et de son code monté (`php-site`)
 
 Le rebuild de Traefik n'est plus automatique : `make up-service` ne redémarre
 pas Traefik. Les commandes à lancer pour un basic auth modifié sont détaillées

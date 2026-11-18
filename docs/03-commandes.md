@@ -79,8 +79,8 @@ affiche seulement une ligne de résumé.
 | `sudo make ps-service SERVICE=azuriom` | Affiche l'état d'un service |
 | `sudo make logs-service SERVICE=azuriom` | Suit les logs d'un service |
 | `sudo make down-service SERVICE=azuriom` | Arrête un service sans supprimer son conteneur |
-| `sudo CONFIRM=yes make clean-service SERVICE=azuriom` | Supprime le conteneur et ses volumes exclusifs |
-| `sudo CONFIRM=yes make down-clean-service SERVICE=azuriom` | Arrête puis supprime le service et ses volumes |
+| `sudo CONFIRM=yes make clean-service SERVICE=azuriom` | Supprime le conteneur, ses volumes exclusifs et son code monté (`php-site`) |
+| `sudo CONFIRM=yes make down-clean-service SERVICE=azuriom` | Arrête puis supprime le service, ses volumes et son code monté (`php-site`) |
 
 Exemple complet :
 
@@ -127,6 +127,13 @@ sudo CONFIRM=yes make clean-service SERVICE=php-site
 ```
 
 Un volume partagé avec un autre service est conservé automatiquement.
+
+Le site PHP a en plus du code monté depuis `stacks/web/php-site/src` (ce n'est
+pas un volume Docker et `make backup` ne le sauvegarde pas) :
+`make clean-service SERVICE=php-site` et
+`make down-clean-service SERVICE=php-site` suppriment aussi ce dossier, avec
+les uploads et `src/.env`. Le démarrage suivant reclone depuis
+`PHP_SITE_REPO_URL`.
 
 ## Redémarrer après une modification
 

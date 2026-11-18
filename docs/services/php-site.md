@@ -94,9 +94,20 @@ sudo CONFIRM=yes make clean-service SERVICE=php-site
 sudo CONFIRM=yes make clean-service SERVICE=db-php
 ```
 
-`clean-service php-site` supprime le conteneur, mais **pas** le dossier
-`stacks/web/php-site/src` (c'est un dossier monté, pas un volume Docker). Pour
-supprimer aussi le code et les uploads, effacez ce dossier manuellement.
+`clean-service php-site` supprime le conteneur **et** le dossier
+`stacks/web/php-site/src`, même s'il est monté depuis l'hôte et non déclaré
+comme volume Docker. Le code, les uploads et `src/.env` sont donc perdus :
+
+```sh
+sudo CONFIRM=yes make clean-service SERVICE=php-site
+sudo CONFIRM=yes make down-clean-service SERVICE=php-site
+```
+
+C'est la commande à utiliser après un changement de `PHP_SITE_REPO_URL` ou un
+transfert de dépôt : le dossier est supprimé, puis `make up-service
+SERVICE=php-site` (ou `make php-site-src`) le reclone depuis la nouvelle
+adresse. Si seul le dépôt a changé d'URL, `make php-site-src` aligne aussi le
+remote `origin` sur `PHP_SITE_REPO_URL` sans rien supprimer.
 
 La suppression de `db-php` efface la base. Le site la recrée au démarrage
 suivant si `WEBSITE_AUTO_INIT=true`.

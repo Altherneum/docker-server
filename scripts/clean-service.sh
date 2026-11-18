@@ -3,6 +3,8 @@
 # Supprime les conteneurs d'un service et les volumes nommés qui lui sont
 # exclusifs. Un volume partagé avec un autre service, ou encore utilisé par un
 # autre conteneur, est conservé.
+# Supprime aussi le code source monté depuis l'hôte quand le service en a un
+# (php-site : stacks/web/php-site/src).
 # =============================================================================
 set -eu
 
@@ -72,3 +74,17 @@ for volume in $VOLUMES; do
         echo "! volume conservé (utilisé par un autre conteneur) : $volume" >&2
     fi
 done
+
+# --- Code source monté depuis l'hôte ---------------------------------------
+# Ce ne sont pas des volumes Docker : `docker compose rm -v` ne les touche pas.
+# Seul le site PHP a du code source monté dans ce dépôt.
+SRC_DIR=
+case "$SERVICE" in
+    php-site) SRC_DIR="stacks/web/php-site/src" ;;
+esac
+
+if [ -n "$SRC_DIR" ] && [ -e "$SRC_DIR" ]; then
+    echo "→ suppression du code source monté : $SRC_DIR" >&2
+    echo "  (dépôt Git, uploads et $SRC_DIR/.env inclus ; make backup ne le sauvegarde pas)" >&2
+    rm -rf "$SRC_DIR"
+fi

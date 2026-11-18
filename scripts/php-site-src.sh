@@ -27,6 +27,17 @@ REPO_REF=${REPO_REF:-main}
 # réseau ou un conflit n'empêchent pas le démarrage : un avertissement est
 # affiché et le code déjà présent reste utilisé.
 update_src() {
+    # Aligne le remote sur PHP_SITE_REPO_URL : après un transfert de dépôt, un
+    # clone existant garde l'ancienne adresse et ne tire plus les bons commits.
+    CURRENT_ORIGIN=$(git -C "$SRC" remote get-url origin 2>/dev/null || true)
+    if [ -z "$CURRENT_ORIGIN" ]; then
+        git -C "$SRC" remote add origin "$REPO_URL"
+        echo "→ remote origin ajouté : $REPO_URL"
+    elif [ "$CURRENT_ORIGIN" != "$REPO_URL" ]; then
+        git -C "$SRC" remote set-url origin "$REPO_URL"
+        echo "→ remote origin mis à jour : $CURRENT_ORIGIN → $REPO_URL"
+    fi
+
     if [ -n "$(git -C "$SRC" status --porcelain --untracked-files=no 2>/dev/null)" ]; then
         echo "! modifications locales dans $SRC : mise à jour ignorée" >&2
         echo "  committez ou annulez-les, puis relancez make php-site-src" >&2
@@ -51,6 +62,7 @@ else
     if [ -d "$SRC" ] && [ -n "$(find "$SRC" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
         echo "Erreur : $SRC existe mais n'est pas un dépôt Git." >&2
         echo "  Déplacez ou supprimez ce dossier, puis relancez make php-site-src." >&2
+        echo "  Pour le supprimer avec le conteneur : sudo CONFIRM=yes make clean-service SERVICE=php-site" >&2
         exit 1
     fi
 

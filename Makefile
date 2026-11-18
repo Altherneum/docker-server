@@ -181,7 +181,7 @@ clean: ## Supprime tous les conteneurs ET les volumes (DESTRUCTIF)
 	@test "$${CONFIRM:-no}" = "yes"
 	$(COMPOSE) down -v --remove-orphans
 
-clean-service: ## Supprime un service, ses conteneurs et ses volumes exclusifs (DESTRUCTIF)
+clean-service: ## Supprime un service, ses conteneurs, ses volumes exclusifs et son code monté (DESTRUCTIF)
 	@test -n "$(SERVICE)" || (echo "Usage: make clean-service SERVICE=nom"; exit 1)
 	@test "$$(echo $(SERVICE) | wc -w)" -eq 1 || (echo "Erreur: clean-service ne cible qu'un seul service"; exit 1)
 	@printf "Cette commande supprime le service $(SERVICE) et ses volumes. Confirmer avec CONFIRM=yes\n"
@@ -194,7 +194,7 @@ down-clean: ## Arrête puis supprime tous les conteneurs ET volumes (DESTRUCTIF)
 	$(COMPOSE) stop
 	$(COMPOSE) down -v --remove-orphans
 
-down-clean-service: ## Arrête puis supprime un service et ses volumes exclusifs (DESTRUCTIF)
+down-clean-service: ## Arrête puis supprime un service, ses volumes exclusifs et son code monté (DESTRUCTIF)
 	@test -n "$(SERVICE)" || (echo "Usage: make down-clean-service SERVICE=nom"; exit 1)
 	@test "$$(echo $(SERVICE) | wc -w)" -eq 1 || (echo "Erreur: down-clean-service ne cible qu'un seul service"; exit 1)
 	@printf "Cette commande supprime le service $(SERVICE) et ses volumes. Confirmer avec CONFIRM=yes\n"
