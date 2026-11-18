@@ -58,7 +58,7 @@ mail_info "téléchargement des images Mailcow"
 pull_tries=3
 pull_ok=0
 while [ "$pull_tries" -gt 0 ]; do
-    if ( cd "$MAILCOW_DIR" && docker compose -f docker-compose.yml -f docker-compose.override.yml pull ); then
+    if ( cd "$MAILCOW_DIR" && COMPOSE_PARALLEL_LIMIT=1 docker compose -f docker-compose.yml -f docker-compose.override.yml pull ); then
         pull_ok=1
         break
     fi
@@ -68,7 +68,7 @@ while [ "$pull_tries" -gt 0 ]; do
         sleep 5
     fi
 done
-[ "$pull_ok" -eq 1 ] || mail_die "téléchargement des images Mailcow impossible après 3 tentatives. Vérifiez la connexion (IPv4/IPv6) puis relancez sudo make mail-setup."
+[ "$pull_ok" -eq 1 ] || mail_warn "téléchargement des images impossible après 3 tentatives ; démarrage avec les images locales si présentes."
 
 mail_info "démarrage de Mailcow"
 (
