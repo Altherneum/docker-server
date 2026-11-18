@@ -16,6 +16,10 @@
 > (ou `make mail-webmail-url`). Après une mise à jour de mailcow, relancez
 > `sudo make mail-integrate`.
 
+> Mailcow redirige aussi la page de login SOGo vers `/user` via
+> `data/conf/sogo/custom-sogo.js`. Le dépôt désactive cette redirection :
+> `/SOGo/` et `sogo.<domaine>` affichent directement le formulaire SOGo.
+
 ## En bref
 
 1. `.env` : `DOMAIN_NAME`, `TLD`, `MAIL_ENABLED=true`.

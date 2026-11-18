@@ -53,6 +53,20 @@ replace "$web_dir/inc/vars.inc.php" "'/SOGo/so'" "'/SOGo/'"
 replace "$web_dir/index.php" "Location: /SOGo/so/" "Location: /SOGo/"
 replace "$web_dir/inc/triggers.user.inc.php" "Location: /SOGo/so/" "Location: /SOGo/"
 
+# Mailcow redirige la page de login SOGo vers /user (UI mailcow) via ce script.
+# On désactive ce redirect pour que /SOGo/ et sogo.<domaine> affichent
+# directement le formulaire SOGo.
+sogo_js="$MAILCOW_DIR/data/conf/sogo/custom-sogo.js"
+replace "$sogo_js" "        window.location.href = '/user';" "        // window.location.href = '/user'; // login SOGo direct"
+if [ -f "$sogo_js" ] && grep -Eq '^CKEDITOR\.addCss' "$sogo_js"; then
+    if sed -i 's|^CKEDITOR\.addCss.*|if (typeof CKEDITOR !== "undefined") { CKEDITOR.addCss("body {font-size: 16px !important}"); }|' "$sogo_js" 2>/dev/null; then
+        changed=1
+        mail_info "corrigé : $sogo_js"
+    else
+        mail_warn "impossible de modifier $sogo_js (droits root ? relancez avec sudo)."
+    fi
+fi
+
 if [ "$changed" -eq 0 ]; then
     mail_info "URL Webmail déjà corrigée"
     exit 0
@@ -64,6 +78,11 @@ if mailcow_service_running php-fpm-mailcow; then
     else
         mail_warn "redémarrage de php-fpm-mailcow impossible ; relancez make mail-up."
     fi
-else
-    mail_info "mailcow arrêté : la correction sera active au démarrage."
+fi
+if mailcow_service_running sogo-mailcow; then
+    if mailcow_compose restart sogo-mailcow >/dev/null 2>&1; then
+        mail_info "sogo-mailcow redémarré"
+    else
+        mail_warn "redémarrage de sogo-mailcow impossible ; relancez make mail-up."
+    fi
 fi

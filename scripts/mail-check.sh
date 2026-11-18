@@ -276,6 +276,13 @@ if [ -f "$MAILCOW_CONF" ]; then
             ok "lien Webmail mailcow : /SOGo/"
         fi
     fi
+    if [ -f "$MAILCOW_DIR/data/conf/sogo/custom-sogo.js" ]; then
+        if grep -Eq '^[[:space:]]*window\.location\.href[[:space:]]*=[[:space:]]*./user.;' "$MAILCOW_DIR/data/conf/sogo/custom-sogo.js"; then
+            warn "login SOGo redirige encore vers /user (relancez make mail-integrate)"
+        else
+            ok "login SOGo direct (pas de redirection /user)"
+        fi
+    fi
     if command -v getent >/dev/null 2>&1; then
         if getent ahostsv4 "$hostname" >/dev/null 2>&1; then
             ok "DNS : $hostname résout"
