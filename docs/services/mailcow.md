@@ -6,13 +6,15 @@
 
 **Adresse d'administration :** `https://mail.<domaine>`
 
-**Webmail :** `https://webmail.<domaine>` ou `https://mails.<domaine>`  
-**Exemple :** `https://mail.altherneum.fr`
+- **Webmail direct (sans SSO) :** `https://sogo.<domaine>`
+- **Webmail :** `https://webmail.<domaine>` ou `https://mails.<domaine>`
+- **Exemple :** `https://sogo.altherneum.fr`
 
-> Le bouton « Webmail » de l'interface mailcow pointe par défaut vers
-> `/SOGo/so` (SSO). `make mail-integrate` le remplace par `/SOGo/` pour éviter
-> les 401 et les bans fail2ban. Après une mise à jour de mailcow, relancez
-> `sudo make mail-integrate` (ou `sudo make mail-webmail-url`).
+> `sogo.<domaine>` va directement à SOGo, sans passer par l'interface mailcow
+> ni son SSO : c'est l'URL la plus fiable pour le webmail. Le bouton « Webmail »
+> de l'interface mailcow est aussi corrigé vers `/SOGo/` par `make mail-integrate`
+> (ou `make mail-webmail-url`). Après une mise à jour de mailcow, relancez
+> `sudo make mail-integrate`.
 
 ## En bref
 
