@@ -104,7 +104,7 @@ done
 
 REDIRECT_URI=$(get_env WEBSITE_DISCORD_REDIRECT_URI)
 REDIRECT_URI=$(expand_env_value "$REDIRECT_URI")
-REDIRECT_URI=${REDIRECT_URI:-https://php.${DOMAIN}/discord/callback}
+REDIRECT_URI=${REDIRECT_URI:-https://doc.${DOMAIN}/discord/callback}
 
 # Le site (dépôt website) lit des noms sans préfixe WEBSITE_ : on traduit ici.
 {

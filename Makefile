@@ -4,7 +4,7 @@ MAILCOW_DIR := $(or $(shell sed -n 's/^MAILCOW_DIR=//p' .env 2>/dev/null | tail 
 SERVICE ?=
 FORGEJO_MIRROR_ARGS ?=
 
-.PHONY: help init check-env ensure-networks ensure-auth ensure-traefik build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
+.PHONY: help init check-env ensure-networks ensure-auth ensure-traefik traefik-reload build base php-base mariadb-base postgres-base paper-base ensure-base up down restart ps logs config backup restore \
         php-site-src php-site-env \
         forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-check mail-dkim mail-dkim-key mail-mailboxes mail-install mail-setup mail-up mail-down mail-logs mail-cert-sync mail-cert-timer mail-webmail-url clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service up-service-generic rebuild-service down-service \
@@ -26,9 +26,12 @@ ensure-networks: ## Crée les réseaux Docker externes manquants
 ensure-auth: ## Génère les fichiers htpasswd manquants (idempotent)
 	./scripts/ensure-auth.sh
 
-ensure-traefik: ## Reconstruit et recrée Traefik si ses templates ont changé
+ensure-traefik: ## Reconstruit et recrée Traefik (manuel, après modification des templates)
 	$(COMPOSE) build traefik
 	$(COMPOSE) up -d traefik
+
+traefik-reload: ## Redémarre Traefik pour recharger les htpasswd (sans rebuild)
+	$(COMPOSE) --env-file .env restart traefik
 
 build: base ## Construit les images de base puis celles des stacks
 	$(COMPOSE) build
@@ -59,7 +62,7 @@ ensure-base: ## Construit les images de base manquantes
 	@docker image inspect postgres:18 >/dev/null 2>&1 || $(MAKE) postgres-base
 	@docker image inspect paper:1.21.11 >/dev/null 2>&1 || $(MAKE) paper-base
 
-up: ensure-auth check-env ensure-networks ensure-traefik ensure-base php-site-src ## Démarre toute l'infrastructure
+up: ensure-auth check-env ensure-networks ensure-base php-site-src ## Démarre toute l'infrastructure
 	$(COMPOSE) up -d --remove-orphans
 	@./scripts/uptime-kuma-admin.sh \
 		|| echo "Attention : compte admin Uptime Kuma non créé (voir les messages ci-dessus)."
@@ -154,10 +157,10 @@ mail-mailboxes: ## Crée les boîtes mail de base (admin, contact, root, ...)
 mail-install: ## Installe mailcow (clone + configuration) si absent
 	./scripts/mail-install.sh
 
-mail-setup: ensure-networks ensure-traefik ## Installe, démarre et configure mailcow en une commande
+mail-setup: ensure-networks ## Installe, démarre et configure mailcow en une commande
 	./scripts/mail-setup.sh
 
-mail-up: ensure-networks ensure-traefik mail-install mail-integrate ## Démarre mailcow, certificat et vérification
+mail-up: ensure-networks mail-install mail-integrate ## Démarre mailcow, certificat et vérification
 	cd "$(MAILCOW_DIR)" && docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
 	@if [ "$$(id -u)" -eq 0 ]; then \
 		./scripts/mail-cert-timer.sh || echo "  timer certificat non installé (voir make mail-cert-timer)" >&2; \
@@ -224,9 +227,6 @@ up-service: ## Démarre un service (ex: make up-service SERVICE=azuriom)
 
 # Interne : démarre un service de compose.yaml (mailcow est une stack séparée).
 up-service-generic:
-	@if [ "$(SERVICE)" != "traefik" ]; then \
-		$(MAKE) --no-print-directory ensure-traefik ; \
-	fi
 	@if [ -n "$(filter $(SERVICE),php-site)" ]; then \
 		$(MAKE) php-site-src ; \
 	fi
@@ -288,9 +288,6 @@ rebuild-service: ## Reconstruit sans cache puis recrée un service (ex: make reb
 	@test -n "$(SERVICE)" || (echo "Usage: make rebuild-service SERVICE=nom"; exit 1)
 	@./scripts/ensure-auth.sh
 	@./scripts/ensure-networks.sh
-	@if [ "$(SERVICE)" != "traefik" ]; then \
-		$(MAKE) --no-print-directory ensure-traefik ; \
-	fi
 	$(COMPOSE) --env-file .env build --no-cache --pull $(SERVICE)
 	$(COMPOSE) --env-file .env up -d --force-recreate --no-deps $(SERVICE)
 

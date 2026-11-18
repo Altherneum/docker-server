@@ -13,7 +13,7 @@ Les adresses utilisent `supername.fr` comme exemple. Remplacez-le par
 | Service | Conteneur(s) | Adresse | Mot de passe principal |
 |---|---|---|---|
 | [Traefik](traefik.md) | `traefik` | `https://traefik.<domaine>` | `TRAEFIK_DASHBOARD_PASSWORD` |
-| [Site PHP](php-site.md) | `php-site`, `db-php` | `https://php.<domaine>` | `WEBSITE_ADMIN_PASSWORD` |
+| [Site PHP](php-site.md) | `php-site`, `db-php` | `https://doc.<domaine>` | `WEBSITE_ADMIN_PASSWORD` |
 | [Azuriom](azuriom.md) | `azuriom`, `db-azuriom` | `https://minecraft.<domaine>` | `AZURIOM_ADMIN_PASSWORD` |
 | [Forgejo](forgejo.md) | `forgejo`, `db-forgejo` | `https://git.<domaine>` | `FORGEJO_HTTP_PASSWORD` puis `FORGEJO_ADMIN_PASSWORD` |
 | [code-server](code-server.md) | `code-server` | `https://code.<domaine>` | `CODE_SERVER_HTTP_PASSWORD` puis `CODE_SERVER_PASSWORD` |

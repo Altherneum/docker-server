@@ -3,9 +3,8 @@
 **Rôle :** site web PHP (dépôt `website`) avec une base MariaDB dédiée.
 
 **Conteneurs :** `php-site`, `db-php`  
-**Adresse :** `https://php.<DOMAIN_NAME><TLD>`  
-**Alias :** `https://phpdoc.<DOMAIN_NAME><TLD>`  
-**Exemple :** `https://php.supername.fr`
+**Adresse :** `https://doc.<DOMAIN_NAME><TLD>`  
+**Exemple :** `https://doc.supername.fr`
 
 ## Mot de passe
 
@@ -34,7 +33,7 @@ connexion. Le compte admin est créé au premier démarrage.
 | `WEBSITE_ADMIN_DISCORD_USER_ID` | Identifiant Discord du compte admin (optionnel) |
 | `WEBSITE_DISCORD_CLIENT_ID` | OAuth Discord (optionnel) |
 | `WEBSITE_DISCORD_CLIENT_SECRET` | OAuth Discord (optionnel) |
-| `WEBSITE_DISCORD_REDIRECT_URI` | URL de retour OAuth (optionnel, vide = `https://php.<DOMAIN>/discord/callback`) |
+| `WEBSITE_DISCORD_REDIRECT_URI` | URL de retour OAuth (optionnel, vide = `https://doc.<DOMAIN>/discord/callback`) |
 | `WEBSITE_AUTO_INIT` | Initialise la base au premier démarrage |
 | `WEBSITE_GIT_DEPLOY` | Autorise `/api/deploy` à faire `git pull` |
 

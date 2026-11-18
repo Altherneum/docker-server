@@ -51,10 +51,10 @@ http:
         replacement: "https://discord.@@DOMAIN@@$2"
         permanent: true
 
-    redirect-docs:
+    redirect-githubio:
       redirectRegex:
-        regex: "^https?://(docs|wiki|info)[.]@@DOMAIN_REGEX@@(/.*)?$"
-        replacement: "https://doc.@@DOMAIN@@$2"
+        regex: "^https?://(githubio|githubpage|olddoc)[.]@@DOMAIN_REGEX@@(/.*)?$"
+        replacement: "https://altherneum.github.io$2"
         permanent: true
 
     redirect-github:
@@ -122,11 +122,11 @@ http:
       tls:
         certResolver: letsencrypt
 
-    redirect-docs:
-      rule: "Host(`docs.@@DOMAIN@@`) || Host(`wiki.@@DOMAIN@@`) || Host(`info.@@DOMAIN@@`)"
+    redirect-githubio:
+      rule: "Host(`githubio.@@DOMAIN@@`) || Host(`githubpage.@@DOMAIN@@`) || Host(`olddoc.@@DOMAIN@@`)"
       entryPoints: [websecure]
       service: "noop@internal"
-      middlewares: [redirect-docs]
+      middlewares: [redirect-githubio]
       tls:
         certResolver: letsencrypt
 

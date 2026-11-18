@@ -112,7 +112,7 @@ secrets. Le fichier est déjà ignoré par Git.
 | Service | Fiche | Adresse par défaut (exemple) |
 |---|---|---|
 | Traefik (proxy) | [traefik.md](services/traefik.md) | `https://traefik.supername.fr` |
-| Site PHP | [php-site.md](services/php-site.md) | `https://php.supername.fr` |
+| Site PHP | [php-site.md](services/php-site.md) | `https://doc.supername.fr` |
 | Azuriom | [azuriom.md](services/azuriom.md) | `https://minecraft.supername.fr` |
 | Forgejo | [forgejo.md](services/forgejo.md) | `https://git.supername.fr` |
 | code-server | [code-server.md](services/code-server.md) | `https://code.supername.fr` |

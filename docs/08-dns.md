@@ -67,7 +67,7 @@ nécessaire d'en créer un par service.
 | Service / usage | Noms |
 |---|---|
 | Traefik | `traefik` |
-| Site PHP | `php`, `phpdoc` |
+| Site PHP | `doc` |
 | Azuriom | `minecraft` |
 | Forgejo | `git`, `repo`, `forgejo` |
 | code-server | `code`, `vscode` |
@@ -78,15 +78,14 @@ nécessaire d'en créer un par service.
 | phpMyAdmin | `phpmyadmin` |
 | Site de memes | `meme`, `windows`, `microsoft`, `arch`, `linux` |
 | Mailcow | `mail`, `webmail`, `mails` |
-| Redirections | `www`, `docs`, `wiki`, `info`, `github`, `search`, `ask`, `ai`, `ia`, `discord`, `vocal`, `lost`, `mc`, `play` |
-| Documentation | `doc` (cible de `docs`, `wiki` et `info`) |
+| Redirections | `www`, `github`, `search`, `ask`, `ai`, `ia`, `discord`, `vocal`, `lost`, `mc`, `play` |
+| Ancienne documentation | `githubio`, `githubpage`, `olddoc` (redirigent vers `https://altherneum.github.io`) |
 | Minecraft Java | `mc`, `play`, puis `hub`, `survie`, `creatif`, `anarchie`, `rpg`, `skyblock`, `opprison`, `test`, etc. |
 | Cas à deux niveaux | `git.arch` |
 
-> `doc.altherneum.fr` est utilisé comme adresse de documentation, mais aucun
-> routeur Traefik ne le définit dans ce dépôt. Vérifiez qu'un autre service (ou
-> un autre serveur) le sert, sinon `docs`, `wiki` et `info` redirigeront vers
-> une adresse en erreur.
+> `doc.altherneum.fr` est maintenant servi par le site PHP (`php-site`). Les
+> anciens noms de la documentation GitHub Pages (`githubio`, `githubpage`,
+> `olddoc`) redirigent vers `https://altherneum.github.io`.
 
 ## Certificats HTTPS
 

@@ -29,7 +29,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: ${PROXY_NETWORK}
-      traefik.http.routers.php-site.rule: "Host(`php.${DOMAIN_NAME}${TLD}`) || Host(`phpdoc.${DOMAIN_NAME}${TLD}`)"
+      traefik.http.routers.php-site.rule: "Host(`doc.${DOMAIN_NAME}${TLD}`)"
       traefik.http.routers.php-site.entrypoints: "websecure"
       traefik.http.routers.php-site.tls.certResolver: "letsencrypt"
       traefik.http.routers.php-site.middlewares: "secure-headers@file"

@@ -6,7 +6,7 @@
 | `php-site` | ------------ | ------------------------------------ | OK |
 | `php-site` #1 | Vérifie le /api/deploy | Vérifier si le git pull marche bien lors d'un /api/deploy | à re valider |
 | `php-site` #2 | doc.altherneum.fr | Supprimer l'ancien altherneum.github.io, et récupérer le DNS `doc` pour le relier sur php-site | OK |
-| `php-site` #3 | doc.altherneum.fr | Faire utiliser doc. pour Php-site | à faire |
+| `php-site` #3 | doc.altherneum.fr | Faire utiliser doc. pour Php-site | OK |
 | `azuriom` | ------------ | ------------------------------------ | OK |
 | `azuriom` #1 | Dedipass | Vérifier la boutique, si les commandes sont bien envoyés, ainsi que les clés privés de payement "dédipass" etc | à faire |
 | `azuriom` #2 | Images & GIF dynamique | Dans le futur, ajouter les images à la racine, et indiquer à l'utilisateur de les remplacer au besoin (car avec le logo Altherneum, et le projet doit pouvoir changer de nom/identité facilement), images dans un dossier ".env", les copiers de ce .env vers le bon endroit (azuriom, logo minecraft server.png, etc) | à faire |
@@ -23,7 +23,7 @@
 | `Plugin` | ------------ | ------------------------------------ | OK |
 | `Plugin` #1 | Logo resource pack | Je crois qu'un logo manque / est cassé : Logo du shop vanilla (diamond), alors qu'il devrait (de mémoire) être un billet doré | à faire |
 | `Plugin` #2 | ID resource pack | La console indique que l'ID (ou le hash je sais plus) manque dans la config | à faire |
-| `Plugin` #3 | Tab build date on new line | Sur le tab faire en sorte que le n° de version plugin et sa date sont sur deux lignes, pour faire plus comapct et lisible | à faire |
+| `Plugin` #3 | Tab build date on new line | Sur le tab faire en sorte que le n° de version plugin et sa date sont sur deux lignes, pour faire plus comapct et lisible | à tester (update docker mc plugin) |
 | `bot` | ------------ | ------------------------------------ | à faire |
 | `bot` #1 | Server cloner | Copier le code de l'ancien bot qui permet de cloner un serveur et l'ajouter dans le nouveau bot rewrite JDA | à faire |
 | `fail2ban` | ------------ | ------------------------------------ | OK |

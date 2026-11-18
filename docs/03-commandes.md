@@ -33,9 +33,10 @@ sudo make services      # liste les noms de services
 
 | Commande | Effet |
 |---|---|
-| `sudo make init` | Régénère `.env`, les secrets et les réseaux Docker |
-| `sudo make ensure-auth` | Génère les fichiers htpasswd manquants (automatique avec `up`) |
-| `sudo make ensure-traefik` | Reconstruit et recrée Traefik si ses templates ont changé |
+| `sudo make init` | Régénère `.env`, les secrets, tous les htpasswd et les réseaux Docker |
+| `sudo make ensure-auth` | Génère les fichiers htpasswd absents ou invalides (automatique avec `up`) |
+| `sudo make ensure-traefik` | Reconstruit et recrée Traefik (manuel, après modification des templates) |
+| `sudo make traefik-reload` | Redémarre Traefik pour recharger les htpasswd (sans rebuild) |
 | `sudo make services` | Liste les noms de services |
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
 | `sudo make uptime-kuma-admin` | Crée le compte admin Uptime Kuma (idempotent) |
@@ -133,8 +134,8 @@ Un volume partagé avec un autre service est conservé automatiquement.
 |---|---|
 | `.env` d'un service | `sudo make up-service SERVICE=nom` (recrée le conteneur avec les nouvelles variables) |
 | `.env` Forgejo : import/CI (`FORGEJO_GITHUB_*`) | `sudo make forgejo-mirror` (variable lue par le script, pas besoin de recréer Forgejo) |
-| `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | `sudo make init` puis redémarrer (ou `sudo make ensure-auth` si un fichier manque) |
-| Templates Traefik (`stacks/proxy/templates`) | `sudo make up-service SERVICE=traefik` (ou `sudo make ensure-traefik`) |
+| `.htpasswd` (Traefik, phpMyAdmin, code-server, Forgejo, KeeWeb) | Voir [Traefik et basic auth](#traefik-et-basic-auth) |
+| Templates Traefik (`stacks/proxy/templates`) | `sudo make ensure-traefik` (ou `sudo make up-service SERVICE=traefik`) |
 | `compose.yaml` | `sudo make up-service SERVICE=nom` |
 | `Dockerfile` ou code embarqué dans l'image | `sudo make up-service SERVICE=nom` |
 | Image récalcitrante / cache Docker | `sudo make rebuild-service SERVICE=nom` |
@@ -144,6 +145,54 @@ Un volume partagé avec un autre service est conservé automatiquement.
 reconstruit pas l'image et ne réapplique pas les variables de `.env`.
 Utiliser `up-service` par défaut, et `rebuild-service` uniquement si Docker
 semble réutiliser une image ou un cache obsolète.
+
+## Traefik et basic auth
+
+Le rebuild de Traefik n'est **plus automatique**. `make up`, `make up-service`
+et `make rebuild-service` ne reconstruisent ni ne redémarrent plus Traefik :
+seul `ensure-auth` reste appelé automatiquement, et il ne touche pas au
+conteneur.
+
+### Choisir la bonne commande
+
+| Ce qui est modifié | Commande | Rebuild ? |
+|---|---|---|
+| Un fichier `.htpasswd` édité directement | `sudo make traefik-reload` | non |
+| Le mot de passe dans `.env` | `sudo make init` puis `sudo make traefik-reload` | non |
+| Un fichier `.htpasswd` absent ou supprimé | `sudo make ensure-auth` puis `sudo make traefik-reload` | non |
+| Un template (`stacks/proxy/templates`, `entrypoint.sh`, `Dockerfile`) | `sudo make ensure-traefik` | oui |
+
+`ensure-auth` ne régénère que les fichiers absents, vides ou sans utilisateur :
+il ne réécrit jamais un fichier existant et valide. Un mot de passe changé dans
+`.env` n'est donc pas appliqué par `ensure-auth`, mais par `make init`, qui
+réécrit tous les htpasswd depuis `.env`.
+
+À l'inverse, `make init` écrase les htpasswd : une modification faite à la main
+dans un fichier est perdue.
+
+### Pourquoi restart et pas rebuild
+
+- `stacks/proxy/compose.yaml` monte `stacks/proxy/auth` dans le conteneur :
+  un `restart` suffit pour recharger les htpasswd
+- `stacks/proxy/Dockerfile` copie `templates/` **dans l'image** : seuls les
+  templates exigent un rebuild
+- le volume `traefik-acme` est persistant : un restart ne fait pas perdre les
+  certificats, Traefik est seulement indisponible quelques secondes
+
+### Cas d'un service ciblé
+
+`sudo make up-service SERVICE=mc-hub` ne lance que :
+
+```sh
+docker compose --env-file .env up -d --build mc-hub
+```
+
+Traefik n'est donc ni reconstruit ni redémarré. Deux conséquences :
+
+- si Traefik est arrêté, `up-service` ne le relance pas : utiliser
+  `sudo make up-service SERVICE=traefik` (qui rebuild) ou `sudo make up`
+- un nouveau routeur ou middleware ajouté au template ne sera visible qu'après
+  `sudo make ensure-traefik`
 
 ## Docker Compose directement
 

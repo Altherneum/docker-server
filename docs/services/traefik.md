@@ -71,7 +71,7 @@ raison.
 | Adresse | Destination |
 |---|---|
 | `<domaine>` et `www.<domaine>` | Discord |
-| `docs`, `wiki`, `info` | `https://doc.<domaine>` |
+| `githubio`, `githubpage`, `olddoc` | `https://altherneum.github.io` |
 | `discord` | Invitation Discord |
 | `vocal` | Invitation Discord vocal |
 | `github` | GitHub Altherneum |

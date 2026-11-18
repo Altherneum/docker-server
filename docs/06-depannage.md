@@ -43,12 +43,16 @@ Un routeur référence un middleware absent de la configuration dynamique. Deux
 causes fréquentes après un `git pull` :
 
 - le fichier `.htpasswd` du nouveau service n'existe pas encore (il est ignoré
-  par Git) : lancer `sudo make ensure-auth` ;
+  par Git) : lancer `sudo make ensure-auth`, puis `sudo make traefik-reload` ;
 - l'image Traefik n'a pas été reconstruite avec les nouveaux templates : lancer
   `sudo make ensure-traefik`.
 
-`sudo make up` et `sudo make up-service SERVICE=nom` exécutent maintenant ces
-deux vérifications automatiquement.
+`sudo make ensure-auth` reste automatique avec `sudo make up` et
+`sudo make up-service SERVICE=nom`. Le rebuild de Traefik n'est plus automatique :
+il faut lancer `sudo make ensure-traefik` (ou `sudo make traefik-reload` si seul
+un `.htpasswd` a changé). Le détail des cas (fichier édité, mot de passe dans
+`.env`, fichier absent) est dans
+[Traefik et basic auth](03-commandes.md#traefik-et-basic-auth).
 
 ## Le certificat HTTPS ne se crée pas
 

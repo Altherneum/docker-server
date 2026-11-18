@@ -214,9 +214,9 @@ Cette opération est destructive.
 - **Erreur 500 sur le middleware `dockhand-auth`** : le fichier
   `stacks/proxy/auth/dockhand.htpasswd` est absent. `make up` et
   `make up-service SERVICE=dockhand` le génèrent maintenant automatiquement.
-  Sinon, lancer `sudo make ensure-auth`. Si le middleware vient d'être ajouté
-  au template, `make up` reconstruit aussi Traefik ; en ciblant un seul
-  service, utiliser `sudo make ensure-traefik`.
+  Sinon, lancer `sudo make ensure-auth` puis `sudo make traefik-reload`. Si le
+  middleware vient d'être ajouté au template, reconstruire Traefik
+  manuellement avec `sudo make ensure-traefik`.
 - **Terminal ou navigateur de fichiers indisponible** : ces fonctions utilisent
   l'API `exec` de Docker. Elles ne fonctionnent pas avec un proxy de socket qui
   n'autorise pas `EXEC`.

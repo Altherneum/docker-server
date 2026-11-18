@@ -398,7 +398,8 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__check-env__** : Vérifie que `.env` contient les secrets nécessaires avant `make up`
 - **__ensure-networks__** : Crée les réseaux Docker externes manquants
 - **__ensure-auth__** : Génère les fichiers htpasswd manquants (automatique avec `up` / `up-service`)
-- **__ensure-traefik__** : Reconstruit et recrée Traefik si ses templates ont changé
+- **__ensure-traefik__** : Reconstruit et recrée Traefik (manuel, après modification des templates)
+- **__traefik-reload__** : Redémarre Traefik pour recharger les htpasswd (sans rebuild)
 - **__build__** : Construit les images de base puis celles des stacks
 - **__php-site-src__** : Clone le dépôt website dans stacks/web/php-site/src
 - **__php-site-env__** : Régénère stacks/web/php-site/src/.env depuis .env
@@ -510,12 +511,17 @@ Les services communiquent via :
 
 ## Utilisation
 - `sudo make init` - Initialisation (création des secrets, htpasswd et réseaux)
-- `sudo make up` - Démarrage complet (génère les htpasswd manquants et met Traefik à jour)
+- `sudo make up` - Démarrage complet (génère les htpasswd manquants)
 - `sudo make ensure-auth` - Génère uniquement les fichiers htpasswd manquants
-- `sudo make ensure-traefik` - Reconstruit et recrée Traefik si ses templates ont changé
+- `sudo make ensure-traefik` - Reconstruit et recrée Traefik (manuel, après modification des templates)
+- `sudo make traefik-reload` - Redémarre Traefik pour recharger les htpasswd (sans rebuild)
 - `sudo make down` - Arrêt complet sans supprimer les conteneurs
 - `sudo make down-service SERVICE=azuriom` - Arrêt d'un service sans supprimer son conteneur
 - `sudo make services` - Liste complète des services disponibles
 - `sudo CONFIRM=yes make clean` - Suppression complète des conteneurs et volumes
 - `sudo CONFIRM=yes make clean-service SERVICE=azuriom` - Suppression d'un service et de ses volumes
 - `sudo CONFIRM=yes make down-clean-service SERVICE=azuriom` - Arrêt puis suppression d'un service et de ses volumes
+
+Le rebuild de Traefik n'est plus automatique : `make up-service` ne redémarre
+pas Traefik. Les commandes à lancer pour un basic auth modifié sont détaillées
+dans [Traefik et basic auth](docs/03-commandes.md#traefik-et-basic-auth)

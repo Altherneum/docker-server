@@ -31,7 +31,7 @@ Le domaine `supername.fr` n'est qu'un exemple.
 | Service | Sous-domaine | Authentification | Mot de passe dans `.env` |
 |---|---|---|---|
 | Traefik | `traefik` | HTTP Basic | `TRAEFIK_DASHBOARD_USER` / `TRAEFIK_DASHBOARD_PASSWORD` |
-| Site PHP | `php` ou `phpdoc` | Compte du site | `WEBSITE_ADMIN_USERNAME` / `WEBSITE_ADMIN_PASSWORD` |
+| Site PHP | `doc` | Compte du site | `WEBSITE_ADMIN_USERNAME` / `WEBSITE_ADMIN_PASSWORD` |
 | Azuriom | `minecraft` | Compte Azuriom | `AZURIOM_ADMIN_NAME` / `AZURIOM_ADMIN_PASSWORD` |
 | Forgejo | `git`, `repo` ou `forgejo` | Compte Forgejo | `FORGEJO_ADMIN_NAME` / `FORGEJO_ADMIN_PASSWORD` |
 | code-server | `code` ou `vscode` | HTTP Basic puis mot de passe éditeur | `CODE_SERVER_HTTP_USER` / `CODE_SERVER_HTTP_PASSWORD` puis `CODE_SERVER_PASSWORD` |
@@ -80,7 +80,7 @@ Traefik redirige aussi certains noms :
 | Adresse | Destination |
 |---|---|
 | `https://<domaine>` et `www` | Discord |
-| `docs`, `wiki`, `info` | `https://doc.<domaine>` |
+| `githubio`, `githubpage`, `olddoc` | `https://altherneum.github.io` |
 | `discord` | Invitation Discord |
 | `vocal` | Invitation Discord vocal |
 | `github` | `https://github.com/Altherneum` |
