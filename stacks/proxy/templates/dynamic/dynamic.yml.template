@@ -9,6 +9,13 @@ tls:
       minVersion: VersionTLS12
 
 http:
+  # Transport utilisé pour joindre nginx-mailcow en HTTPS avec son certificat
+  # interne (auto-signé). Déclaré ici (provider file) : le provider Docker ne
+  # prend pas correctement en charge les labels serversTransports.
+  serversTransports:
+    mailcow:
+      insecureSkipVerify: true
+
   middlewares:
     secure-headers:
       headers:

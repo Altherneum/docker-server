@@ -21,8 +21,7 @@ services:
       traefik.http.routers.mailcow.service: "mailcow"
       traefik.http.services.mailcow.loadbalancer.server.port: "@@MAILCOW_HTTPS_PORT@@"
       traefik.http.services.mailcow.loadbalancer.server.scheme: "https"
-      traefik.http.services.mailcow.loadbalancer.serversTransport: "mailcow@docker"
-      traefik.http.serversTransports.mailcow.insecureSkipVerify: "true"
+      traefik.http.services.mailcow.loadbalancer.serversTransport: "mailcow@file"
 
       # Webmail : redirection vers SOGo
       traefik.http.routers.mailcow-webmail.rule: "Host(`webmail.@@DOMAIN@@`) || Host(`mails.@@DOMAIN@@`)"
