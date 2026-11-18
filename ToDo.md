@@ -7,6 +7,8 @@
 | `php-site` #1 | Vérifie le /api/deploy | Vérifier si le git pull marche bien lors d'un /api/deploy | à re valider |
 | `php-site` #2 | doc.altherneum.fr | Supprimer l'ancien altherneum.github.io, et récupérer le DNS `doc` pour le relier sur php-site | OK |
 | `php-site` #3 | doc.altherneum.fr | Faire utiliser doc. pour Php-site | OK |
+| `php-site` #4 | git hash on footer| Afficher le hash git du php-site sur le footer | à faire |
+| `php-site` #4 | URL admin on footer| Afficher les autres sites sur le footer (dockhand, mailcow, traefik, etc) | à faire |
 | `azuriom` | ------------ | ------------------------------------ | OK |
 | `azuriom` #1 | Dedipass | Vérifier la boutique, si les commandes sont bien envoyés, ainsi que les clés privés de payement "dédipass" etc | à faire |
 | `azuriom` #2 | Images & GIF dynamique | Dans le futur, ajouter les images à la racine, et indiquer à l'utilisateur de les remplacer au besoin (car avec le logo Altherneum, et le projet doit pouvoir changer de nom/identité facilement), images dans un dossier ".env", les copiers de ce .env vers le bon endroit (azuriom, logo minecraft server.png, etc) | à faire |
