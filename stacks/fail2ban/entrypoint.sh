@@ -63,7 +63,7 @@ filter = sshd
 port = ${FAIL2BAN_SSH_PORT:-22}
 backend = polling
 logpath = $log_path
-chain = INPUT
+action = iptables[type=allports, chain=INPUT]
 maxretry = ${FAIL2BAN_MAXRETRY:-3}
 findtime = ${FAIL2BAN_FINDTIME:-10m}
 bantime = ${FAIL2BAN_BANTIME:-1h}
