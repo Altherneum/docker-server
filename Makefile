@@ -139,7 +139,7 @@ mail-cert-sync: ## Copie le certificat Traefik vers mailcow (SMTP/IMAP)
 mail-cert-timer: ## Installe le timer systemd de synchro du certificat
 	./scripts/mail-cert-timer.sh
 
-mail-webmail-url: ## Corrige le lien Webmail de mailcow (/SOGo/)
+mail-webmail-url: ## Rétablit le flux webmail mailcow (UI -> SOGo)
 	./scripts/mail-webmail-url.sh
 
 mail-dkim: ## Crée/importe la clé DKIM et affiche le TXT DNS

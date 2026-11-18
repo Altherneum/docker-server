@@ -33,16 +33,6 @@ services:
       traefik.http.middlewares.mailcow-webmail.redirectRegex.replacement: "https://@@MAILCOW_HOSTNAME@@/SOGo/"
       traefik.http.middlewares.mailcow-webmail.redirectRegex.permanent: "false"
 
-      # Webmail direct : SOGo sans passer par l'UI mailcow ni son SSO.
-      traefik.http.routers.mailcow-sogo.rule: "Host(`sogo.@@DOMAIN@@`)"
-      traefik.http.routers.mailcow-sogo.entrypoints: "websecure"
-      traefik.http.routers.mailcow-sogo.tls.certResolver: "letsencrypt"
-      traefik.http.routers.mailcow-sogo.middlewares: "sogo-root-redirect,secure-headers@file"
-      traefik.http.routers.mailcow-sogo.service: "mailcow"
-      traefik.http.middlewares.sogo-root-redirect.redirectRegex.regex: "^https://sogo[.]@@DOMAIN_REGEX@@/$"
-      traefik.http.middlewares.sogo-root-redirect.redirectRegex.replacement: "https://sogo.@@DOMAIN@@/SOGo/"
-      traefik.http.middlewares.sogo-root-redirect.redirectRegex.permanent: "false"
-
 networks:
   proxy:
     external: true

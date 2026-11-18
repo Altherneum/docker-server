@@ -6,19 +6,14 @@
 
 **Adresse d'administration :** `https://mail.<domaine>`
 
-- **Webmail direct (sans SSO) :** `https://sogo.<domaine>`
-- **Webmail :** `https://webmail.<domaine>` ou `https://mails.<domaine>`
-- **Exemple :** `https://sogo.altherneum.fr`
+- **Connexion webmail :** `https://mail.<domaine>` (login) → `/SOGo/so/`
+- **Portail utilisateur :** `https://mail.<domaine>/user`
+- **Admin mailcow :** `https://mail.<domaine>/admin`
+- **Exemple :** `https://mail.altherneum.fr`
 
-> `sogo.<domaine>` va directement à SOGo, sans passer par l'interface mailcow
-> ni son SSO : c'est l'URL la plus fiable pour le webmail. Le bouton « Webmail »
-> de l'interface mailcow est aussi corrigé vers `/SOGo/` par `make mail-integrate`
-> (ou `make mail-webmail-url`). Après une mise à jour de mailcow, relancez
-> `sudo make mail-integrate`.
-
-> Mailcow redirige aussi la page de login SOGo vers `/user` via
-> `data/conf/sogo/custom-sogo.js`. Le dépôt désactive cette redirection :
-> `/SOGo/` et `sogo.<domaine>` affichent directement le formulaire SOGo.
+> Mailcow se connecte via l'UI (`/` ou `/user`), puis ouvre `/SOGo/so/` en SSO.
+> La page `/SOGo/` redirige vers `/user` via `data/conf/sogo/custom-sogo.js` :
+> c'est le comportement prévu. `make mail-integrate` vérifie/restaure ce flux.
 
 ## En bref
 

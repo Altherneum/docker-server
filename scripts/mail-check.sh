@@ -270,17 +270,17 @@ if [ -f "$MAILCOW_CONF" ]; then
         fail "override ne route pas MAILCOW_HOSTNAME=$hostname (relancez make mail-integrate)"
     fi
     if [ -f "$MAILCOW_DIR/data/web/inc/vars.inc.php" ]; then
-        if grep -Fq "'/SOGo/so'" "$MAILCOW_DIR/data/web/inc/vars.inc.php"; then
-            warn "lien Webmail mailcow non corrigé (relancez make mail-integrate)"
+        if grep -Fq "'/SOGo/'" "$MAILCOW_DIR/data/web/inc/vars.inc.php"; then
+            warn "flux webmail mailcow modifié (relancez make mail-integrate)"
         else
-            ok "lien Webmail mailcow : /SOGo/"
+            ok "flux webmail mailcow conforme (UI -> /SOGo/so)"
         fi
     fi
     if [ -f "$MAILCOW_DIR/data/conf/sogo/custom-sogo.js" ]; then
-        if grep -Eq '^[[:space:]]*window\.location\.href[[:space:]]*=[[:space:]]*./user.;' "$MAILCOW_DIR/data/conf/sogo/custom-sogo.js"; then
-            warn "login SOGo redirige encore vers /user (relancez make mail-integrate)"
+        if grep -Eq "^[[:space:]]*window\.location\.href = '/user';" "$MAILCOW_DIR/data/conf/sogo/custom-sogo.js"; then
+            ok "login SOGo -> UI mailcow (/user)"
         else
-            ok "login SOGo direct (pas de redirection /user)"
+            warn "redirection SOGo -> /user désactivée (relancez make mail-integrate)"
         fi
     fi
     if command -v getent >/dev/null 2>&1; then

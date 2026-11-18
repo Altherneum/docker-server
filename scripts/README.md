@@ -21,7 +21,7 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `mail-install.sh` | `make mail-install` | Clone et configure Mailcow si absent |
 | `mail-setup.sh` | `make mail-setup` | Installe, démarre et configure Mailcow en une commande |
 | `mail-integrate.sh` | `make mail-integrate` | Prépare l'override Traefik, le réseau et la clé API de Mailcow |
-| `mail-webmail-url.sh` | `make mail-webmail-url` | Corrige le lien Webmail de Mailcow (`/SOGo/so` → `/SOGo/`, appelé par `mail-integrate`) |
+| `mail-webmail-url.sh` | `make mail-webmail-url` | Rétablit le flux webmail Mailcow (UI → `/SOGo/so`, appelé par `mail-integrate`) |
 | `mail-check.sh` | `make mail-check` | Vérifie Docker, le réseau, les ports et l'override Mailcow |
 | `mail-cert-sync.sh` | `make mail-cert-sync` | Copie le certificat Let's Encrypt de Traefik vers Mailcow (SMTP/IMAP) |
 | `mail-cert-timer.sh` | `make mail-cert-timer` | Installe le timer systemd quotidien de synchro du certificat |

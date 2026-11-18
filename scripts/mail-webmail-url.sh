@@ -1,10 +1,10 @@
 #!/bin/sh
 # =============================================================================
-# mail-webmail-url.sh - corrige le lien "Webmail" de l'interface mailcow.
+# mail-webmail-url.sh - rétablit le flux webmail prévu par mailcow.
 #
-# Mailcow pointe le bouton Webmail vers /SOGo/so, qui passe par son SSO et peut
-# répondre 401 (puis déclencher fail2ban). On le remplace par /SOGo/, la page
-# de connexion SOGo qui fonctionne.
+# Mailcow se connecte via l'interface (/ ou /user), puis ouvre /SOGo/so/ en
+# SSO. La page /SOGo/ redirige vers /user via data/conf/sogo/custom-sogo.js.
+# Ce script répare ces fichiers si un ancien patch les a modifiés.
 #
 # Idempotent : relancer après une mise à jour de mailcow.
 #
@@ -45,19 +45,18 @@ replace() {
     mail_info "corrigé : $file"
 }
 
-# Bouton Webmail (les deux orthographes possibles selon la version de mailcow).
-replace "$web_dir/inc/vars.inc.php" "'/SOGo/so/'" "'/SOGo/'"
-replace "$web_dir/inc/vars.inc.php" "'/SOGo/so'" "'/SOGo/'"
+# Liens de l'UI mailcow vers /SOGo/so (SSO prévu par mailcow).
+replace "$web_dir/inc/vars.inc.php" "'/SOGo/'" "'/SOGo/so'"
 
 # Redirections après connexion / changement de mot de passe.
-replace "$web_dir/index.php" "Location: /SOGo/so/" "Location: /SOGo/"
-replace "$web_dir/inc/triggers.user.inc.php" "Location: /SOGo/so/" "Location: /SOGo/"
+replace "$web_dir/index.php" 'Location: /SOGo/")' 'Location: /SOGo/so/")'
+replace "$web_dir/inc/triggers.user.inc.php" 'Location: /SOGo/")' 'Location: /SOGo/so/")'
 
-# Mailcow redirige la page de login SOGo vers /user (UI mailcow) via ce script.
-# On désactive ce redirect pour que /SOGo/ et sogo.<domaine> affichent
-# directement le formulaire SOGo.
+# La page de login SOGo redirige vers l'UI mailcow (/user), comme prévu.
 sogo_js="$MAILCOW_DIR/data/conf/sogo/custom-sogo.js"
-replace "$sogo_js" "        window.location.href = '/user';" "        // window.location.href = '/user'; // login SOGo direct"
+replace "$sogo_js" "        // window.location.href = '/user'; // login SOGo direct" "        window.location.href = '/user';"
+
+# Évite l'erreur console « CKEDITOR is not defined » sur la page de login.
 if [ -f "$sogo_js" ] && grep -Eq '^CKEDITOR\.addCss' "$sogo_js"; then
     if sed -i 's|^CKEDITOR\.addCss.*|if (typeof CKEDITOR !== "undefined") { CKEDITOR.addCss("body {font-size: 16px !important}"); }|' "$sogo_js" 2>/dev/null; then
         changed=1
@@ -68,7 +67,7 @@ if [ -f "$sogo_js" ] && grep -Eq '^CKEDITOR\.addCss' "$sogo_js"; then
 fi
 
 if [ "$changed" -eq 0 ]; then
-    mail_info "URL Webmail déjà corrigée"
+    mail_info "flux webmail mailcow déjà conforme"
     exit 0
 fi
 
