@@ -32,7 +32,6 @@ lancer directement : utilisez les commandes `make` documentées dans
 | `backup.sh` | `make backup` | Sauvegarde les bases et les volumes |
 | `restore.sh` | `make restore` | Restaure une sauvegarde |
 | `clean-service.sh` | `make clean-service` | Supprime un service, ses volumes exclusifs et son code monté |
-| `net-diag.sh` | `make net-diag` | Diagnostique les ports, UFW, iptables et IPv4/IPv6 (lecture seule) |
 
 Documentation détaillée :
 

@@ -448,7 +448,6 @@ Mailcow garde son certificat interne et le timer réessaie. Pour forcer :
 - **__down-service__** : Arrête un service sans supprimer son conteneur (ex: `make down-service SERVICE=azuriom`)
 - **__ps-service__** : État d'un service (ex: make ps-service `SERVICE=azuriom`)
 - **__services__** : Liste tous les noms de services
-- **__net-diag__** : Diagnostique les ports, UFW, iptables et IPv4/IPv6 (lecture seule)
 
 ## Mise à jour
 
@@ -644,14 +643,8 @@ sudo make mail-check
 
 ```sh
 sudo make ps
-sudo make net-diag
 sudo make logs-service SERVICE=nom
 ```
-
-Après un `make up`, vérifiez aussi que les ports répondent en IPv4 **et** en
-IPv6 (`nc -4 -vz mc.<domaine> 25565`). Un service joignable en IPv6 mais refusé
-en IPv4 vient de Docker ou du pare-feu, pas du service : voir
-[Connexion refusée en IPv4](docs/06-depannage.md#connexion-refusée-en-ipv4-services-ok-en-ipv6).
 
 Les fiches de [docs/services/](docs/services/README.md) détaillent les
 particularités de chaque service (Nextcloud, Forgejo, Azuriom, Minecraft…).

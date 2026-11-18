@@ -38,8 +38,6 @@ sudo make services      # liste les noms de services
 | `sudo make ensure-traefik` | Reconstruit et recrée Traefik (manuel, après modification des templates) |
 | `sudo make traefik-reload` | Redémarre Traefik pour recharger les htpasswd (sans rebuild) |
 | `sudo make services` | Liste les noms de services |
-| `sudo make net-diag` | Diagnostique les ports, UFW, iptables et IPv4/IPv6 (lecture seule) |
-| `sudo make fail2ban-unban IP=1.2.3.4` | Retire une IP des bannissements fail2ban |
 | `sudo make forgejo-admin` | Crée le compte admin Forgejo |
 | `sudo make uptime-kuma-admin` | Crée le compte admin Uptime Kuma (idempotent) |
 | `sudo make uptime-kuma-docker-sync` | Ajoute les moniteurs Docker manquants et configure la notification Discord (idempotent) |

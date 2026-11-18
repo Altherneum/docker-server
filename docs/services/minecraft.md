@@ -106,10 +106,6 @@ sudo make up-service SERVICE=mc-test
 `mc-plugins` démarre automatiquement avant les autres. Il s'arrête une fois les
 plugins téléchargés : c'est normal.
 
-Si les joueurs sont refusés (`Connexion refusée`, erreur `-111`) alors que les
-conteneurs tournent, vérifiez la joignabilité IPv4 et IPv6 du port 25565 :
-[Connexion refusée en IPv4, services OK en IPv6](../06-depannage.md#connexion-refusée-en-ipv4-services-ok-en-ipv6).
-
 ## Arrêter
 
 ```sh
