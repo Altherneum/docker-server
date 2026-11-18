@@ -126,6 +126,9 @@ fi
 # et de WorldEdit, qui n'est autorisé que sur le serveur créatif.
 rm -f /data/plugins/geyser*.jar \
       /data/plugins/Geyser*.jar \
+      /data/plugins/Plugin*.jar \
+      /data/plugins/.paper-remapped/Plugin*.jar \
+      /data/plugins/.paper-remapped/plugin*.jar \
       /data/plugins/floodgate*.jar \
       /data/plugins/Floodgate*.jar \
       /data/plugins/ViaVersion-*.jar \

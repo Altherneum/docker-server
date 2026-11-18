@@ -42,7 +42,7 @@ fetch_if_needed() {
 # Plugin maison (Paper).
 fetch_if_needed \
     "https://github.com/Altherneum/plugin/releases/download/v.${PLUGIN_VERSION}/plugin-1.0-fat.jar" \
-    "$PAPER_DIR/Plugin.jar"
+    "$PAPER_DIR/Plugin-${PLUGIN_VERSION}.jar"
 
 # ViaVersion
 fetch_if_needed \
