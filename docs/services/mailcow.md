@@ -15,6 +15,17 @@
 > La page `/SOGo/` redirige vers `/user` via `data/conf/sogo/custom-sogo.js` :
 > c'est le comportement prévu. `make mail-integrate` vérifie/restaure ce flux.
 
+## Accès
+
+| URL | Rôle |
+|---|---|
+| `https://mail.<domaine>/` | Login (boîte ou admin) ; une boîte arrive sur `/SOGo/so/` |
+| `https://mail.<domaine>/SOGo/so/` | Webmail (une fois connecté) |
+| `https://mail.<domaine>/user` | Portail utilisateur de la boîte |
+| `https://mail.<domaine>/admin` | Admin mailcow (`admin` / `moohoo`) |
+
+`webmail.<domaine>` et `mails.<domaine>` redirigent vers le même login.
+
 ## En bref
 
 1. `.env` : `DOMAIN_NAME`, `TLD`, `MAIL_ENABLED=true`.
@@ -330,6 +341,42 @@ openssl s_client -connect mail.<domaine>:993 -servername mail.<domaine> </dev/nu
 
 4. Envoyez un message vers une boîte externe (Gmail, mail-tester.com) et
    vérifiez SPF, DKIM et DMARC. Logs : `sudo make mail-logs`.
+
+## Réinstallation propre (DNS et DKIM conservés)
+
+```sh
+# 1. Sauvegarder .env et la clé DKIM
+cd /opt/docker-server
+sudo cp .env /root/docker-server.env.bak
+sudo cp backups/dkim/altherneum.fr.pem /root/dkim-altherneum.fr.pem
+
+# 2. Supprimer mailcow et ses données
+cd /opt/mailcow-dockerized
+sudo docker compose down -v
+cd /
+sudo rm -rf /opt/mailcow-dockerized
+
+# 3. Remettre la clé DKIM
+cd /opt/docker-server
+sudo mkdir -p backups/dkim
+sudo cp /root/dkim-altherneum.fr.pem backups/dkim/altherneum.fr.pem
+sudo chmod 600 backups/dkim/altherneum.fr.pem
+
+# 4. Vérifier .env
+# DOMAIN_NAME=altherneum
+# TLD=.fr
+# MAIL_ENABLED=true
+# MAIL_CREATE_KEYS=no
+# MAIL_DKIM_SELECTOR=dkim
+# MAIL_DKIM_PRIVATE_KEY_FILE=/opt/docker-server/backups/dkim/altherneum.fr.pem
+
+# 5. Réinstaller
+sudo make mail-setup
+```
+
+Le DNS ne change pas : la clé privée est réimportée et le TXT
+`dkim._domainkey` reste identique. Les `MAILBOX_*_PASSWORD` déjà présents
+dans `.env` sont réutilisés ; videz-les pour générer de nouveaux mots de passe.
 
 ## Démarrer / arrêter
 

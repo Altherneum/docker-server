@@ -276,15 +276,20 @@ sudo make up
 Le tab en jeu affiche `Plugin : <version> (<date de compilation>)` : si la date
 ne correspond pas à la release, le jar n'a pas été remplacé.
 
-Les structures posées par le plugin (`Island.yml`, `spawn_*.yml`, `mine.yml`)
-doivent être présentes dans le volume `mc-plugin-data`, sous `structures/` :
+Les structures du plugin (`Island.yml`, `spawn_*.yml`, `mine.yml`) sont
+versionnées dans ce dépôt (`stacks/minecraft/paper/structures/`) et copiées par
+`mc-plugins` dans le volume `mc-plugin-data` (uniquement si elles sont
+absentes, pour ne jamais écraser une structure retouchée en jeu) :
 
 ```sh
 docker exec mc-skyblock ls -la /DataFolder/structures/
 ```
 
-Si un fichier manque, le plugin l'indique dans la console au moment de la
-construction (`Structure Island introuvable : /DataFolder/structures/Island.yml`).
+Le téléchargement se fait depuis `raw.githubusercontent.com` sur la branche
+`main` : les structures doivent donc être **poussées** avant de lancer
+`mc-plugins`. En cas d'échec, les serveurs démarrent quand même et le plugin
+indique les fichiers manquants dans la console
+(`Structure Island introuvable : /DataFolder/structures/Island.yml`).
 
 ## Performances
 
