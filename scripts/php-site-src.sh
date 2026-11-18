@@ -26,30 +26,42 @@ REPO_REF=${REPO_REF:-main}
 # Met à jour un clone existant. Un dépôt modifié localement, une coupure
 # réseau ou un conflit n'empêchent pas le démarrage : un avertissement est
 # affiché et le code déjà présent reste utilisé.
+#
+# Le dépôt peut appartenir à un autre utilisateur (clone fait en root, ou
+# fichiers passés à apache par le conteneur) : `-c safe.directory` évite
+# l'erreur « detected dubious ownership » sans toucher à la configuration
+# Git globale ni aux permissions du dossier.
+SRC_ABS=$(cd "$SRC" 2>/dev/null && pwd) || SRC_ABS=
+git_src() {
+    git -c safe.directory="$SRC_ABS" -C "$SRC" "$@"
+}
+
 update_src() {
     # Aligne le remote sur PHP_SITE_REPO_URL : après un transfert de dépôt, un
     # clone existant garde l'ancienne adresse et ne tire plus les bons commits.
-    CURRENT_ORIGIN=$(git -C "$SRC" remote get-url origin 2>/dev/null || true)
+    CURRENT_ORIGIN=$(git_src remote get-url origin 2>/dev/null || true)
     if [ -z "$CURRENT_ORIGIN" ]; then
-        git -C "$SRC" remote add origin "$REPO_URL"
+        git_src remote add origin "$REPO_URL" \
+            || echo "! impossible d'ajouter le remote origin (voir ci-dessus)" >&2
         echo "→ remote origin ajouté : $REPO_URL"
     elif [ "$CURRENT_ORIGIN" != "$REPO_URL" ]; then
-        git -C "$SRC" remote set-url origin "$REPO_URL"
+        git_src remote set-url origin "$REPO_URL" \
+            || echo "! impossible de mettre à jour le remote origin (voir ci-dessus)" >&2
         echo "→ remote origin mis à jour : $CURRENT_ORIGIN → $REPO_URL"
     fi
 
-    if [ -n "$(git -C "$SRC" status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+    if [ -n "$(git_src status --porcelain --untracked-files=no 2>/dev/null)" ]; then
         echo "! modifications locales dans $SRC : mise à jour ignorée" >&2
         echo "  committez ou annulez-les, puis relancez make php-site-src" >&2
         return 0
     fi
 
     echo "→ mise à jour de $SRC ($REPO_REF)"
-    if git -C "$SRC" pull --rebase --quiet; then
-        echo "  ✓ $(git -C "$SRC" log -1 --format='%h %s')"
+    if git_src pull --rebase --quiet; then
+        echo "  ✓ $(git_src log -1 --format='%h %s')"
     else
         # Un conflit de rebase laisserait le dépôt dans un état bloquant.
-        git -C "$SRC" rebase --abort >/dev/null 2>&1 || true
+        git_src rebase --abort >/dev/null 2>&1 || true
         echo "! git pull --rebase a échoué : le code existant est conservé" >&2
         echo "  vérifiez l'accès réseau à $REPO_URL, puis relancez make php-site-src" >&2
     fi
@@ -85,7 +97,8 @@ if [ ! -f "$SRC/public/index.php" ]; then
     exit 1
 fi
 
-chmod -R a+rX "$SRC"
+chmod -R a+rX "$SRC" 2>/dev/null \
+    || echo "! chmod ignoré : $SRC appartient à un autre utilisateur" >&2
 
 # Le site charge ses variables depuis src/.env (hors racine web).
 # Le fichier est régénéré uniquement s'il est absent, ou si l'on force :

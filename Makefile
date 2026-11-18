@@ -8,7 +8,7 @@ FORGEJO_MIRROR_ARGS ?=
         php-site-src php-site-env \
         forgejo-admin forgejo-runner forgejo-mirror uptime-kuma-admin uptime-kuma-docker-sync dockhand-local-env dockhand-notifications mail-integrate mail-check mail-dkim mail-dkim-key mail-mailboxes mail-install mail-setup mail-up mail-down mail-logs mail-cert-sync mail-cert-timer mail-webmail-url clean clean-service down-clean down-clean-service \
         stop restart-service logs-service up-service up-service-generic rebuild-service down-service \
-        ps-service services azuriom-seed
+        ps-service services azuriom-seed net-diag
 
 help: ## Affiche cette aide
 	@awk 'BEGIN {FS = ":.*##"; printf "\nCommandes disponibles :\n\n"} /^[a-zA-Z_-]+:.*?##/ {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -302,3 +302,6 @@ ps-service: ## État d'un service (ex: make ps-service SERVICE=azuriom)
 # Lister les services disponibles
 services: ## Liste tous les noms de services
 	$(COMPOSE) --env-file .env config --services
+
+net-diag: ## Diagnostique les ports, UFW, iptables et IPv4/IPv6 (lecture seule)
+	./scripts/net-diag.sh

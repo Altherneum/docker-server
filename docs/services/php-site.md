@@ -87,6 +87,11 @@ est ignoré, avec un avertissement, si le clone contient des modifications
 locales : committez ou annulez-les avant de relancer. En cas d'échec réseau, le
 code déjà présent reste utilisé et le démarrage n'est pas bloqué.
 
+Le script tolère un dépôt appartenant à un autre utilisateur (clone `root`,
+fichiers `apache`) grâce à `git -c safe.directory` : l'erreur
+`detected dubious ownership` ne bloque pas `make up`. Voir
+[dépannage](../06-depannage.md#detected-dubious-ownership-dépôt-du-site-php).
+
 ## Nettoyer
 
 ```sh
