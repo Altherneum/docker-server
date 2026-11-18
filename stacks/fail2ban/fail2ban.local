@@ -1,3 +1,5 @@
 [Definition]
 logtarget = STDOUT
 dbfile = /var/lib/fail2ban/fail2ban.sqlite3
+# Bannit aussi les adresses IPv6 (l'action iptables bascule sur ip6tables).
+allowipv6 = yes

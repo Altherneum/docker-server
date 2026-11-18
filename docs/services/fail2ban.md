@@ -69,7 +69,8 @@ Cela supprime le volume `fail2ban-data` (base des bannissements).
 ### SSH de l'hôte
 
 - Lit le journal SSH monté depuis l'hôte.
-- Bannit dans la chaîne `INPUT`, car le SSH de l'hôte ne passe pas par Docker.
+- Bannit dans la chaîne `INPUT`, car le SSH de l'hôte ne passe pas par Docker,
+  en IPv4 comme en IPv6 (l'action bascule sur `ip6tables` pour une IPv6).
 - Utilise le port `HARDEN_SSH_PORT`.
 - Bannit après `HARDEN_FAIL2BAN_MAXRETRY` échecs pendant
   `HARDEN_FAIL2BAN_FINDTIME`, pour `HARDEN_FAIL2BAN_BANTIME`.
@@ -77,8 +78,10 @@ Cela supprime le volume `fail2ban-data` (base des bannissements).
 ### Traefik et conteneurs
 
 - Lit `/var/log/traefik/access.log`.
-- Bannit dans la chaîne `DOCKER-USER`, qui bloque le trafic destiné aux
-  conteneurs publiés par Docker.
+- Bannit dans `DOCKER-USER` (trafic IPv4 DNAT'é par Docker) et `INPUT`
+  (trafic IPv6 publié via `docker-proxy`), pour les deux familles d'adresses.
+- La jail `traefik-env` ignore les requêtes destinées à `dockhand.<domaine>` :
+  consulter un `.env` depuis Dockhand ne déclenche pas de bannissement.
 - `5` erreurs en `24 h` donnent un bannissement de `24 h`.
 - Les bannissements sont progressifs, jusqu'à `90` jours.
 - La jail `traefik-404` bannit après `10` erreurs 404 en `1 h`.

@@ -2,15 +2,18 @@
 # Ne jamais bannir le réseau Docker ni la boucle locale.
 ignoreip = 127.0.0.1/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 backend = polling
-# Docker publie les ports via DNAT : le trafic vers Traefik ne passe pas par
-# INPUT mais par FORWARD/DOCKER-USER. Toutes les jails de ce dépôt visent des
-# services publiés par Docker : on bannit donc dans DOCKER-USER.
+
+# Bannissement IPv4 et IPv6.
 #
-# Important : définir `chain` ici, pas dans `banaction`. L'action par défaut
-# de fail2ban passe déjà `chain="%(chain)s"` ; une valeur placée dans
-# `banaction[...]` serait écrasée par ce paramètre (et retomberait sur INPUT).
-chain = DOCKER-USER
-banaction = iptables[type=allports]
+# - DOCKER-USER : trafic IPv4 DNAT'é par Docker (web et Minecraft publiés).
+# - INPUT : trafic IPv6 publié par Docker (docker-proxy) et services de l'hôte.
+#
+# L'action `iptables` bascule toute seule sur `ip6tables` pour une adresse
+# IPv6 (sections [Init?family=inet6]) et utilise le rejet icmp6.
+# Sans `INPUT`, un bannissement IPv6 serait posé dans DOCKER-USER et ne
+# bloquerait pas le web, qui arrive par docker-proxy.
+action = iptables[type=allports, chain="DOCKER-USER,INPUT"]
+
 bantime = 24h
 findtime = 24h
 maxretry = 5
